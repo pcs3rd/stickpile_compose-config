@@ -4,6 +4,8 @@ reference: dev
 working_dir: core_services/traefik
 compose_files: 
   - compose.yaml
+env_files:
+  - secrets.enc.env
 ---
 name: authentik
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
@@ -11,6 +13,8 @@ reference: dev
 working_dir: core_services/authentik
 compose_files: 
   - compose.yaml
+env_files:
+  - secrets.enc.env
 ---
 name: jellyfin
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
@@ -18,6 +22,8 @@ reference: dev
 working_dir: web-apps/jellyfin
 compose_files: 
   - compose.yaml
+env_files:
+  - secrets.enc.env
 ---
 name: seafile
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
@@ -25,6 +31,8 @@ reference: dev
 working_dir: web-apps/seafile
 compose_files: 
   - compose.yaml
+env_files:
+  - secrets.enc.env
 ---
 name: meshing-around
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
@@ -32,6 +40,8 @@ reference: dev
 working_dir: web-apps/seafile
 compose_files: 
   - compose.yaml
+env_files:
+  - secrets.enc.env
 ---
 name: affine
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
@@ -39,6 +49,8 @@ reference: dev
 working_dir: web-apps/affine
 compose_files: 
   - compose.yaml
+env_files:
+  - secrets.enc.env
 ---
 name: kiwix
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
@@ -46,3 +58,5 @@ reference: dev
 working_dir: web-apps/kiwix
 compose_files: 
   - compose.yaml
+env_files:
+  - secrets.enc.env
