@@ -1,0 +1,5 @@
+http:
+  middlewares:
+    limit:
+      buffering:
+        maxRequestBodyBytes: 700000000

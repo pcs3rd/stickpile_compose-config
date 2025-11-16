@@ -1,0 +1,77 @@
+networks:
+  internal:
+    name: web-prod-wordpress_Internal
+    driver: overlay
+    attachable: true
+  traefik_backbone: # For external containers.
+    name: stack_reverse-proxy_backbone
+    external: true
+
+services:
+  wpdb:
+    
+    # We use a mariadb image which supports both amd64 & arm64 architecture
+    image: mariadb:10.6.4-focal
+    # If you really want to use MySQL, uncomment the following line
+    #image: mysql:8.0.27
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - ${persist_data_home}/sql:/var/lib/mysql
+    restart: always
+    # environment:
+    #   - MYSQL_ROOT_PASSWORD
+    #   - MYSQL_DATABASE
+    #   - MYSQL_USER
+    #   - MYSQL_PASSWORD
+    env_file:  
+      - secrets.enc.env  
+    networks:
+      - internal
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 100s 
+
+
+  wordpress:
+    image: wordpress:latest
+    
+    volumes:
+      - type: bind
+        source: ${persist_data_home}/wp-uploads.ini
+        target: /usr/local/etc/php/conf.d/uploads.ini
+        consistency: cached
+      - type: bind
+        source: ${persist_data_home}/wp-data
+        target: /var/www/html
+        consistency: cached
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wordpress.rule=Host(`raymonddean.me`)"
+      - "traefik.http.routers.wordpress.entrypoints=websecure"
+      - "traefik.http.routers.wordpress.tls.certresolver=httpsResolve"
+      - "traefik.http.services.wordpress.loadbalancer.server.port=80"
+
+    restart: always
+    environment:
+      - WORDPRESS_DB_HOST
+      - WORDPRESS_DB_USER
+      - WORDPRESS_DB_PASSWORD
+      - WORDPRESS_DB_NAME
+    networks:
+      - internal
+      - traefik_backbone
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 100s 

@@ -1,0 +1,98 @@
+
+services:
+  traefik:
+    image: "traefik:v3.5.3"
+    env_file:  
+      - secrets.enc.env  
+    command:
+      #- "--log.level=DEBUG"
+      - "-tracing=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--entryPoints.smtps.address=:465"
+      - "--entryPoints.smtp.address=:587"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entryPoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.mqtt.address=:8883"
+      - "--entrypoints.ldaps.address=:636"
+      # - "--entrypoints.websocket.address=:9001"
+      - "--providers.docker.network=stack_reverse-proxy_backbone"
+      - "--providers.docker.network=stack_reverse-proxy_backbone" #This is some dumb crap
+      - "--certificatesresolvers.httpsResolve.acme.httpchallenge=true"
+      - "--certificatesresolvers.httpsResolve.acme.httpchallenge.entrypoint=web"
+      - "--accesslog=true"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.httpsResolve.acme.email=rdean@seickpile.net"
+      - "--certificatesresolvers.httpsResolve.acme.storage=/letsencrypt/acme.json"
+      - "--providers.file.directory=/rules"
+      - "--log.level=DEBUG"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+      - "8883:8883"
+      - "8884:8884"
+      - "4883:4883"
+      - "888:888"
+      - "636:636"
+      - "442:442"
+      - "465:465"
+      - "587:587"
+#      - "4318:4318"
+    volumes:
+      - "${persist_data_home}/letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./rules:/rules
+    networks: 
+      - backbone
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`npm.stickpile.net`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=httpsResolve"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
+  ddclient:
+    image: lscr.io/linuxserver/ddclient:latest
+    # environment:
+    #   - PUID=911
+    #   - PGID=911
+    #   - TZ=America/New_York
+    env_file:  
+      - secrets.enc.env  
+    volumes:
+      - ${persist_data_home}/ddclient:/config
+
+    deploy: 
+      mode: replicated
+      replicas: 2
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 600s # jellyfin is a chonker
+      #placement:
+      #  constraints: [node.hostname == sevenofnine]
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+#    volumes:
+#      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - 1888:1888 # pprof extension
+     # - 8888:8888 # Prometheus metrics exposed by the Collector
+     # - 8889:8889 # Prometheus exporter metrics
+      - 13133:13133 # health_check extension
+      - 4317:4317 # OTLP gRPC receiver
+      - 4318:4318 # OTLP http receiver
+      - 55679:55679 # zpages extension
+      
+networks:
+  backbone:
+    driver: overlay # Need this for inter-node traffic
+    attachable: true
+    external: false

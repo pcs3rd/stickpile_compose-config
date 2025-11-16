@@ -1,0 +1,766 @@
+services:
+  tinshop:
+    image: ghcr.io/ajmandourah/tinshop-ng:v0.5.3
+    restart: always
+    environment:
+      - PUID
+      - PGID
+      - TINSHOP_REVERSEPROXY=True
+      - TINSHOP_SOURCES_DIRECTORIES=/games
+      - TINSHOP_WELCOMEMESSAGE=Welcome to my Tinshop!
+    volumes:
+      - ${media_mount}/2111/games:/games
+      - ${persist_data_home}/tinshop:/data  #this is where config.yaml and titles json file will live. added keys here should also be modifed in config.yaml file as /data/prod.keys 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tin.rule=Host(`shop.stickpile.net`)"
+      - "traefik.http.routers.tin.entrypoints=websecure"
+      - "traefik.http.routers.tin.tls.certresolver=httpsResolve"
+      - "traefik.http.services.tin.loadbalancer.server.port=3000"
+      - "traefik.http.routers.tin.middlewares=middlewares-authentik@file"
+    networks:
+      - traefik_backbone
+      - mediaserver
+  ariang:
+    image: hurlenko/aria2-ariang:1.3.11
+    
+    volumes:
+      - ${downloads_home}:/downloads
+      - ${persist_data_home}/aria2:/aria2/conf
+      - ${media_mount}/2111/games:/games
+    # - ${game_data_games}/games:/aria2/data/tournaments
+
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - RPC_SECRET
+    #   - ARIA2RPCPORT
+    networks:
+      - traefik_backbone
+      - mediaserver
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ariang.rule=Host(`dl.stickpile.net`)"
+      - "traefik.http.routers.ariang.entrypoints=websecure"
+      - "traefik.http.routers.ariang.tls.certresolver=httpsResolve"
+      - "traefik.http.services.ariang.loadbalancer.server.port=8080"
+      - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:1.5.3
+    volumes:
+      - ${persist_data_home}/bazaar:/config
+      - ${media_mount}:/storage
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    networks:
+      - traefik_backbone
+      - mediaserver
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bazarr.rule=Host(`bazarr.stickpile.net`)"
+      - "traefik.http.routers.bazarr.entrypoints=websecure"
+      - "traefik.http.routers.bazarr.tls.certresolver=httpsResolve"
+      - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
+      - "traefik.http.routers.bazarr.middlewares=middlewares-authentik@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:v3.4.2
+    
+    networks:
+      - mediaserver
+    
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+
+  immich-database:
+    
+    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:739cdd626151ff1f796dc95a6591b55a714f341c737e27f045019ceabf8e8c52
+    volumes:
+      # Do not edit the next line. If you want to change the database storage location on your system, edit the value of DB_DATA_LOCATION in the .env file
+      - ${persist_data_home}/immich/db:/var/lib/postgresql/data
+    # environment:
+    #   POSTGRES_PASSWORD: ${DB_PASSWORD}
+    #   POSTGRES_USER: ${DB_USERNAME}
+    #   POSTGRES_DB: ${DB_DATABASE_NAME}
+    #   POSTGRES_INITDB_ARGS: '--data-checksums'
+    networks:
+      - traefik_backbone
+    command: >-
+      postgres -c shared_preload_libraries=vectors.so -c 'search_path="$$user",
+      public, vectors' -c logging_collector=on -c max_wal_size=2GB -c
+      shared_buffers=512MB -c wal_compression=on
+    restart: always
+    healthcheck:
+      test: >-
+        pg_isready --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" ||
+        exit 1; Chksum="$$(psql --dbname="$${POSTGRES_DB}"
+        --username="$${POSTGRES_USER}" --tuples-only --no-align
+        --command='SELECT COALESCE(SUM(checksum_failures), 0) FROM
+        pg_stat_database')"; echo "checksum failure count is $$Chksum"; [
+        "$$Chksum" = '0' ] || exit 1
+      interval: 5m
+      start_interval: 30s
+      start_period: 5m
+
+  immich-machine-learning:
+    
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
+    #   file: hwaccel.ml.yml
+    #   service: cpu # set to one of [armnn, cuda, openvino, openvino-wsl] for accelerated inference - use the `-wsl` version for WSL2 where applicable
+    volumes:
+      - ${persist_data_home}/immich/model-cache:/cache
+    # env_file:
+    #   - .env
+    networks:
+      - traefik_backbone
+    restart: always
+    healthcheck:
+      disable: false
+
+  immich-redis:
+    
+    image: docker.io/redis:6.2-alpine@sha256:148bb5411c184abd288d9aaed139c98123eeb8824c5d3fce03cf721db58066d8
+    networks:
+      - traefik_backbone
+    restart: always
+    healthcheck:
+      test: redis-cli ping || exit 1
+  immich-server:
+    
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    depends_on:
+      - immich-database
+      - immich-redis
+    # extends:
+    #   file: hwaccel.transcoding.yml
+    #   service: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
+    volumes:
+      # Do not edit the next line. If you want to change the media storage location on your system, edit the value of UPLOAD_LOCATION in the .env file
+      - ${persist_data_home}/immich/upload:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    # env_file:
+    #   - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.immich.rule=Host(`immich.stickpile.net`)"
+      - "traefik.http.routers.immich.entrypoints=websecure"
+      - "traefik.http.routers.immich.tls.certresolver=httpsResolve"
+      - "traefik.http.services.immich.loadbalancer.server.port=2283"
+    networks:
+      - traefik_backbone
+      - mediaserver
+    restart: always
+    healthcheck:
+      disable: false
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:10.10.7
+    volumes:
+      - ${persist_data_home}/jellyfin:/config
+      - ${media_mount}:/media
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    networks:
+      - mediaserver
+      - traefik_backbone
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jf.rule=Host(`media.stickpile.net`)"
+      - "traefik.http.routers.jf.entrypoints=websecure"
+      - "traefik.http.routers.jf.tls.certresolver=httpsResolve"
+      - "traefik.http.services.jf.loadbalancer.server.port=8096"
+#      - 'traefik.http.routers.jf.middlewares=jellyfin-mw'
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 600s # jellyfin is a chonker
+      placement:
+        constraints: [ node.hostname == sevenofnine ]
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+
+  #requests System
+  jellyseerr:
+    
+    image: fallenbagel/jellyseerr:2.7.3
+    volumes:
+      - ${persist_data_home}/jellyseerr:/app/config
+    networks:
+      - traefik_backbone
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.js.rule=Host(`requests.stickpile.net`)"
+      - "traefik.http.routers.js.entrypoints=websecure"
+      - "traefik.http.routers.js.tls.certresolver=httpsResolve"
+      - "traefik.http.services.js.loadbalancer.server.port=5055"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+
+  komga:
+    image: ghcr.io/gotson/komga:1.23.5
+    volumes:
+      - ${persist_data_home}/komga/config:/config
+      - ${persist_data_home}/komga/data:/data
+      - /etc/timezone:/etc/timezone
+      - ${media_mount}:/media
+    # remove the whole environment section if you don't need it
+    # environment:
+    #   - KOMGA_OAUTH2_ACCOUNT_CREATION=true
+    #   - <ENV_VAR>=<extra configuration>
+    networks:
+      - traefik_backbone
+      - mediaserver
+    
+    user: "911:911"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.komga.rule=Host(`komga.stickpile.net`)"
+      - "traefik.http.routers.komga.entrypoints=websecure"
+      - "traefik.http.routers.komga.tls.certresolver=httpsResolve"
+      - "traefik.http.services.komga.loadbalancer.server.port=25600"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+
+  # kosync:
+    
+  #   image: koreader/kosync:1.0.1.3
+  #   volumes:
+  #     - ${persist_data_home}/koreader-sync/logs:/app/koreader-sync-server/logs
+  #     - ${persist_data_home}/koreader-sync/redis-logs:/var/log/redis
+  #     - ${persist_data_home}/koreader-sync/redis:/var/lib/redis
+  #   environment:
+  #     - PUID
+  #     - PGID
+  #     - TZ
+  #   networks:
+  #     - traefik_backbone
+  #     - mediaserver
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.kosync.rule=Host(`sync.stickpile.net`)"
+  #     - "traefik.http.routers.kosync.entrypoints=websecure"
+  #     - "traefik.http.routers.kosync.tls.certresolver=httpsResolve"
+  #     - "traefik.http.services.kosync.loadbalancer.server.port=8080"
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
+  #     endpoint_mode: vip
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       ##max_attempts:  3
+  navidrome:
+    image: deluan/navidrome:0.58.0
+    volumes:
+      - ${persist_data_home}/navidrome:/data
+      - ${media_mount}:/music
+    # environment:
+    #   # Optional: put your config options customization here. Examples:
+    #   ND_SCANSCHEDULE: 1h
+    #   ND_LOGLEVEL: info
+    #   ND_SESSIONTIMEOUT: 24h
+    #   ND_BASEURL: ""
+    #   ND_REVERSEPROXYWHITELIST: "10.0.4.0/24,10.0.7.0/24,10.0.2.0/24,10.0.3.0/24"
+    #   ND_REVERSEPROXYUSERHEADER: "X-authentik-username"
+    networks:
+      - mediaserver
+      - traefik_backbone
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.navi.rule=Host(`music.stickpile.net`)"
+      - "traefik.http.routers.navi.entrypoints=websecure"
+      - "traefik.http.routers.navi.tls.certresolver=httpsResolve"
+      - "traefik.http.services.navi.loadbalancer.server.port=4533"
+      - "traefik.http.routers.navi.middlewares=middlewares-authentik@file"
+    # # should be owner of volumes
+    
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 600s # jellyfin is a chonker
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:2.0.5
+    volumes:
+      - ${persist_data_home}/prowlarr:/config
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    networks:
+      - traefik_backbone
+      - mediaserver
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.stickpile.net`)"
+      - "traefik.http.routers.prowlarr.entrypoints=websecure"
+      - "traefik.http.routers.prowlarr.tls.certresolver=httpsResolve"
+      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+      - "traefik.http.routers.prowlarr.middlewares=middlewares-authentik@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:5.27.5
+    volumes:
+      - ${persist_data_home}/radarr:/config
+      - ${media_mount}:/storage
+      - ${downloads_home}:/downloads
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    networks:
+      - traefik_backbone
+      - mediaserver
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.stickpile.net`)"
+      - "traefik.http.routers.radarr.entrypoints=websecure"
+      - "traefik.http.routers.radarr.tls.certresolver=httpsResolve"
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+      - "traefik.http.routers.radarr.middlewares=middlewares-authentik@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+
+  # Real-deabrid torrent client
+  rdtclient:
+    
+    image: rogerfar/rdtclient:2.0.118
+    volumes:
+      - ${downloads_home}:/downloads
+      - ${persist_data_home}/rdt-client/:/data/db
+    networks:
+      - traefik_backbone
+      - mediaserver
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rdt.rule=Host(`rd.stickpile.net`)"
+      - "traefik.http.routers.rdt.entrypoints=websecure"
+      - "traefik.http.routers.rdt.tls.certresolver=httpsResolve"
+      - "traefik.http.services.rdt.loadbalancer.server.port=6500"
+      - "traefik.http.routers.rdt.middlewares=middlewares-authentik@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    volumes:
+      - ${persist_data_home}/readarr:/config
+      - ${media_mount}:/storage
+      - ${downloads_home}:/downloads
+    env_file:  
+      - secrets.enc.env  
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    networks:
+      - traefik_backbone
+      - mediaserver
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
+      - "traefik.http.routers.readarr.entrypoints=websecure"
+      - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
+      - "traefik.http.services.readarr.loadbalancer.server.port=8787"
+      - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:4.0.15
+    volumes:
+      - ${persist_data_home}/sonarr:/config
+      - ${media_mount}:/storage
+      - ${downloads_home}:/downloads
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    networks:
+      - traefik_backbone
+      - mediaserver
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.stickpile.net`)"
+      - "traefik.http.routers.sonarr.entrypoints=websecure"
+      - "traefik.http.routers.sonarr.tls.certresolver=httpsResolve"
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+      - "traefik.http.routers.sonarr.middlewares=middlewares-authentik@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 120s
+
+  tvheadend:
+    image: lscr.io/linuxserver/tvheadend:version-d4dff154
+    volumes:
+      - ${persist_data_home}/tvheadend/data:/config
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    network_mode: host
+    #networks:
+    #  traefik_backbone:
+    #    gw_priority: 2
+    #    priority: 2
+
+    #  mediaserver:
+    #    gw_priority: 1
+    #    priority: 1
+    #  zdvr1:
+    #    ipv4_address: 192.168.187.163
+    #    gw_priority: 3
+    #    priority: 3
+    #  zdvr2:
+    #    ipv4_address: 192.168.83.68
+    #    gw_priority: 4
+    #    priority: 4
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 600s # jellyfin is a chonker
+      placement:
+        constraints: [ node.hostname == sevenofnine ]
+    devices:
+      - /dev/dri:/dev/dri #optional
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tve.rule=Host(`tve.stickpile.net`)"
+      - "traefik.http.routers.tve.entrypoints=websecure"
+      - "traefik.http.routers.tve.tls.certresolver=httpsResolve"
+     # - "traefik.http.services.tve.loadbalancer.server.port=9981"
+      - "traefik.http.services.tve.loadbalancer.server.url=http://172.16.0.7:9981/"
+      - "traefik.http.routers.tve.middlewares=middlewares-authentik@file"
+
+  # unmanic:
+  #   image: josh5/unmanic:staging
+    
+  #   volumes:
+  #     - ${persist_data_home}/unmanic:/config
+  #     - ${media_mount}:/library
+  #     - type: tmpfs
+  #       target: /tmp/unmanic-cache
+  #       tmpfs:
+  #         size: 10737418240
+  #   environment:
+  #     - PUID
+  #     - PGID
+  #   networks:
+  #     - traefik_backbone
+  #     - mediaserver
+    
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
+  #     endpoint_mode: vip
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       ##max_attempts:  3
+  #       window: 600s # jellyfin is a chonker
+  #     placement:
+  #       constraints: [ node.hostname == sevenofnine ]
+  #   devices:
+  #     - /dev/dri/renderD128:/dev/dri/renderD128
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.unmanic.rule=Host(`unmanic.stickpile.net`)"
+  #     - "traefik.http.routers.unmanic.entrypoints=websecure"
+  #     - "traefik.http.routers.unmanic.tls.certresolver=httpsResolve"
+  #     - "traefik.http.services.unmanic.loadbalancer.server.port=8888"
+  #     - "traefik.http.routers.unmanic.middlewares=middlewares-authentik@file"
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:2.14.5
+    volumes:
+      - ${persist_data_home}/lidarr:/config
+      - ${persist_data_home}/lidarr-overlay/custom-services.d:/custom-services.d
+      - ${persist_data_home}/lidarr-overlay/custom-cont-init.d:/custom-cont-init.d
+      - ${media_mount}:/storage
+      - ${downloads_home}:/downloads
+    restart: unless-stopped
+    networks:
+      - traefik_backbone
+      - mediaserver
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lidarr.rule=Host(`lidarr.stickpile.net`)"
+      - "traefik.http.routers.lidarr.entrypoints=websecure"
+      - "traefik.http.routers.lidarr.tls.certresolver=httpsResolve"
+      - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
+      - "traefik.http.routers.lidarr.middlewares=middlewares-authentik@file"
+
+  metube:
+    image: ghcr.io/alexta69/metube:2025.10.01
+    restart: unless-stopped
+    volumes:
+      - ${downloads_home}/yt-dlp:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.metube.rule=Host(`metube.stickpile.net`)"
+      - "traefik.http.routers.metube.entrypoints=websecure"
+      - "traefik.http.routers.metube.tls.certresolver=httpsResolve"
+      - "traefik.http.services.metube.loadbalancer.server.port=8081"
+      - "traefik.http.routers.metube.middlewares=middlewares-authentik@file"
+    networks:
+      - traefik_backbone
+      - mediaserver
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  soularr:
+    image: mrusse08/soularr:latest
+    container_name: soularr
+    hostname: soularr
+    user: 911:911 # this should be set to your UID and GID, which can be determined via `id -u` and `id -g`, respectively
+    # environment:
+    #   - TZ
+    #   - SCRIPT_INTERVAL=300 # Script interval in seconds
+    volumes:
+      # "You can set /downloads to whatever you want but will then need to change the Slskd download dir in your config file"
+      - ${downloads_home}:/downloads
+        # Select where you are storing your config file.
+        # Leave "/data" since thats where the script expects the config file to be
+      - ${persist_data_home}/soularr:/data
+    restart: unless-stopped
+    networks:
+      - traefik_backbone
+      - mediaserver
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  slskd:
+    # environment:
+    #   - SLSKD_REMOTE_CONFIGURATION=true
+    #   - SLSKD_NO_AUTH=true
+    #   - SLSKD_USERNAME=stickpile
+    #   - SLSKD_PASSWORD=stickpile1620!
+    #   - SLSKD_SLSK_USERNAME=stickpile
+    #   - SLSKD_SLSK_PASSWORD=slskdstickpile15620!
+    #   #- SLSKD_SHARED_DIR=/media/2111/music;/media/242b/music;/media/80b6/music
+    #   - SLSKD_SHARED_DIR=/media
+    #   - SLSKD_DOWNLOADS_DIR=/downloads
+    ports:
+      - 5030:5030/tcp
+      - 5031:5031/tcp
+      - 50300:50300/tcp
+    volumes:
+      - ${persist_data_home}/slskd:/app:rw
+      - ${media_mount}:/media
+      - ${downloads_home}:/downloads
+    networks:
+      - traefik_backbone
+      - mediaserver
+    user: 911:911
+    image: slskd/slskd:0.23.2.65534-514c4f65
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.slskd.rule=Host(`slskd.stickpile.net`)"
+      - "traefik.http.routers.slskd.entrypoints=websecure"
+      - "traefik.http.routers.slskd.tls.certresolver=httpsResolve"
+      - "traefik.http.services.slskd.loadbalancer.server.port=5030"
+      - "traefik.http.routers.slskd.middlewares=middlewares-authentik@file"
+      
+  bliss_service:
+    image: romancin/bliss:latest
+    networks:
+      - traefik_backbone
+      - mediaserver
+    # environment:
+    #   - PUID
+    #   - PGID
+    #   - TZ
+    volumes:
+      - ${persist_data_home}/bliss:/config
+      - ${media_mount}:/storage
+    #ports:
+      #- "3220:3220"
+      #- "3221:3221"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bliss.rule=Host(`tags.stickpile.net`)"
+      - "traefik.http.routers.bliss.entrypoints=websecure"
+      - "traefik.http.routers.bliss.tls.certresolver=httpsResolve"
+      - "traefik.http.services.bliss.loadbalancer.server.port=3220"
+      - "traefik.http.routers.bliss.middlewares=middlewares-authentik@file"
+networks:
+  mediaserver:
+    name: web-prod-media-server_Internal
+    driver: overlay
+    attachable: true
+  internet:
+    driver: bridge
+  traefik_backbone:
+    # For external containers.
+    name: stack_reverse-proxy_backbone
+    external: true
+  zdvr1:
+    driver: macvlan
+    name: zdvr1-nonet
+    driver_opts:
+      parent: enp0s20f0u4
+    ipam:
+      config:
+        - subnet: "192.168.187.160/29"
+          ip_range: "192.168.187.160/29"
+          gateway: "192.168.187.162"
+  zdvr2:
+    driver: macvlan
+    name: zdvr2-nonet
+    driver_opts:
+      parent: enp0s20f0u5
+    ipam:
+      config:
+        - subnet: "192.168.83.64/29"
+          ip_range: "192.168.83.64/29"
+          gateway: "192.168.83.66"

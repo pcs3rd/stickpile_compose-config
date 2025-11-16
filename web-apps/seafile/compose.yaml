@@ -1,0 +1,147 @@
+
+
+networks:
+  internal:
+    name: web-prod-seafile_Internal
+    driver: overlay
+    attachable: true
+  backbone: # For external containers.
+    name: stack_reverse-proxy_backbone
+    external: true
+
+services:
+  db:
+    image: mariadb:10.11
+    
+    volumes:
+      - ${persist_data_home}/db:/var/lib/mysql  # Required, specifies the path to MySQL data persistent store.
+    networks:
+      - internal
+    # environment:
+    #   - MARIADB_ROOT_PASSWORDs=${db_pass}  # Required, set the root's password of MySQL service.
+    #   - MARIADB_LOG_CONSOLE=true
+    #   - MARIADB_AUTO_UPGRADE=1
+    #   - MARIADB_ROOT_PASSWORD
+    env_file:  
+      - secrets.enc.env  
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        #max_attempts: 3
+        window: 120s
+
+  memcached:
+    image: memcached:1.6.18
+    
+    entrypoint: memcached -m 256
+    networks:
+      - internal
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        #max_attempts: 3
+        window: 120s
+          
+  seafile:
+    
+    image: seafileltd/seafile-mc:11.0-latest
+    ports:
+      - "8000:8000"
+      - "8082:8082"
+      - "8981:8981"
+      - "8282:80"
+    volumes:
+      - ${persist_data_home}/seafile-data:/shared   # Required, specifies the path to Seafile data persistent store.
+    depends_on:
+      - db
+      - memcached
+    # environment:
+    #   - DB_HOST
+    #   - DB_ROOT_PASSWD=${db_pass}
+    #   - TIME_ZONE
+    #   - SEAFILE_ADMIN_EMAIL
+    #   - SEAFILE_ADMIN_PASSWORD
+    #   - SEAFILE_SERVER_HOSTNAME
+    #   - SEAFILE_SERVER_LETSENCRYPT
+    env_file:  
+      - secrets.enc.env  
+    networks:
+      - internal
+      - backbone
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.seaf.rule=Host(`seafile.stickpile.net`)"
+      - "traefik.http.routers.seaf.entrypoints=websecure"
+      - "traefik.http.routers.seaf.tls.certresolver=httpsResolve"
+      - traefik.http.routers.seaf.service=seaf
+      - "traefik.http.services.seaf.loadbalancer.server.port=80"
+
+      - "traefik.http.routers.seafdav.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafdav`)"
+      - "traefik.http.routers.seafdav.entrypoints=websecure"
+      - "traefik.http.routers.seafdav.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.seafdav.service=seafdav"
+      - "traefik.http.services.seafdav.loadbalancer.server.port=8076"
+
+      - "traefik.http.routers.seafhttp.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafhttp`)"
+      - "traefik.http.routers.seafhttp.entrypoints=web"
+      - "traefik.http.routers.seafhttp.tls.certresolver=httpsResolve"
+      - traefik.http.routers.seafhttp.service=seafhttp
+      - "traefik.http.services.seafhttp.loadbalancer.server.port=8082"
+
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        #max_attempts: 3
+        window: 120s
+  code:
+    tty: true
+    
+    ports:
+      - 9980:9980
+    environment:
+      - domain=seafile.stickpile.net
+#      - aliasgroup1=https://seafile.stickpile.net:443
+      - username=e9gGjkC1GjBT7zDg0Scp4WoNvi78jhSO
+      - password=JZGfqM0RoAJHR8Jn7Q60hrIEMtOL6IZL
+      - extra_params=--o:ssl.enable=true
+      - dictionaries=en_US
+    restart: always
+    image: collabora/code
+    networks:
+      - backbone
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        #max_attempts: 3
+        window: 120s
+      labels:
+      - "traefik.enable=true"
+      #- "traefik.http.routers.collabora.tls=true"
+      - "traefik.http.routers.collabora.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.collabora.entrypoints=websecure"
+      - "traefik.http.routers.collabora.rule=Host(`code.stickpile.net`)"
+      - "traefik.http.routers.collabora.middlewares=collabora-header"
+      - "traefik.http.services.collabora.loadbalancer.server.port=9980"
+      - "traefik.http.middlewares.collabora-header.headers.referrerPolicy=no-referrer"
+      - "traefik.http.middlewares.collabora-header.headers.stsSeconds=15552000"
+      - "traefik.http.middlewares.collabora-header.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.collabora-header.headers.stsPreload=true"
+      - "traefik.http.middlewares.collabora-header.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.collabora-header.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.collabora-header.headers.customRequestHeaders.X-Forwarded-Proto=https"

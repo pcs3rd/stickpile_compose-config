@@ -1,0 +1,178 @@
+networks:
+  authentik:
+    name: core-prod-authentik_Internal
+    driver: overlay
+    attachable: true
+
+  traefik_backbone: # For external containers.
+    name: stack_reverse-proxy_backbone
+    external: true
+services:
+  mfsmaster:
+    image: moosefs/master
+    container_name: "mfsmaster"
+    networks:
+      moosefsnet:
+        ipv4_address: "172.20.0.2"
+    ports:
+      - "9419:9419"
+      - "9420:9420"
+      - "9421:9421"
+    volumes:
+      - ./data/master/meta:/var/lib/mfs
+    hostname: mfsmaster
+    environment:
+      - MFS_ENV=TEST
+      # In the TEST environment, if metadata.mfs file or other metadata files
+      # like metdata.mfs.back and changelog.0.mfs are missing, the script will
+      # create an EMPTY metadata file!
+      # When MFS_ENV=PROD metdata.mfs file will not be created!
+
+  mfsgui:
+    image: moosefs/gui
+    container_name: "mfsgui"
+    networks:
+      moosefsnet:
+        ipv4_address: "172.20.0.3"
+    ports:
+      - "9425:9425"
+    depends_on:
+      - mfsmaster
+
+  mfsmetalogger:
+    image: moosefs/metalogger
+    container_name: "mfsmetalogger"
+    networks:
+      moosefsnet:
+        ipv4_address: "172.20.0.4"
+    volumes:
+      - ./data/metalogger/meta:/var/lib/mfs
+    environment:
+      - MFS_ENV=TEST
+      # In the TEST environment, if metadata.mfs file or other metadata files
+      # like metdata.mfs.back and changelog.0.mfs are missing, the script will
+      # create an EMPTY metadata file!
+      # When MFS_ENV=PROD metdata.mfs file will not be created!
+    depends_on:
+      - mfsmaster
+
+  mfschunkserver1:
+    image: moosefs/chunkserver
+    container_name: "mfschunkserver1"
+    environment:
+      - LABELS=M
+      #- SIZE=100
+    links:
+      - mfsmaster
+    networks:
+      moosefsnet:
+        ipv4_address: "172.20.0.11"
+    volumes:
+      - ./data/cs1/hdd0:/mnt/hdd0
+      - ./data/cs1/meta:/var/lib/mfs
+    depends_on:
+      - mfsmaster
+
+  mfschunkserver2:
+    image: moosefs/chunkserver
+    container_name: "mfschunkserver2"
+    environment:
+      - LABELS=M,B
+      #- SIZE=100
+    links:
+      - mfsmaster
+    networks:
+      moosefsnet:
+        ipv4_address: "172.20.0.12"
+    volumes:
+      - ./data/cs2/hdd0:/mnt/hdd0
+      - ./data/cs2/meta:/var/lib/mfs
+    depends_on:
+      - mfsmaster
+
+  mfschunkserver3:
+    image: moosefs/chunkserver
+    container_name: "mfschunkserver3"
+    environment:
+      - LABELS=M,B
+      #- SIZE=100
+    links:
+      - mfsmaster
+    networks:
+      moosefsnet:
+        ipv4_address: "172.20.0.13"
+    volumes:
+      - ./data/cs3/hdd0:/mnt/hdd0
+      - ./data/cs3/meta:/var/lib/mfs
+    depends_on:
+      - mfsmaster
+
+  mfschunkserver4:
+    image: moosefs/chunkserver
+    container_name: "mfschunkserver4"
+    environment:
+      - LABELS=B
+      #- SIZE=100
+    links:
+      - mfsmaster
+    networks:
+      moosefsnet:
+        ipv4_address: "172.20.0.14"
+    volumes:
+      - ./data/cs4/hdd0:/mnt/hdd0
+      - ./data/cs4/meta:/var/lib/mfs
+    depends_on:
+      - mfsmaster
+
+  mfsclient1:
+    image: moosefs/client
+    container_name: "mfsclient1"
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse:/dev/fuse
+    security_opt:
+      - apparmor:unconfined
+    stdin_open: true
+    tty: true
+    links:
+      - mfsmaster
+    networks:
+      moosefsnet:
+        ipv4_address: "172.20.0.101"
+    depends_on:
+      - mfsmaster
+      - mfschunkserver1
+      - mfschunkserver2
+      - mfschunkserver3
+      - mfschunkserver4
+
+  mfsclient2:
+    image: moosefs/client
+    container_name: "mfsclient2"
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse:/dev/fuse
+    security_opt:
+      - apparmor:unconfined
+    stdin_open: true
+    tty: true
+    links:
+      - mfsmaster
+    networks:
+      moosefsnet:
+        ipv4_address: "172.20.0.102"
+    depends_on:
+      - mfsmaster
+      - mfschunkserver1
+      - mfschunkserver2
+      - mfschunkserver3
+      - mfschunkserver4
+
+networks:
+  moosefsnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
