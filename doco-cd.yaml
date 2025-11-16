@@ -1,0 +1,48 @@
+name: traefik
+repository_url: https://github.com/psc3rd/stickpile_compose-config.git
+reference: dev
+working_dir: core_services/traefik
+compose_files: 
+  - compose.yaml
+---
+name: authentik
+repository_url: https://github.com/psc3rd/stickpile_compose-config.git
+reference: dev
+working_dir: core_services/authentik
+compose_files: 
+  - compose.yaml
+---
+name: jellyfin
+repository_url: https://github.com/psc3rd/stickpile_compose-config.git
+reference: dev
+working_dir: web-apps/jellyfin
+compose_files: 
+  - compose.yaml
+---
+name: seafile
+repository_url: https://github.com/psc3rd/stickpile_compose-config.git
+reference: dev
+working_dir: web-apps/seafile
+compose_files: 
+  - compose.yaml
+---
+name: meshing-around
+repository_url: https://github.com/psc3rd/stickpile_compose-config.git
+reference: dev
+working_dir: web-apps/seafile
+compose_files: 
+  - compose.yaml
+---
+name: affine
+repository_url: https://github.com/psc3rd/stickpile_compose-config.git
+reference: dev
+working_dir: web-apps/affine
+compose_files: 
+  - compose.yaml
+---
+name: kiwix
+repository_url: https://github.com/psc3rd/stickpile_compose-config.git
+reference: dev
+working_dir: web-apps/kiwix
+compose_files: 
+  - compose.yaml
