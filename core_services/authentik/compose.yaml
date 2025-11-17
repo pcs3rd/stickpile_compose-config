@@ -117,7 +117,7 @@ services:
     
 
     command: worker
-    environment:
+   # environment:
       # AUTHENTIK_REDIS__HOST: redis
       # AUTHENTIK_POSTGRESQL__HOST: postgresql
       # AUTHENTIK_POSTGRESQL__USER: ${POSTGRES_USER}
