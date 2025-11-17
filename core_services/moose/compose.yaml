@@ -4,8 +4,8 @@ networks:
     name: traefik_backbone
     external: true
 
-  moosefsnet:
-    driver: bridge
+  moose:
+    driver: overlay
     ipam:
       config:
         - subnet: 172.20.0.0/16
@@ -15,7 +15,7 @@ services:
     image: moosefs/master
     container_name: "mfsmaster"
     networks:
-      moosefsnet:
+      moose:
         ipv4_address: "172.20.0.2"
     ports:
       - "9419:9419"
@@ -44,7 +44,7 @@ services:
     image: moosefs/gui
     container_name: "mfsgui"
     networks:
-      moosefsnet:
+      moose:
       traefik_backbone:
     ports:
       - "9425:9425"
@@ -71,7 +71,7 @@ services:
     image: moosefs/metalogger
     container_name: "mfsmetalogger"
     networks:
-      moosefsnet:
+      moose:
     volumes:
       - ./data/metalogger/meta:/var/lib/mfs
     environment:
@@ -104,7 +104,7 @@ services:
     links:
       - mfsmaster
     networks:
-      moosefsnet:
+      moose:
     volumes:
       - ./data/cs/hdd0:/mnt/hdd0
       - ./data/cs/meta:/var/lib/mfs
@@ -122,7 +122,7 @@ services:
       placement: 
           constraints: 
               - node.labels.unique_id == DEV_PA.US.BUTLER.STICKPILE-1
-              
+
   chunkserver-DEV_PA.US.BUTLER.STICKPILE-2:
     image: moosefs/chunkserver
     environment:
@@ -131,7 +131,7 @@ services:
     links:
       - mfsmaster
     networks:
-      moosefsnet:
+      moose:
     volumes:
       - ./data/cs/hdd0:/mnt/hdd0
       - ./data/cs/meta:/var/lib/mfs
@@ -166,7 +166,7 @@ services:
     links:
       - mfsmaster
     networks:
-      moosefsnet:
+      moose:
 
     depends_on:
       - mfsmaster
