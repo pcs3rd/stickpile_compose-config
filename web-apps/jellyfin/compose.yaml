@@ -742,7 +742,7 @@ networks:
     driver: bridge
   traefik_backbone:
     # For external containers.
-    name: stack_reverse-proxy_backbone
+    name: traefik_backbone
     external: true
   zdvr1:
     driver: macvlan

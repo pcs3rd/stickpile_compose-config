@@ -20,8 +20,8 @@ services:
       - "--entrypoints.mqtt.address=:8883"
       - "--entrypoints.ldaps.address=:636"
       # - "--entrypoints.websocket.address=:9001"
-      - "--providers.docker.network=stack_reverse-proxy_backbone"
-      - "--providers.docker.network=stack_reverse-proxy_backbone" #This is some dumb crap
+      - "--providers.docker.network=traefik_backbone"
+      - "--providers.docker.network=traefik_backbone" #This is some dumb crap
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge=true"
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge.entrypoint=web"
       - "--accesslog=true"
