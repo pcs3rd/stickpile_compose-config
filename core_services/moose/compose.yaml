@@ -59,6 +59,13 @@ services:
         delay: 5s
         ##max_attempts:  3
         window: 100s 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.moose.rule=Host(`moose.stickpile.net`)"
+      - "traefik.http.routers.moose.entrypoints=websecure"
+      - "traefik.http.routers.moose.tls.certresolver=httpsResolve"
+      - "traefik.http.services.moose.loadbalancer.server.port=9425"
+      - "traefik.http.routers.moose.middlewares=middlewares-authentik@file"
 
   mfsmetalogger:
     image: moosefs/metalogger
@@ -85,31 +92,11 @@ services:
         ##max_attempts:  3
         window: 100s 
 
-  node_1-chunkserver:
-    image: moosefs/chunkserver
-    environment:
-      - LABELS=M
-      #- SIZE=100
-    links:
-      - mfsmaster
-    networks:
-      moosefsnet:
-    volumes:
-      - ./data/cs/hdd0:/mnt/hdd0
-      - ./data/cs/meta:/var/lib/mfs
-    depends_on:
-      - mfsmaster
-    deploy: 
-      mode: global
-#      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        ##max_attempts:  3
-        window: 100s 
+#######
+#Chunk servers. These are unique to each box because of bind mounts.
+#######
 
-  chunkserver:
+  chunkserver-DEV_PA.US.BUTLER.STICKPILE-1:
     image: moosefs/chunkserver
     environment:
       - LABELS=M,B
@@ -118,7 +105,6 @@ services:
       - mfsmaster
     networks:
       moosefsnet:
-
     volumes:
       - ./data/cs/hdd0:/mnt/hdd0
       - ./data/cs/meta:/var/lib/mfs
@@ -133,7 +119,39 @@ services:
         delay: 5s
         ##max_attempts:  3
         window: 100s 
+      placement: 
+          constraints: 
+              - node.labels.unique_id == DEV_PA.US.BUTLER.STICKPILE-1
+              
+  chunkserver-DEV_PA.US.BUTLER.STICKPILE-2:
+    image: moosefs/chunkserver
+    environment:
+      - LABELS=M,B
+      #- SIZE=100
+    links:
+      - mfsmaster
+    networks:
+      moosefsnet:
+    volumes:
+      - ./data/cs/hdd0:/mnt/hdd0
+      - ./data/cs/meta:/var/lib/mfs
+    depends_on:
+      - mfsmaster
+    deploy: 
+      mode: global
+#      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 100s 
+      placement: 
+          constraints: 
+              - node.labels.unique_id == DEV_PA.US.BUTLER.STICKPILE-2  
 
+
+# Back to global deployments
   client:
     image: moosefs/client
     container_name: "mfsclient1"
@@ -154,7 +172,6 @@ services:
       - mfsmaster
     deploy: 
       mode: global
-#      replicas: 1
       endpoint_mode: vip
       restart_policy:
         condition: on-failure
