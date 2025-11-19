@@ -22,8 +22,7 @@ services:
       - "9420:9420"
       - "9421:9421"
     volumes:
-      - ./data/master/meta:/var/lib/mfs
-    hostname: mfsmaster
+      - data/master/meta:/var/lib/mfs
     environment:
       - MFS_ENV=TEST
       # In the TEST environment, if metadata.mfs file or other metadata files
@@ -42,7 +41,6 @@ services:
 
   mfsgui:
     image: moosefs/gui
-    container_name: "mfsgui"
     networks:
       moose:
       traefik_backbone:
@@ -69,11 +67,10 @@ services:
 
   mfsmetalogger:
     image: moosefs/metalogger
-    container_name: "mfsmetalogger"
     networks:
       moose:
     volumes:
-      - ./data/metalogger/meta:/var/lib/mfs
+      - $moose_meta:/var/lib/mfs
     environment:
       - MFS_ENV=TEST
       # In the TEST environment, if metadata.mfs file or other metadata files
@@ -96,7 +93,7 @@ services:
 #Chunk servers. These are unique to each box because of bind mounts.
 #######
 
-  chunkserver-DEV.PA.US.BUTLER.STICKPILE-1:
+  chunkserver-DEV.PA.US.BUTLER.STICKPILE.1:
     image: moosefs/chunkserver
     environment:
       - LABELS=M,B
@@ -106,8 +103,8 @@ services:
     networks:
       moose:
     volumes:
-      - ./data/cs/hdd0:/mnt/hdd0
-      - ./data/cs/meta:/var/lib/mfs
+      - /persist/dsk-mnt-0:/mnt/hdd0
+      - $moose_meta:/var/lib/mfs
     depends_on:
       - mfsmaster
     deploy: 
@@ -121,9 +118,9 @@ services:
         window: 100s 
       placement: 
           constraints: 
-              - node.labels.unique_id == DEV_PA.US.BUTLER.STICKPILE-1
+              - node.labels.unique_id == $uid_prefix.1
 
-  chunkserver-DEV.PA.US.BUTLER.STICKPILE-2:
+  chunkserver-DEV.PA.US.BUTLER.STICKPILE.2:
     image: moosefs/chunkserver
     environment:
       - LABELS=M,B
@@ -133,8 +130,8 @@ services:
     networks:
       moose:
     volumes:
-      - ./data/cs/hdd0:/mnt/hdd0
-      - ./data/cs/meta:/var/lib/mfs
+      - /persist/dsk-mnt-0:/mnt/hdd0
+      - $moose_meta:/var/lib/mfs
     depends_on:
       - mfsmaster
     deploy: 
@@ -148,13 +145,12 @@ services:
         window: 100s 
       placement: 
           constraints: 
-              - node.labels.unique_id == DEV_PA.US.BUTLER.STICKPILE-2  
+              - node.labels.unique_id == DEV.PA.US.BUTLER.STICKPILE.2  
 
 
 # Back to global deployments
   client:
     image: moosefs/client
-    container_name: "mfsclient1"
     cap_add:
       - SYS_ADMIN
     devices:
