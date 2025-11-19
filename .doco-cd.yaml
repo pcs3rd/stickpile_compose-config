@@ -1,12 +1,12 @@
-# name: moose
-# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-# reference: dev
-# working_dir: core_services/moose
-# compose_files: 
-#   - compose.yaml
-# env_files:
-#   - secrets.enc.env
-# ---
+name: moose
+repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+reference: dev
+working_dir: core_services/moose
+compose_files: 
+  - compose.yaml
+env_files:
+  - secrets.enc.env
+---
 # name: traefik
 # repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 # reference: dev
