@@ -1,0 +1,176 @@
+networks:
+
+  traefik_backbone: # For external containers.
+    name: traefik_backbone
+    external: true
+
+  moose:
+    driver: overlay
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+services:
+  mfsmaster:
+    image: moosefs/master
+    container_name: "mfsmaster"
+    networks:
+      moose:
+        ipv4_address: "172.20.0.2"
+    ports:
+      - "9419:9419"
+      - "9420:9420"
+      - "9421:9421"
+    volumes:
+      - data/master/meta:/var/lib/mfs
+    environment:
+      - MFS_ENV=TEST
+      # In the TEST environment, if metadata.mfs file or other metadata files
+      # like metdata.mfs.back and changelog.0.mfs are missing, the script will
+      # create an EMPTY metadata file!
+      # When MFS_ENV=PROD metdata.mfs file will not be created!
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 100s 
+
+  mfsgui:
+    image: moosefs/gui
+    networks:
+      moose:
+      traefik_backbone:
+    ports:
+      - "9425:9425"
+    depends_on:
+      - mfsmaster
+    deploy: 
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 100s 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.moose.rule=Host(`moose.stickpile.net`)"
+      - "traefik.http.routers.moose.entrypoints=websecure"
+      - "traefik.http.routers.moose.tls.certresolver=httpsResolve"
+      - "traefik.http.services.moose.loadbalancer.server.port=9425"
+      - "traefik.http.routers.moose.middlewares=middlewares-authentik@file"
+
+  mfsmetalogger:
+    image: moosefs/metalogger
+    networks:
+      moose:
+    volumes:
+      - $moose_meta:/var/lib/mfs
+    environment:
+      - MFS_ENV=TEST
+      # In the TEST environment, if metadata.mfs file or other metadata files
+      # like metdata.mfs.back and changelog.0.mfs are missing, the script will
+      # create an EMPTY metadata file!
+      # When MFS_ENV=PROD metdata.mfs file will not be created!
+    depends_on:
+      - mfsmaster
+    deploy: 
+      mode: global
+#      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 100s 
+
+#######
+#Chunk servers. These are unique to each box because of bind mounts.
+#######
+
+  chunkserver-DEV.PA.US.BUTLER.STICKPILE.1:
+    image: moosefs/chunkserver
+    environment:
+      - LABELS=M,B
+      #- SIZE=100
+    links:
+      - mfsmaster
+    networks:
+      moose:
+    volumes:
+      - /persist/dsk-mnt-0:/mnt/hdd0
+      - $moose_meta:/var/lib/mfs
+    depends_on:
+      - mfsmaster
+    deploy: 
+      mode: global
+#      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 100s 
+      placement: 
+          constraints: 
+              - node.labels.unique_id == $uid_prefix.1
+
+  chunkserver-DEV.PA.US.BUTLER.STICKPILE.2:
+    image: moosefs/chunkserver
+    environment:
+      - LABELS=M,B
+      #- SIZE=100
+    links:
+      - mfsmaster
+    networks:
+      moose:
+    volumes:
+      - /persist/dsk-mnt-0:/mnt/hdd0
+      - $moose_meta:/var/lib/mfs
+    depends_on:
+      - mfsmaster
+    deploy: 
+      mode: global
+#      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 100s 
+      placement: 
+          constraints: 
+              - node.labels.unique_id == DEV.PA.US.BUTLER.STICKPILE.2  
+
+
+# Back to global deployments
+  client:
+    image: moosefs/client
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse:/dev/fuse
+    security_opt:
+      - apparmor:unconfined
+    stdin_open: true
+    tty: true
+    links:
+      - mfsmaster
+    networks:
+      moose:
+
+    depends_on:
+      - mfsmaster
+    deploy: 
+      mode: global
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        ##max_attempts:  3
+        window: 100s 
