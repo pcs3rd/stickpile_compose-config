@@ -22,7 +22,7 @@ services:
       - "9420:9420"
       - "9421:9421"
     volumes:
-      - data/master/meta:/var/lib/mfs
+      - $moose_meta:/var/lib/mfs
     environment:
       - MFS_ENV=TEST
       # In the TEST environment, if metadata.mfs file or other metadata files
