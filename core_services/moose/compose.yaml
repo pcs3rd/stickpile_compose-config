@@ -157,6 +157,7 @@ services:
       - /dev/fuse:/dev/fuse
     security_opt:
       - apparmor:unconfined
+      - "seccomp:unconfined"
     stdin_open: true
     tty: true
     links:
