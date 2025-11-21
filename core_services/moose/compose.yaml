@@ -93,7 +93,7 @@ services:
 #Chunk servers. These are unique to each box because of bind mounts.
 #######
 
-  chunkserver-DEV.PA.US.BUTLER.STICKPILE.1:
+  chunkserver-DEV-PA-US-BUTLER-STICKPILE-1:
     image: moosefs/chunkserver
     environment:
       - LABELS=M,B
@@ -120,7 +120,7 @@ services:
           constraints: 
               - node.labels.unique_id == $uid_prefix.1
 
-  chunkserver-DEV.PA.US.BUTLER.STICKPILE.2:
+  chunkserver-DEV-PA-US-BUTLER-STICKPILE-2:
     image: moosefs/chunkserver
     environment:
       - LABELS=M,B
