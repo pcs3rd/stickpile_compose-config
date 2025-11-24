@@ -148,17 +148,6 @@ services:
               - node.labels.unique_id == DEV.PA.US.BUTLER.STICKPILE.2  
 
 
-# Back to global deployments
-  # client:
-  #   image: moosefs/client
-  #   privileged: false
-  #   cap_add:
-  #     - SYS_ADMIN
-  #   devices:
-  #     - /dev/fuse:/dev/fuse
-  #   # security_opt:
-  #   #   - apparmor:unconfined
-  #   #   - seccomp:unconfined
 
 
   client:
@@ -172,8 +161,6 @@ services:
       - /dev/fuse
     image: moosefs/client
     command: mkdir /moose-data-mount && mfsmount -f /moose-data-mount -H dev-1
-    stdin_open: true
-    tty: true
     deploy: 
       mode: global
       endpoint_mode: vip
