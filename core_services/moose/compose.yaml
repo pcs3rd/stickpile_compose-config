@@ -171,6 +171,7 @@ services:
     devices:
       - /dev/fuse
     image: moosefs/client
+    command: mkdir /moose-data-mount && mfsmount -f /moose-data-mount -H dev-1
     stdin_open: true
     tty: true
     deploy: 
