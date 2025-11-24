@@ -160,7 +160,7 @@ services:
     devices:
       - /dev/fuse
     image: moosefs/client
-    command: /bin/bash -c "mkdir /moose-mount"; mfsmount -f /moose-data-mount -H dev-1
+    command: /bin/bash -c "mkdir /moose-mount; mfsmount -f /moose-data-mount -H dev-1"
     #command: mfsmount -f /moose-data-mount -H dev-1
     deploy: 
       mode: global
