@@ -66,13 +66,13 @@ services:
   authentik:
     image: ghcr.io/goauthentik/server:$AUTHENTIK_TAG
     command: server
-    # environment:
-    #   AUTHENTIK_REDIS__HOST: redis
-    #   AUTHENTIK_POSTGRESQL__HOST: postgresql
-    #   AUTHENTIK_POSTGRESQL__USER: ${POSTGRES_USER}
-    #   AUTHENTIK_POSTGRESQL__NAME: ${POSTGRES_DB}
-    #   AUTHENTIK_POSTGRESQL__PASSWORD: ${POSTGRES_PASSWORD}
-    #   AUTHENTIK_SECRET_KEY: ${SECRET_KEY}
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: $POSTGRES_USER
+      AUTHENTIK_POSTGRESQL__NAME: $POSTGRES_DB
+      AUTHENTIK_POSTGRESQL__PASSWORD: $POSTGRES_PASSWORD
+      AUTHENTIK_SECRET_KEY: $SECRET_KEY
     env_file:  
       - secrets.enc.env  
     labels:
@@ -117,13 +117,13 @@ services:
     
 
     command: worker
-   # environment:
-      # AUTHENTIK_REDIS__HOST: redis
-      # AUTHENTIK_POSTGRESQL__HOST: postgresql
-      # AUTHENTIK_POSTGRESQL__USER: ${POSTGRES_USER}
-      # AUTHENTIK_POSTGRESQL__NAME: ${POSTGRES_DB}
-      # AUTHENTIK_POSTGRESQL__PASSWORD: ${POSTGRES_PASSWORD}
-      # AUTHENTIK_SECRET_KEY: ${SECRET_KEY}
+   environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: $POSTGRES_USER
+      AUTHENTIK_POSTGRESQL__NAME: $POSTGRES_DB
+      AUTHENTIK_POSTGRESQL__PASSWORD: $POSTGRES_PASSWORD
+      AUTHENTIK_SECRET_KEY: $SECRET_KEY
     # `user: root` and the docker socket volume are optional.
     # See more for the docker socket integration here:
     # https://goauthentik.io/docs/outposts/integrations/docker
