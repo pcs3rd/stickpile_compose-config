@@ -26,7 +26,7 @@ services:
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge.entrypoint=web"
       - "--accesslog=true"
       #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.httpsResolve.acme.email=rdean@seickpile.net"
+      - "--certificatesresolvers.httpsResolve.acme.email=rdean@stickpile.net"
       - "--certificatesresolvers.httpsResolve.acme.storage=/letsencrypt/acme.json"
       - "--providers.file.directory=/rules"
       - "--log.level=DEBUG"
