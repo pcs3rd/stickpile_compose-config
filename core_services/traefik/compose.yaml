@@ -65,10 +65,10 @@ services:
 
   ddclient:
     image: lscr.io/linuxserver/ddclient:latest
-    # environment:
-    #   - PUID=911
-    #   - PGID=911
-    #   - TZ=America/New_York
+    environment:
+      - PUID
+      - PGID
+      - TZ
     env_file:  
       - secrets.enc.env  
     volumes:
