@@ -750,8 +750,8 @@ networks:
     ipam:
       config:
         - subnet: "192.168.187.160/29"
-          ip_range: "192.168.187.160/29"
-          gateway: "192.168.187.162"
+        - ip_range: "192.168.187.160/29"
+        - gateway: "192.168.187.162"
   zdvr2:
     driver: macvlan
     name: zdvr2-nonet
@@ -760,5 +760,5 @@ networks:
     ipam:
       config:
         - subnet: "192.168.83.64/29"
-          ip_range: "192.168.83.64/29"
-          gateway: "192.168.83.66"
+        - ip_range: "192.168.83.64/29"
+        - gateway: "192.168.83.66"
