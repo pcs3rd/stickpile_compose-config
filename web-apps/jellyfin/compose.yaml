@@ -669,16 +669,16 @@ services:
         window: 120s
 
   slskd:
-    # environment:
-    #   - SLSKD_REMOTE_CONFIGURATION=true
-    #   - SLSKD_NO_AUTH=true
-    #   - SLSKD_USERNAME=stickpile
-    #   - SLSKD_PASSWORD=stickpile1620!
-    #   - SLSKD_SLSK_USERNAME=stickpile
-    #   - SLSKD_SLSK_PASSWORD=slskdstickpile15620!
-    #   #- SLSKD_SHARED_DIR=/media/2111/music;/media/242b/music;/media/80b6/music
-    #   - SLSKD_SHARED_DIR=/media
-    #   - SLSKD_DOWNLOADS_DIR=/downloads
+    environment:
+      - SLSKD_REMOTE_CONFIGURATION
+      - SLSKD_NO_AUTH
+      - SLSKD_USERNAME
+      - SLSKD_PASSWORD
+      - SLSKD_SLSK_USERNAME
+      - SLSKD_SLSK_PASSWORD
+      - SLSKD_SHARED_DIR
+      - SLSKD_SHARED_DIR
+      - SLSKD_DOWNLOADS_DIR
     ports:
       - 5030:5030/tcp
       - 5031:5031/tcp
