@@ -42,7 +42,7 @@ compose_files:
   - compose.yaml
 env_files:
   - remote:secrets.enc.env
----
+# ---
 # name: meshing-around
 # repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 # reference: dev
