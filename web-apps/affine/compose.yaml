@@ -12,23 +12,16 @@ services:
       - "traefik.http.routers.affine.tls.certresolver=httpsResolve"
       - "traefik.http.services.affine.loadbalancer.server.port=3010"
       #- "traefik.http.routers.affine.middlewares=middlewares-authentik@file"
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      affine_migration:
-        condition: service_completed_successfully
     volumes:
       # custom configurations
       - ${persist_data_home}/upload:/root/.affine/storage
       - ${persist_data_home}/config:/root/.affine/config
     env_file:  
       - secrets.enc.env  
-    # environment:
-    #   - REDIS_SERVER_HOST=redis
-    #   - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_DATABASE:-affine}
-    #   - AFFINE_INDEXER_ENABLED=false
+    environment:
+      - REDIS_SERVER_HOST=redis
+      - DATABASE_URL=postgresql://$DB_USERNAME:$DB_PASSWORD@postgres:5432/$DB_DATABASE:-affine
+      - AFFINE_INDEXER_ENABLED=false
     restart: unless-stopped
     networks:
       internal:
@@ -46,15 +39,10 @@ services:
       - secrets.enc.env  
     networks:
       internal:
-    # environment:
-    #   - REDIS_SERVER_HOST=redis
-    #   - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_DATABASE:-affine}
-    #   - AFFINE_INDEXER_ENABLED=false
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    environment:
+      - REDIS_SERVER_HOST=redis
+      - DATABASE_URL=postgresql://$DB_USERNAME:$DB_PASSWORD@postgres:5432/$DB_DATABASE:-affine}
+      - AFFINE_INDEXER_ENABLED=false
 
   redis:
     image: redis
@@ -74,14 +62,14 @@ services:
       - ${persist_data_home}/postgres}:/var/lib/postgresql/data
     env_file:  
       - secrets.enc.env  
-    # environment:
-    #   POSTGRES_USER: ${DB_USERNAME}
-    #   POSTGRES_PASSWORD: ${DB_PASSWORD}
-    #   POSTGRES_DB: ${DB_DATABASE:-affine}
-    #   POSTGRES_INITDB_ARGS: '--data-checksums'
-    #   # you better set a password for you database
-    #   # or you may add 'POSTGRES_HOST_AUTH_METHOD=trust' to ignore postgres security policy
-    #   POSTGRES_HOST_AUTH_METHOD: trust
+    environment:
+      POSTGRES_USER: $DB_USERNAME
+      POSTGRES_PASSWORD: $DB_PASSWORD
+      POSTGRES_DB: $DB_DATABASE:-affine
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+      # you better set a password for you database
+      # or you may add 'POSTGRES_HOST_AUTH_METHOD=trust' to ignore postgres security policy
+      POSTGRES_HOST_AUTH_METHOD: trust
     networks:
       internal:
     healthcheck:
