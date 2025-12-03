@@ -1,0 +1,22 @@
+networks:
+  asterisk-internal: 
+services:
+  tailscale:
+    image: tailscale/tailscale:v1.90.9
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TS_AUTHKEY = $tailscale_auth_key
+    volumes:
+      - dev/net/tun:/dev/net/tun 
+    networks: 
+      asterisk-internal:
+  
+  asterisk: 
+    image: andrius/asterisk:22.7.0_debian-trixie
+    ports: 
+      - 5060:5060/udp
+      - 10000-20000:10000-10499/udp
+      
+## TODO 
+## Create. freepbx docker image

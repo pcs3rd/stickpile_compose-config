@@ -14,9 +14,9 @@ services:
     image: ghcr.io/kiwix/kiwix-serve:latest
     volumes:
       - $persist_data_home/kiwix-server/data:/data
-    # environment:
-    #   - TZ
-    #   - UMASK_SET
+    environment:
+      - TZ
+      - UMASK_SET
     command:
       ifixit_en_all_2024-12.zim
       wikiversity_en_all_maxi_2021-03.zim
@@ -28,11 +28,10 @@ services:
       TheHydroponicsPlanet_2025-02.zim
       wikipedia_en_all_maxi_2024-01.zim
       www.cdc.gov_en_all_novid_2025-01.zim
-    # env_file:  
-    #   - secrets.enc.env  
+    env_file:  
+      - secrets.enc.env  
     networks:
       - traefik_backbone
-#      - internal
     deploy: 
       mode: replicated
       replicas: 2
