@@ -12,9 +12,8 @@ networks:
 services:
   kiwix-server:
     image: ghcr.io/kiwix/kiwix-serve:latest
-    
     volumes:
-      - ${persist_data_home}/kiwix-server/data:/data
+      - $persist_data_home/kiwix-server/data:/data
     # environment:
     #   - TZ
     #   - UMASK_SET
