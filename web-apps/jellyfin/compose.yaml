@@ -677,7 +677,6 @@ services:
       - SLSKD_SLSK_USERNAME
       - SLSKD_SLSK_PASSWORD
       - SLSKD_SHARED_DIR
-      - SLSKD_SHARED_DIR
       - SLSKD_DOWNLOADS_DIR
     ports:
       - 5030:5030/tcp
