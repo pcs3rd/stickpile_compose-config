@@ -13,7 +13,9 @@ services:
       - "traefik.http.routers.servMapTilesDownloader.entrypoints=websecure"                  # Use HTTPS
       - "traefik.http.routers.servMapTilesDownloader.tls.certresolver=httpsResolve"          # HTTPS Cert Resolver
       - "traefik.http.services.servMapTilesDownloader.loadbalancer.server.port=8080"         # Container Port
-#      - "traefik.http.routers.MapTilesDownloader.middlewares=middlewares-authentik@file" # If you're using authentik
+#      - "traefik.http.routers.MapTilesDownloader.middlewares=middlewares-authentik@file" # If you're using authentik 
+    networks: 
+      traefik_backbone:
 
   MapTileDownloader:
     image: ghcr.io/pcs3rd/map-tile-downloader:main
@@ -32,13 +34,15 @@ services:
       - "traefik.http.routers.MapTilesDownloader.tls.certresolver=httpsResolve"          # HTTPS Cert Resolver
       - "traefik.http.services.MapTilesDownloader.loadbalancer.server.port=5000"         # Container Port
       - "traefik.http.routers.MapTilesDownloader.middlewares=middlewares-authentik@file" # If you're using authentik
+    networks: 
+      traefik_backbone:
 
   node-red:
     image: nodered/node-red:latest
     environment:
       - TZ=America/New_York
     networks:
-      - internal
+      - mesh-internal
       - traefik_backbone
     volumes:
       - $persist_data_home/node-red:/data
@@ -60,7 +64,7 @@ services:
       - $persist_data_home/meshing-around/data:/app/data
     image: ghcr.io/pcs3rd/meshing-around:dev
     networks:
-      internal:
+      mesh-internal:
   meshtasticd:
     volumes:
 #      - ${persist_data_home}/meshtasticd.yaml:/etc/meshtasticd/config.yaml:rw
@@ -73,7 +77,7 @@ services:
     container_name: meshtasticd
     image: meshtastic/meshtasticd:beta
     networks:
-      internal:
+      mesh-internal:
 
   # ollama:
   #   ports:
@@ -88,7 +92,7 @@ services:
   #     - nvidia.com/gpu=all
 
 networks:
-  internal:
+  mesh-internal:
     name: web-prod-meshtastic_Internal
     driver: overlay
     attachable: true
