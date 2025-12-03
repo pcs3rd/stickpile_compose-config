@@ -742,6 +742,7 @@ networks:
     # For external containers.
     name: traefik_backbone
     external: true
+
   zdvr1:
     driver: macvlan
     name: zdvr1-nonet
@@ -749,10 +750,10 @@ networks:
       parent: enp0s20f0u4
     ipam:
       config:
-        - 
-          subnet: "192.168.187.160/29"
+        - subnet: "192.168.187.160/29"
           #ip_range: "192.168.187.160/29"
-          gateway: "192.168.187.162"
+          #gateway: "192.168.187.162"
+
   zdvr2:
     driver: macvlan
     name: zdvr2-nonet
@@ -760,7 +761,6 @@ networks:
       parent: enp0s20f0u5
     ipam:
       config:
-        - 
-          subnet: "192.168.83.64/29"
+        - subnet: "192.168.83.64/29"
           #ip_range: "192.168.83.64/29"
-          gateway: "192.168.83.66"
+          #gateway: "192.168.83.66"
