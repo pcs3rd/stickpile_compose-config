@@ -527,8 +527,8 @@ services:
         delay: 5s
         ##max_attempts:  3
         window: 600s # jellyfin is a chonker
-      placement:
-        constraints: [ node.hostname == sevenofnine ]
+      # placement:
+      #   constraints: [ node.hostname == sevenofnine ]
     devices:
       - /dev/dri:/dev/dri #optional
     labels:
