@@ -197,7 +197,7 @@ services:
   jellyfin:
     env_file:  
       - secrets.enc.env  
-    image: lscr.io/linuxserver/jellyfin:10.10.7
+    image: lscr.io/linuxserver/jellyfin:10.11.4
     volumes:
       - $persist_data_home/jellyfin:/config
       - $media_mount:/media
