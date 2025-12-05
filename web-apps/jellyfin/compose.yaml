@@ -113,7 +113,7 @@ services:
       POSTGRES_DB: $DB_DATABASE_NAME
       POSTGRES_INITDB_ARGS: '--data-checksums'
     networks:
-      - traefik_backbone
+      - mediaserver
     command: >-
       postgres -c shared_preload_libraries=vectors.so -c 'search_path="$$user",
       public, vectors' -c logging_collector=on -c max_wal_size=2GB -c
@@ -142,7 +142,7 @@ services:
     # env_file:
     #   - .env
     networks:
-      - traefik_backbone
+      - mediaserver
     restart: always
     healthcheck:
       disable: false
@@ -151,7 +151,7 @@ services:
     
     image: docker.io/redis:6.2-alpine@sha256:148bb5411c184abd288d9aaed139c98123eeb8824c5d3fce03cf721db58066d8
     networks:
-      - traefik_backbone
+      - mediaserver
     restart: always
     healthcheck:
       test: redis-cli ping || exit 1
