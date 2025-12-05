@@ -20,13 +20,13 @@ services:
       - "--entrypoints.mqtt.address=:8883"
       - "--entrypoints.ldaps.address=:636"
       # - "--entrypoints.websocket.address=:9001"
-      - "--providers.docker.network=stack_reverse-proxy_backbone"
-      - "--providers.docker.network=stack_reverse-proxy_backbone" #This is some dumb crap
+      - "--providers.docker.network=traefik_backbone"
+      - "--providers.docker.network=traefik_backbone" #This is some dumb crap
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge=true"
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge.entrypoint=web"
       - "--accesslog=true"
       #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.httpsResolve.acme.email=rdean@seickpile.net"
+      - "--certificatesresolvers.httpsResolve.acme.email=rdean@stickpile.net"
       - "--certificatesresolvers.httpsResolve.acme.storage=/letsencrypt/acme.json"
       - "--providers.file.directory=/rules"
       - "--log.level=DEBUG"
@@ -44,7 +44,7 @@ services:
       - "587:587"
 #      - "4318:4318"
     volumes:
-      - "${persist_data_home}/letsencrypt:/letsencrypt"
+      - $persist_data_home/letsencrypt:/letsencrypt
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - ./rules:/rules
     networks: 
@@ -56,16 +56,23 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=httpsResolve"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
+    # healthcheck:
+    #   test: ["CMD", "traefik", "healthcheck", "--ping"]
+    #   interval: 30s
+    #   timeout: 3s
+    #   retries: 3
+    #   start_period: 5s
+
   ddclient:
     image: lscr.io/linuxserver/ddclient:latest
-    # environment:
-    #   - PUID=911
-    #   - PGID=911
-    #   - TZ=America/New_York
+    environment:
+      - PUID
+      - PGID
+      - TZ
     env_file:  
       - secrets.enc.env  
     volumes:
-      - ${persist_data_home}/ddclient:/config
+      - $persist_data_home/ddclient:/config
 
     deploy: 
       mode: replicated

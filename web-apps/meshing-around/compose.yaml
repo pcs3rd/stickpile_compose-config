@@ -1,85 +1,11 @@
 version: "3.7"
 services:
-  emqx:
-    image: emqx/emqx-enterprise:5.10.0
-    user: 911:911
-    env_file:  
-      - secrets.enc.env  
-    # environment:
-    #   - "EMQX_NODE_NAME=bu_pa_us-private-prod@node1.emqx.com"
-      # - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
-      # - "EMQX_CLUSTER__STATIC__SEEDS=[bu_pa_us-private-prod@node1.emqx.com,bu_pa_us-private-prod@node2.emqx.com]"
-    # healthcheck:
-    #   test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
-    #   interval: 50s
-    #   timeout: 25s
-    #   retries: 5
-    networks:
-      internal:
-      traefik_backbone:
-    ports:
-      - 1883:1883
-      - 8083:8083
-      - 8084:8084
-      #- 8883:8883
-      - 18083:18083
-    volumes:
-      - ${persist_data_home}/mqtt-server/emqx1-data:/opt/emqx/data
 
-    labels:
-      - traefik.enable=true
-
-# HTTP web UI
-      - "traefik.http.routers.emqx.rule=Host(`mqtt-broker.stickpile.net`)"
-      - "traefik.http.routers.emqx.entrypoints=websecure"
-      - "traefik.http.routers.emqx.service=emqx"
-      - "traefik.http.routers.emqx.tls.certresolver=httpsResolve"
-      - "traefik.http.services.emqx.loadbalancer.server.port=18083"
-
-      - "traefik.tcp.routers.mqtt.rule=HostSNI(`${MQTT_VIRTUAL_HOST}`)"
-      - "traefik.tcp.routers.mqtt.entrypoints=mqtt"
-      - "traefik.tcp.routers.mqtt.service=mqttservice"
-      - "traefik.tcp.routers.mqtt.tls=true"
-      - "traefik.http.routers.emqx.tls.certresolver=httpsResolve"
-
-# Because Traefik handles TLS outside Mosquitto internal does not need TLS
-      - "traefik.tcp.services.mqttservice.loadbalancer.server.port=1883"
-# Websock uses the http protocol but in combination with a TCP handler on port 8883 for mqtt you need to specify it
-      - "traefik.http.routers.websock.rule=Host(`${WSMQTT_VIRTUAL_HOST}`)"
-      - "traefik.http.routers.websock.entrypoints=websecure"
-      - "traefik.http.routers.websock.service=websockservice"
-      - "traefik.http.routers.websock.tls=true"
-      - "traefik.http.routers.websock.tls.certresolver=httpsResolve"
-# Because Traefik handles https outside Mosquitto so websock internal does not need TLS
-      - "traefik.http.services.websockservice.loadbalancer.server.port=8083"
-
-  # emqx2:
-  #   image: emqx/emqx-enterprise:5.10.0
-  #   container_name: emqx2
-  #   environment:
-  #     - "EMQX_NODE_NAME=bu_pa_us-private-prod@node2.emqx.com"
-  #     - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
-  #     - "EMQX_CLUSTER__STATIC__SEEDS=[bu_pa_us-private-prod@node1.emqx.com,bu_pa_us-private-prod@node2.emqx.com]"
-  #   healthcheck:
-  #     test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
-  #     interval: 5s
-  #     timeout: 25s
-  #     retries: 5
-  #   networks:
-  #     internal:
-  #       aliases:
-  #       - node1.emqx.com
-  #   volumes:
-  #     - ${persist_data_home}/mqtt-server/emqx2-data:/opt/emqx/data
   static-file-server:
     volumes:
-      - ${persist_data_home}/mtd/downloads:/downloads
-    # environment:
-    #     - FOLDER=/downloads
+      - $persist_data_home/mtd/downloads:/downloads
     env_file:  
       - secrets.enc.env  
-    #ports:
-    #    - 8080:8080
     image: halverneus/static-file-server:latest
     labels:                                                                              # Optional if accessing directly via port
       - "traefik.enable=true"                                                            # Enable/Disable Traefik
@@ -87,7 +13,9 @@ services:
       - "traefik.http.routers.servMapTilesDownloader.entrypoints=websecure"                  # Use HTTPS
       - "traefik.http.routers.servMapTilesDownloader.tls.certresolver=httpsResolve"          # HTTPS Cert Resolver
       - "traefik.http.services.servMapTilesDownloader.loadbalancer.server.port=8080"         # Container Port
-#      - "traefik.http.routers.MapTilesDownloader.middlewares=middlewares-authentik@file" # If you're using authentik
+#      - "traefik.http.routers.MapTilesDownloader.middlewares=middlewares-authentik@file" # If you're using authentik 
+    networks: 
+      traefik_backbone:
 
   MapTileDownloader:
     image: ghcr.io/pcs3rd/map-tile-downloader:main
@@ -95,12 +23,10 @@ services:
       - IS_DEBUG
       - HOST
       - IGNORE_DEV_WARNING
-#    ports:  #Host Port:Container Port
-#      - 5000:5000
     volumes:
-      - ${persist_data_home}/mtd/config:/config
-      - ${persist_data_home}/mtd/downloads:/downloads
-      - ${persist_data_home}/mtd/tile-cache:/tile-cache
+      - $persist_data_home/mtd/config:/config
+      - $persist_data_home/mtd/downloads:/downloads
+      - $persist_data_home/mtd/tile-cache:/tile-cache
     labels:                                                                              # Optional if accessing directly via port
       - "traefik.enable=true"                                                            # Enable/Disable Traefik
       - "traefik.http.routers.MapTilesDownloader.rule=Host(`mtd.stickpile.net`)"             # Access domain
@@ -108,16 +34,18 @@ services:
       - "traefik.http.routers.MapTilesDownloader.tls.certresolver=httpsResolve"          # HTTPS Cert Resolver
       - "traefik.http.services.MapTilesDownloader.loadbalancer.server.port=5000"         # Container Port
       - "traefik.http.routers.MapTilesDownloader.middlewares=middlewares-authentik@file" # If you're using authentik
+    networks: 
+      traefik_backbone:
 
   node-red:
     image: nodered/node-red:latest
     environment:
       - TZ=America/New_York
     networks:
-      - internal
+      - mesh-internal
       - traefik_backbone
     volumes:
-      - ${persist_data_home}/node-red:/data
+      - $persist_data_home/node-red:/data
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.node.rule=Host(`red.stickpile.net`)"
@@ -132,54 +60,42 @@ services:
     #devices:
     #  - /dev/ttyUSB0
     volumes:
-      - ${persist_data_home}/meshing-around/config.ini:/app/config.ini:rw
-      - ${persist_data_home}/meshing-around/data:/app/data
+      - $persist_data_home/meshing-around/config.ini:/app/config.ini:rw
+      - $persist_data_home/meshing-around/data:/app/data
     image: ghcr.io/pcs3rd/meshing-around:dev
     networks:
-      internal:
+      mesh-internal:
   meshtasticd:
     volumes:
 #      - ${persist_data_home}/meshtasticd.yaml:/etc/meshtasticd/config.yaml:rw
-      - ${persist_data_home}/meshtasticd-data:/var/
-      - ${persist_data_home}/meshtasticd/db:/root/.portduino/default/prefs/
+      - $persist_data_home/meshtasticd-data:/var/
+      - $persist_data_home/meshtasticd-data-store:/etc/meshtasticd
+      - $persist_data_home/meshtasticd/db:/root/.portduino/default/prefs/
     ports:
       - 4403:4403
     restart: unless-stopped
     container_name: meshtasticd
     image: meshtastic/meshtasticd:beta
     networks:
-      internal:
-#      vlan:
-#        ipv4_address: 172.16.0.11
+      mesh-internal:
 
-
-  ollama:
-    ports:
-      - 11434:11434
-    volumes:
-      - /home/manager/scratchpad/ollama:/root/.ollama
-    container_name: ollama
-    image: alpine/ollama
-    networks:
-      internal:
-    devices:
-      - nvidia.com/gpu=all
+  # ollama:
+  #   ports:
+  #     - 11434:11434
+  #   volumes:
+  #     - /home/manager/scratchpad/ollama:/root/.ollama
+  #   container_name: ollama
+  #   image: alpine/ollama
+  #   networks:
+  #     internal:
+  #   devices:
+  #     - nvidia.com/gpu=all
 
 networks:
-  internal:
+  mesh-internal:
     name: web-prod-meshtastic_Internal
     driver: overlay
     attachable: true
   traefik_backbone: # For external containers.
-    name: stack_reverse-proxy_backbone
+    name: traefik_backbone
     external: true
-#  vlan:
-#    driver: macvlan
-#    driver_opts:
-#      parent: enp0s31f6
-#    ipam:
-#      config:
-#        - subnet: "172.16.0.0/28"
-#          ip_range: "172.16.0.0/28"
-#          gateway: "172.16.0.1"
-#
