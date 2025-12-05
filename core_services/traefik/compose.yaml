@@ -65,7 +65,6 @@ services:
 
   crowdsec:
       image: crowdsecurity/crowdsec
-      container_name: crowdsec
       environment:
         PGID: "1000"
         COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve"
