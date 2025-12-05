@@ -27,15 +27,15 @@ services:
       - secrets.enc.env  
     networks:
       - authentik
-    deploy: 
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 30s
-        #max_attempts: 3
-        window: 120s
+    # deploy: 
+    #   mode: replicated
+    #   replicas: 1
+    #   endpoint_mode: vip
+    #   restart_policy:
+    #     condition: on-failure
+    #     delay: 30s
+    #     #max_attempts: 3
+    #     window: 120s
 
   redis:
     image: docker.io/library/redis:alpine
@@ -50,17 +50,17 @@ services:
       - ${persist_data_home}/redis-data:/data
     networks:
       - authentik
-    deploy: 
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        ##max_attempts:  3
-        window: 600s # jellyfin is a chonker
-      #placement:
-      #  constraints: [node.hostname == sevenofnine]
+    # deploy: 
+    #   mode: replicated
+    #   replicas: 1
+    #   endpoint_mode: vip
+    #   restart_policy:
+    #     condition: on-failure
+    #     delay: 5s
+    #     ##max_attempts:  3
+    #     window: 600s # jellyfin is a chonker
+    #   #placement:
+    #   #  constraints: [node.hostname == sevenofnine]
     
 
   authentik:
@@ -102,15 +102,15 @@ services:
     networks:
       - authentik
       - traefik_backbone
-    deploy: 
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        ##max_attempts:  3
-        window: 600s # jellyfin is a chonker
+    # deploy: 
+    #   mode: replicated
+    #   replicas: 1
+    #   endpoint_mode: vip
+    #   restart_policy:
+    #     condition: on-failure
+    #     delay: 5s
+    #     ##max_attempts:  3
+    #     window: 600s # jellyfin is a chonker
 
   worker:
     image: ghcr.io/goauthentik/server:$AUTHENTIK_TAG
@@ -142,15 +142,15 @@ services:
     depends_on:
       - postgresql
       - redis
-    deploy: 
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        ##max_attempts:  3
-        window: 600s # jellyfin is a chonker
+    # deploy: 
+    #   mode: replicated
+    #   replicas: 1
+    #   endpoint_mode: vip
+    #   restart_policy:
+    #     condition: on-failure
+    #     delay: 5s
+    #     ##max_attempts:  3
+    #     window: 600s # jellyfin is a chonker
 
     networks:
       - authentik
