@@ -48,7 +48,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - ./rules:/rules
     networks: 
-      - backbone
+      - traefik_backbone
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`npm.stickpile.net`)"
