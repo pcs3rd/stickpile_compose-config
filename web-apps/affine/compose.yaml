@@ -42,6 +42,10 @@ services:
       - REDIS_SERVER_HOST=redis
       - DATABASE_URL=postgres://$DB_USERNAME:$DB_PASSWORD@postgres:5432/$DB_DATABASE
       - AFFINE_INDEXER_ENABLED=false
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none # This is the crucial part for a one-shot container
 
   redis:
     image: redis
