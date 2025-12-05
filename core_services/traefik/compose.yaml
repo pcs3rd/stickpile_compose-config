@@ -63,28 +63,30 @@ services:
     #   retries: 3
     #   start_period: 5s
 
-  ddclient:
-    image: lscr.io/linuxserver/ddclient:latest
-    environment:
-      - PUID
-      - PGID
-      - TZ
-    env_file:  
-      - secrets.enc.env  
-    volumes:
-      - $persist_data_home/ddclient:/config
+  crowdsec:
+      image: crowdsecurity/crowdsec
+      container_name: crowdsec
+      environment:
+        PGID: "1000"
+        COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve"
+      # expose:
+      #   - "8080"
+      volumes:
+        - $persist_data_home/crowdsec/log:/var/log/crowdsec:ro
+        - $persist_data_home/crowdsec/db:/var/lib/crowdsec/data
+        - $persist_data_home/crowdsec/auth.log:/var/log/auth.log:ro
+        - $persist_data_home/crowdsec/config:/etc/crowdsec
+      restart: unless-stopped
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.cs.rule=Host(`npm.crowdsec.stickpile.net`)"
+        - "traefik.http.routers.cs.entrypoints=websecure"
+        - "traefik.http.routers.cs.tls.certresolver=httpsResolve"
+        - "traefik.http.services.cs.loadbalancer.server.port=8080"
+        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file"
+      networks:
+        - traefik_backbone
 
-    deploy: 
-      mode: replicated
-      replicas: 2
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        ##max_attempts:  3
-        window: 600s # jellyfin is a chonker
-      #placement:
-      #  constraints: [node.hostname == sevenofnine]
   otel-collector:
     image: otel/opentelemetry-collector-contrib
 #    volumes:
