@@ -741,8 +741,8 @@ services:
       
   bliss_service:
     image: romancin/bliss:latest
+    env_file:  
       - secrets.enc.env  
-
     networks:
       - traefik_backbone
       - mediaserver
