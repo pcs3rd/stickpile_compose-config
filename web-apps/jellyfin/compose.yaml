@@ -201,6 +201,7 @@ services:
     volumes:
       - $persist_data_home/jellyfin:/config
       - $media_mount:/media
+      - ${PWD}/web-config.json:/usr/share/jellyfin/web/config.json:rw
     environment:
       - PUID
       - PGID
@@ -225,8 +226,8 @@ services:
         delay: 5s
         ##max_attempts:  3
         window: 600s # jellyfin is a chonker
-      placement:
-        constraints: [ node.hostname == sevenofnine ]
+      # placement:
+      #   constraints: [ node.hostname == sevenofnine ]
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
 
