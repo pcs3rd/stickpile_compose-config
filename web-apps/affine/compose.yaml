@@ -1,10 +1,9 @@
-name: affine
 services:
   affine:
     image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-stable}
     container_name: affine_server
     ports:
-      - '${PORT:-3010}:3010'
+      - '$PORT:3010'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.affine.rule=Host(`affine.stickpile.net`)"
@@ -14,8 +13,8 @@ services:
       #- "traefik.http.routers.affine.middlewares=middlewares-authentik@file"
     volumes:
       # custom configurations
-      - ${persist_data_home}/upload:/root/.affine/storage
-      - ${persist_data_home}/config:/root/.affine/config
+      - $persist_data_home/upload:/root/.affine/storage
+      - $persist_data_home/config:/root/.affine/config
     env_file:  
       - secrets.enc.env  
     environment:
@@ -79,6 +78,7 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+
 networks:
   internal:
     name: web-prod-affine_Internal
