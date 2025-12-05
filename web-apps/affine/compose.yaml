@@ -1,6 +1,6 @@
 services:
   affine:
-    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-stable}
+    image: ghcr.io/toeverything/affine:$AFFINE_REVISION
     container_name: affine_server
     ports:
       - '$PORT:3010'
@@ -19,7 +19,7 @@ services:
       - secrets.enc.env  
     environment:
       - REDIS_SERVER_HOST=redis
-      - DATABASE_URL=postgresql://$DB_USERNAME:$DB_PASSWORD@postgres:5432/$DB_DATABASE:-affine
+      - DATABASE_URL=postgresql://$DB_USERNAME:$DB_PASSWORD@postgres:5432/$DB_DATABASE
       - AFFINE_INDEXER_ENABLED=false
     restart: unless-stopped
     networks:
@@ -27,8 +27,7 @@ services:
       traefik_backbone:
 
   affine_migration:
-    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-stable}
-    container_name: affine_migration_job
+    image: ghcr.io/toeverything/affine:$AFFINE_REVISION
     volumes:
       # custom configurations
       - ${persist_data_home}/upload:/root/.affine/storage
@@ -41,12 +40,11 @@ services:
       internal:
     environment:
       - REDIS_SERVER_HOST=redis
-      - DATABASE_URL=postgresql://$DB_USERNAME:$DB_PASSWORD@postgres:5432/$DB_DATABASE:-affine
+      - DATABASE_URL=postgres://$DB_USERNAME:$DB_PASSWORD@postgres:5432/$DB_DATABASE
       - AFFINE_INDEXER_ENABLED=false
 
   redis:
     image: redis
-    container_name: affine_redis
     healthcheck:
       test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
       interval: 10s
@@ -57,7 +55,6 @@ services:
       internal:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: affine_postgres
     volumes:
       - ${persist_data_home}/postgres}:/var/lib/postgresql/data
     env_file:  
@@ -74,7 +71,7 @@ services:
       internal:
     healthcheck:
       test:
-        ['CMD', 'pg_isready', '-U', "${DB_USERNAME}", '-d', "${DB_DATABASE:-affine}"]
+        ['CMD', 'pg_isready', '-U', "$DB_USERNAME", '-d', "$DB_DATABASE"]
       interval: 10s
       timeout: 5s
       retries: 5
