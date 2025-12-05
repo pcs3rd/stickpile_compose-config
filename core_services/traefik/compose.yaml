@@ -99,7 +99,6 @@ services:
       - 55679:55679 # zpages extension
       
 networks:
-  backbone:
-    driver: overlay # Need this for inter-node traffic
-    attachable: true
-    external: false
+  traefik_backbone: # For external containers.
+    name: traefik_backbone
+    external: true
