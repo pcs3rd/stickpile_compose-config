@@ -38,7 +38,7 @@ services:
     #     window: 120s
 
   redis:
-    image: docker.io/library/redis:5.0
+    image: docker.io/library/redis:alpine
     command: --save 60 1 --loglevel warning
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
