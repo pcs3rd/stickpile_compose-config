@@ -201,7 +201,7 @@ services:
     volumes:
       - $persist_data_home/jellyfin:/config
       - $media_mount:/media
-      - ${PWD}/web-config.json:/usr/share/jellyfin/web/config.json:rw
+      - ./web-config.json:/usr/share/jellyfin/web/config.json:rw
     environment:
       - PUID
       - PGID
