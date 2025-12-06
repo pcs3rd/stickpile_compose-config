@@ -86,7 +86,11 @@ services:
         - "traefik.http.routers.cs.entrypoints=websecure"
         - "traefik.http.routers.cs.tls.certresolver=httpsResolve"
         - "traefik.http.services.cs.loadbalancer.server.port=8080"
-        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file"
+        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file,crowdsec-wordpress@docker"
+        ## Middleware configuration
+        - "traefik.http.middlewares.cs.plugin.crowdsec-bouncer.enabled=true"
+        - "traefik.http.middlewares.cs.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
+        ## As a note, need to bring $BOUNCER-API-KEY into SOPS on every deployment
       networks:
         - traefik_backbone
 
