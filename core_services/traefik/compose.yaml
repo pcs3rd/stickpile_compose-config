@@ -30,12 +30,12 @@ services:
       - "--certificatesresolvers.httpsResolve.acme.storage=/letsencrypt/acme.json"
       - "--providers.file.directory=/rules" 
       - "--log.level=INFO"
-      - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
-      - "--experimental.plugins.crowdsec-bouncer.version=v1.2.1"
-      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.enabled=true"
-      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
-      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapischeme=http"
-      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapihost=crowdsec:8080"
+      # - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+      # - "--experimental.plugins.crowdsec-bouncer.version=v1.2.1"
+      # - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.enabled=true"
+      # - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
+      # - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapischeme=http"
+      # - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapihost=crowdsec:8080"
       ## As a note, need to bring $BOUNCER-API-KEY into SOPS on every deployment
     ports:
       - "80:80"
