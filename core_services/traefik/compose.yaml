@@ -28,10 +28,15 @@ services:
       #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.httpsResolve.acme.email=rdean@stickpile.net"
       - "--certificatesresolvers.httpsResolve.acme.storage=/letsencrypt/acme.json"
-      - "--providers.file.directory=/rules"
-      - "--log.level=DEBUG"
+      - "--providers.file.directory=/rules" 
+      - "--log.level=INFO"
       - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
       - "--experimental.plugins.crowdsec-bouncer.version=v1.2.1"
+      - "--traefik.http.middlewares.crowdsec-root.plugin.crowdsec-bouncer.enabled=true"
+      - "--traefik.http.middlewares.crowdsec-root.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
+      - "--traefik.http.middlewares.crowdsec-root.plugin.crowdsec-bouncer.crowdseclapischeme=http"
+      - "--traefik.http.middlewares.crowdsec-root.plugin.crowdsec-bouncer.crowdseclapihost=crowdsec:8080"
+      ## As a note, need to bring $BOUNCER-API-KEY into SOPS on every deployment
     ports:
       - "80:80"
       - "443:443"
@@ -70,10 +75,13 @@ services:
       image: crowdsecurity/crowdsec:v1.7.4-debian
       environment:
         PGID: "1000"
-        COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve"
+        COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve firix/authentik"
+        PARSERS: "crowdsecurity/docker-logs"
+        BOUNCER_KEY_TRAEFIK: $BOUNCER-API-KEY
       # expose:
       #   - "8080"
       volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
         - $persist_data_home/crowdsec/log:/var/log/crowdsec:ro
         - $persist_data_home/crowdsec/db:/var/lib/crowdsec/data
         - $persist_data_home/crowdsec/auth.log:/var/log/auth.log:ro
@@ -81,16 +89,13 @@ services:
         - $persist_data_home/traefik-log:/var/log/traefik:ro
       restart: unless-stopped
       labels:
-        - "traefik.enable=true"
+        - "traefik.enable=false"
         - "traefik.http.routers.cs.rule=Host(`npm.crowdsec.stickpile.net`)"
         - "traefik.http.routers.cs.entrypoints=websecure"
         - "traefik.http.routers.cs.tls.certresolver=httpsResolve"
         - "traefik.http.services.cs.loadbalancer.server.port=8080"
         - "traefik.http.routers.cs.middlewares=middlewares-authentik@file,crowdsec-wordpress@docker"
         ## Middleware configuration
-        - "traefik.http.middlewares.cs.plugin.crowdsec-bouncer.enabled=true"
-        - "traefik.http.middlewares.cs.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
-        ## As a note, need to bring $BOUNCER-API-KEY into SOPS on every deployment
       networks:
         - traefik_backbone
 
