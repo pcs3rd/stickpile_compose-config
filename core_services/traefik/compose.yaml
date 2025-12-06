@@ -30,6 +30,8 @@ services:
       - "--certificatesresolvers.httpsResolve.acme.storage=/letsencrypt/acme.json"
       - "--providers.file.directory=/rules"
       - "--log.level=DEBUG"
+      - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+      - "--experimental.plugins.crowdsec-bouncer.version=v1.2.1"
     ports:
       - "80:80"
       - "443:443"
@@ -46,6 +48,7 @@ services:
     volumes:
       - $persist_data_home/letsencrypt:/letsencrypt
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - $persist_data_home/traefik-log:/var/log/traefik
       - ./rules:/rules
     networks: 
       - traefik_backbone
@@ -64,7 +67,7 @@ services:
     #   start_period: 5s
 
   crowdsec:
-      image: crowdsecurity/crowdsec
+      image: crowdsecurity/crowdsec:v1.7.4-debian
       environment:
         PGID: "1000"
         COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve"
@@ -75,6 +78,7 @@ services:
         - $persist_data_home/crowdsec/db:/var/lib/crowdsec/data
         - $persist_data_home/crowdsec/auth.log:/var/log/auth.log:ro
         - $persist_data_home/crowdsec/config:/etc/crowdsec
+        - $persist_data_home/traefik-log:/var/log/traefik:ro
       restart: unless-stopped
       labels:
         - "traefik.enable=true"
