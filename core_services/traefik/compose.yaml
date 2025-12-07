@@ -49,7 +49,7 @@ services:
     volumes:
       - $persist_data_home/letsencrypt:/letsencrypt
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - $persist_data_home/traefik-log:/var/log/traefik
+      #- $persist_data_home/traefik-log:/var/log/traefik
       - ./rules:/rules
       - logs:/var/log/traefik
     networks: 
@@ -86,7 +86,7 @@ services:
         - $persist_data_home/crowdsec/db:/var/lib/crowdsec/data
         - $persist_data_home/crowdsec/auth.log:/var/log/auth.log:ro
         - $persist_data_home/crowdsec/config:/etc/crowdsec
-        - $persist_data_home/traefik-log:/var/log/traefik:ro
+        #- $persist_data_home/traefik-log:/var/log/traefik:ro
       restart: unless-stopped
       labels:
         - "traefik.enable=false"
