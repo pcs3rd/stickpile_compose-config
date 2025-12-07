@@ -51,7 +51,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       #- $persist_data_home/traefik-log:/var/log/traefik
       - ./rules:/rules
-      - logs:/var/log/traefik
+      - proxy-logs:/var/log/traefik
     networks: 
       - traefik_backbone
     labels:
@@ -80,7 +80,7 @@ services:
       # expose:
       #   - "8080"
       volumes:
-        - logs:/var/log/traefik:ro
+        - proxy-logs:/var/log/traefik:ro
         - /var/run/docker.sock:/var/run/docker.sock:ro
         - $persist_data_home/crowdsec/log:/var/log/crowdsec:ro
         - $persist_data_home/crowdsec/db:/var/lib/crowdsec/data
@@ -116,3 +116,7 @@ networks:
   traefik_backbone: # For external containers.
     name: traefik_backbone
     external: true
+
+
+volumes:
+  proxy-logs:
