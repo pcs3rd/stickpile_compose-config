@@ -78,7 +78,7 @@ services:
       image: crowdsecurity/crowdsec:v1.7.4-debian
       environment:
         PGID: "1000"
-        COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve firix/authentik"
+        COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve firix/authentik crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
         PARSERS: "crowdsecurity/docker-logs"
         BOUNCER_KEY_TRAEFIK: $BOUNCER-API-KEY
       # expose:
