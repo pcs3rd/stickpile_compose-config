@@ -30,6 +30,10 @@ services:
       - "--certificatesresolvers.httpsResolve.acme.storage=/letsencrypt/acme.json"
       - "--providers.file.directory=/rules" 
       - "--log.level=INFO"
+      - "--log.filePath=/var/log/traefik/access.log"
+      - "--log.maxSize = 500MB"
+      - "--log.maxAge = 12"
+      - "--log.format=json"
       - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
       - "--experimental.plugins.crowdsec-bouncer.version=v1.2.1"
       ## As a note, need to bring $BOUNCER-API-KEY into SOPS on every deployment
