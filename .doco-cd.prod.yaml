@@ -8,7 +8,6 @@
 #   - remote:secrets.enc.env
 # ---
 name: traefik
-destroy: true
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: core_services/traefik
@@ -18,7 +17,6 @@ env_files:
   - remote:secrets.enc.env
 ---
 name: authentik
-destroy: true
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: core_services/authentik
@@ -28,7 +26,6 @@ env_files:
   - remote:secrets.enc.env
 ---
 name: media_server
-destroy: true
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: web-apps/jellyfin
@@ -38,7 +35,6 @@ env_files:
   - remote:secrets.enc.env
 ---
 name: seafile
-destroy: true
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: web-apps/seafile
@@ -57,7 +53,6 @@ env_files:
 #   - remote:secrets.enc.env
 ---
 name: affine
-destroy: true
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: web-apps/affine
@@ -67,7 +62,6 @@ env_files:
   - remote:secrets.enc.env
 ---
 name: kiwix
-destroy: true
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: web-apps/kiwix
