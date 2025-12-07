@@ -85,6 +85,7 @@ services:
       - "traefik.http.routers.authentik-output-rtr.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAINNAME}`) && PathPrefix(`/outpost.goauthentik.io/`)"
       - "traefik.http.routers.authentik-output-rtr.entrypoints=websecure"
       - "traefik.http.routers.authentik-output-rtr.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.kiwix.middlewares=bouncer@docker"
 
 
     volumes:
