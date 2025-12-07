@@ -31,7 +31,7 @@ services:
       - "--providers.file.directory=/rules" 
       - "--log.level=INFO"
       - "--log.filePath=/var/log/traefik/access.log"
-      - "--log.maxSize=500MB"
+      - "--log.maxSize=500"
       - "--log.maxAge=12"
       - "--log.format=json"
       - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
