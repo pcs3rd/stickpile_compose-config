@@ -2,22 +2,22 @@ services:
   unifi-network-application:
     image: lscr.io/linuxserver/unifi-network-application:latest
     container_name: unifi-network-application
-    # environment:
-    #   - PUID
-    #   - PGID
-    #   - TZ
-    #   - MONGO_USER
-    #   - MONGO_PASS
-    #   - MONGO_HOST
-    #   - MONGO_PORT
-    #   - MONGO_DBNAME
-    #   - MONGO_AUTHSOURCE
-    #   - MEM_LIMIT
-    #   - MEM_STARTUP
+    environment:
+      - PUID
+      - PGID
+      - TZ
+      - MONGO_USER
+      - MONGO_PASS
+      - MONGO_HOST
+      - MONGO_PORT
+      - MONGO_DBNAME
+      - MONGO_AUTHSOURCE
+      - MEM_LIMIT
+      - MEM_STARTUP
     env_file:  
       - secrets.enc.env  
     volumes:
-      - ${persist_data_home}/unifi-network-application:/config
+      - $persist_data_home/unifi-network-application:/config
     ports:
       - 8443:8443
       - 3478:3478/udp
@@ -33,17 +33,17 @@ services:
   mongo:
     image: docker.io/mongo:latest
     restart: always
-    # environment:
-    #   - MONGO_INITDB_ROOT_USERNAME
-    #   - MONGO_INITDB_ROOT_PASSWORD
-    #   - MONGO_USER
-    #   - MONGO_PASS
-    #   - MONGO_DBNAME
-    #   - MONGO_AUTHSOURCE
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD
+      - MONGO_USER
+      - MONGO_PASS
+      - MONGO_DBNAME
+      - MONGO_AUTHSOURCE
     env_file:  
       - secrets.enc.env  
     volumes: 
-      - ${persist_data_home}/unifi-network-mongodb:/data/db
+      - $persist_data_home/unifi-network-mongodb:/data/db
       #- ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
 
   mongo-express:
@@ -53,11 +53,11 @@ services:
       - 8081:8081
     env_file:  
       - secrets.enc.env  
-    # environment:
-    #   - ME_CONFIG_MONGODB_ADMINUSERNAME
-    #   - ME_CONFIG_MONGODB_ADMINPASSWORD
-    #   - ME_CONFIG_MONGODB_URL
-    #   - ME_CONFIG_BASICAUTH
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME
+      - ME_CONFIG_MONGODB_ADMINPASSWORD
+      - ME_CONFIG_MONGODB_URL
+      - ME_CONFIG_BASICAUTH
 
 
 # BLOCKY - GO Based DNS Server with CLI Support
@@ -71,30 +71,30 @@ services:
       - "53:53/tcp"
       - "53:53/udp"
       - "4000:4000/tcp"
-    # environment:
-    #   - TZ
+    environment:
+      - TZ
     env_file:  
       - secrets.enc.env  
     volumes:
       - /etc/localtime:/etc/localtime:ro
       # config file
-      #- ./config.yml:/app/config.yml
-      - ${persist_data_home}/blocky-state/config.yml:/app/config.yml
-      - ${persist_data_home}/blocky-lists/:/userlists
+      # - ./config.yml:/app/config.yml
+      - $persist_data_home/blocky-state/config.yml:/app/config.yml
+      - $persist_data_home/blocky-lists/:/userlists
   blocky-redis: 
     image: redis:6.2-alpine
     restart: always
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
-      - ${persist_data_home}/blocky-redis-state:/data
+      - $persist_data_home/blocky-redis-state:/data
   blocky-ui:
     image: ghcr.io/ivvija/blocky-ui
     container_name: blocky-ui
     restart: on-failure
     depends_on:
       - blocky
-    # environment:
-    #   API_BASE_URL: http://blocky:4000/api
+    environment:
+      API_BASE_URL: http://blocky:4000/api
     env_file:  
       - secrets.enc.env  
     ports:
