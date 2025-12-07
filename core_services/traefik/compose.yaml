@@ -51,6 +51,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - $persist_data_home/traefik-log:/var/log/traefik
       - ./rules:/rules
+      - logs:/var/log/traefik
     networks: 
       - traefik_backbone
     labels:
@@ -60,10 +61,8 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=httpsResolve"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
-      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.enabled=true"
-      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
-      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapischeme=http"
-      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapihost=crowdsec:8080"
+      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
+      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
     # healthcheck:
     #   test: ["CMD", "traefik", "healthcheck", "--ping"]
     #   interval: 30s
@@ -81,6 +80,7 @@ services:
       # expose:
       #   - "8080"
       volumes:
+        - logs:/var/log/traefik:ro
         - /var/run/docker.sock:/var/run/docker.sock:ro
         - $persist_data_home/crowdsec/log:/var/log/crowdsec:ro
         - $persist_data_home/crowdsec/db:/var/lib/crowdsec/data
@@ -94,7 +94,7 @@ services:
         - "traefik.http.routers.cs.entrypoints=websecure"
         - "traefik.http.routers.cs.tls.certresolver=httpsResolve"
         - "traefik.http.services.cs.loadbalancer.server.port=8080"
-        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file,crowdsec-wordpress@docker"
+        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file"
         ## Middleware configuration
       networks:
         - traefik_backbone
