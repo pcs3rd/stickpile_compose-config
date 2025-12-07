@@ -32,10 +32,6 @@ services:
       - "--log.level=INFO"
       - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
       - "--experimental.plugins.crowdsec-bouncer.version=v1.2.1"
-      # - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.enabled=true"
-      # - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
-      # - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapischeme=http"
-      # - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapihost=crowdsec:8080"
       ## As a note, need to bring $BOUNCER-API-KEY into SOPS on every deployment
     ports:
       - "80:80"
@@ -64,6 +60,10 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=httpsResolve"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
+      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.enabled=true"
+      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
+      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapischeme=http"
+      - "--traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapihost=crowdsec:8080"
     # healthcheck:
     #   test: ["CMD", "traefik", "healthcheck", "--ping"]
     #   interval: 30s
