@@ -451,38 +451,38 @@ services:
         ##max_attempts:  3
         window: 120s
 
-  readarr:
-    image: lscr.io/linuxserver/readarr:develop
-    volumes:
-      - $persist_data_home/readarr:/config
-      - $media_mount:/storage
-      - $downloads_home:/downloads
-    env_file:  
-      - secrets.enc.env  
-    environment:
-      - PUID
-      - PGID
-      - TZ
-    networks:
-      - traefik_backbone
-      - mediaserver
+  # readarr:
+  #   image: lscr.io/linuxserver/readarr:develop
+  #   volumes:
+  #     - $persist_data_home/readarr:/config
+  #     - $media_mount:/storage
+  #     - $downloads_home:/downloads
+  #   env_file:  
+  #     - secrets.enc.env  
+  #   environment:
+  #     - PUID
+  #     - PGID
+  #     - TZ
+  #   networks:
+  #     - traefik_backbone
+  #     - mediaserver
     
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
-      - "traefik.http.routers.readarr.entrypoints=websecure"
-      - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
-      - "traefik.http.services.readarr.loadbalancer.server.port=8787"
-      - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        ##max_attempts:  3
-        window: 120s
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
+  #     - "traefik.http.routers.readarr.entrypoints=websecure"
+  #     - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
+  #     - "traefik.http.services.readarr.loadbalancer.server.port=8787"
+  #     - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
+  #     endpoint_mode: vip
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       ##max_attempts:  3
+  #       window: 120s
   sonarr:
     env_file:  
       - secrets.enc.env  
