@@ -93,7 +93,6 @@ services:
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:v3.4.2
-    
     networks:
       - mediaserver
     env_file:  
