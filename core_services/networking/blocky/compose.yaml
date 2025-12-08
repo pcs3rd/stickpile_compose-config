@@ -30,7 +30,7 @@ services:
     depends_on:
       - blocky
     environment:
-      API_BASE_URL: http://blocky:4000/api
+      API_BASE_URL: http://192.168.1.10:4000/api
     env_file:  
       - secrets.enc.env  
     ports:
