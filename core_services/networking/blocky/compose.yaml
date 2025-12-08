@@ -1,7 +1,7 @@
 services:
 # BLOCKY - GO Based DNS Server with CLI Support
   blocky:
-    image: spx01/blocky
+    image: spx01/blocky:v0.28.2
     restart: on-failure
     # Optional the instance hostname for logging purpose
     ports:
@@ -25,7 +25,7 @@ services:
     volumes: 
       - $persist_data_home/blocky-redis-state:/data
   blocky-ui:
-    image: gabrielduartem/blocky-ui:latest
+    image: gabrielduartem/blocky-ui:1.1.4
     container_name: blocky-ui
     restart: unless-stopped
     depends_on:
