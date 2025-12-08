@@ -241,6 +241,7 @@ services:
       - $persist_data_home/jellyseerr:/app/config
     networks:
       - traefik_backbone
+      - mediaserver
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.js.rule=Host(`requests.stickpile.net`)"
