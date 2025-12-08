@@ -24,17 +24,11 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
       - $persist_data_home/blocky-redis-state:/data
-  blocky-ui:
-    image: gabrielduartem/blocky-ui:1.1.4
-    container_name: blocky-ui
-    restart: unless-stopped
+  blocky-frontend:
+    environment; configs:
+      - API_URL="http://192.168.1.10:4000"
     depends_on:
       - blocky
-    env_file:  
-      - secrets.enc.env  
+    image: ghcr.io/mozart409/blocky-frontend:latest
     ports:
-      - 3000:3000
-    environment:
-      API_BASE_URL: http://192.168.1.10:4000/api
-      # Uncomment to enable query logging features if you have it configured on blocky (MySQL/MariaDB only):
-      # - DATABASE_URL=mysql://username:password@localhost:3306/blocky_query_log_table_name
+      - '8002:8002'
