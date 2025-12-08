@@ -1,6 +1,6 @@
 services:
   unifi-network-application:
-    image: lscr.io/linuxserver/unifi-network-application:latest
+    image: lscr.io/linuxserver/unifi-network-application:10.0.160
     environment:
       - PUID
       - PGID
@@ -30,7 +30,7 @@ services:
     restart: on-failure
 
   mongo:
-    image: docker.io/mongo:latest
+    image: docker.io/mongo:8.2.2
     restart: always
     environment:
       - MONGO_INITDB_ROOT_USERNAME

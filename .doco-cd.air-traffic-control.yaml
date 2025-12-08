@@ -8,7 +8,6 @@
 #   - remote:secrets.enc.env
 # ---
 name: ubiquity-console
-force_image_pull: true
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: core_services/networking/ubnt_console
@@ -18,7 +17,6 @@ env_files:
   - remote:secrets.enc.env
 ---
 name: blocky
-force_image_pull: true
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: core_services/networking/blocky

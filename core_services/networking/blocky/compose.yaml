@@ -1,7 +1,7 @@
 services:
 # BLOCKY - GO Based DNS Server with CLI Support
   blocky:
-    image: spx01/blocky
+    image: spx01/blocky:v0.28.2
     restart: on-failure
     # Optional the instance hostname for logging purpose
     ports:
@@ -25,13 +25,16 @@ services:
     volumes: 
       - $persist_data_home/blocky-redis-state:/data
   blocky-ui:
-    image: ghcr.io/ivvija/blocky-ui
-    restart: on-failure
+    image: gabrielduartem/blocky-ui:1.1.4
+    container_name: blocky-ui
+    restart: unless-stopped
     depends_on:
       - blocky
-    environment:
-      API_BASE_URL: http://192.168.1.10:4000/api
     env_file:  
       - secrets.enc.env  
     ports:
-      - "3000:3000/tcp"
+      - 3000:3000
+    environment:
+      API_BASE_URL: http://192.168.1.10:4000/api
+      # Uncomment to enable query logging features if you have it configured on blocky (MySQL/MariaDB only):
+      # - DATABASE_URL=mysql://username:password@localhost:3306/blocky_query_log_table_name
