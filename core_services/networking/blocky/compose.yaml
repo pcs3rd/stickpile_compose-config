@@ -25,13 +25,14 @@ services:
     volumes: 
       - $persist_data_home/blocky-redis-state:/data
   blocky-ui:
-    image: ghcr.io/ivvija/blocky-ui
-    restart: on-failure
+    image: gabrielduartem/blocky-ui:latest
+    container_name: blocky-ui
+    restart: unless-stopped
     depends_on:
       - blocky
-    environment:
-      API_BASE_URL: http://blocky:4000/api
-    env_file:  
-      - secrets.enc.env  
     ports:
-      - "3000:3000/tcp"
+      - 3000:3000
+    environment:
+      - BLOCKY_API_URL=http://blocky:4000
+      # Uncomment to enable query logging features if you have it configured on blocky (MySQL/MariaDB only):
+      # - DATABASE_URL=mysql://username:password@localhost:3306/blocky_query_log_table_name
