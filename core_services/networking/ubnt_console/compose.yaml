@@ -1,7 +1,6 @@
 services:
   unifi-network-application:
     image: lscr.io/linuxserver/unifi-network-application:latest
-    container_name: unifi-network-application
     environment:
       - PUID
       - PGID
@@ -58,44 +57,3 @@ services:
       - ME_CONFIG_MONGODB_ADMINPASSWORD
       - ME_CONFIG_MONGODB_URL
       - ME_CONFIG_BASICAUTH
-
-
-# BLOCKY - GO Based DNS Server with CLI Support
-  blocky:
-    image: spx01/blocky
-    container_name: blocky
-    restart: on-failure
-    # Optional the instance hostname for logging purpose
-    hostname: blocky-hostname
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "4000:4000/tcp"
-    environment:
-      - TZ
-    env_file:  
-      - secrets.enc.env  
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      # config file
-      # - ./config.yml:/app/config.yml
-      - $persist_data_home/blocky-state/config.yml:/app/config.yml
-      - $persist_data_home/blocky-lists/:/userlists
-  blocky-redis: 
-    image: redis:6.2-alpine
-    restart: always
-    command: redis-server --save 20 1 --loglevel warning
-    volumes: 
-      - $persist_data_home/blocky-redis-state:/data
-  blocky-ui:
-    image: ghcr.io/ivvija/blocky-ui
-    container_name: blocky-ui
-    restart: on-failure
-    depends_on:
-      - blocky
-    environment:
-      API_BASE_URL: http://blocky:4000/api
-    env_file:  
-      - secrets.enc.env  
-    ports:
-      - "3000:3000/tcp"

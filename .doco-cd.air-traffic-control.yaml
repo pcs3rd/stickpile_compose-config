@@ -7,11 +7,23 @@
 # env_files:
 #   - remote:secrets.enc.env
 # ---
-name: traefik
+name: Ubiquity-Console
+force_image_pull: true
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
-working_dir: core_services/traefik
+working_dir: core_services/networking/ubnt_console
 compose_files: 
   - compose.yaml
 env_files:
   - remote:secrets.enc.env
+---
+name: Blocky
+force_image_pull: true
+repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+reference: prod
+working_dir: core_services/networking/blocky
+compose_files: 
+  - compose.yaml
+env_files:
+  - remote:secrets.enc.env
+
