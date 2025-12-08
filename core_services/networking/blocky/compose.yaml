@@ -49,4 +49,4 @@ services:
     image: adminer
     restart: always
     ports:
-      - 8085:8085
+      - 8085:8080
