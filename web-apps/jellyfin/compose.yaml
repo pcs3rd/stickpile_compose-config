@@ -324,7 +324,7 @@ services:
       ND_LOGLEVEL: info
       ND_SESSIONTIMEOUT: 24h
       ND_BASEURL: ""
-      ND_REVERSEPROXYWHITELIST: "10.0.4.0/24,10.0.7.0/24,10.0.2.0/24,10.0.3.0/24"
+      ND_REVERSEPROXYWHITELIST: "10.0.4.0/24,10.0.7.0/24,10.0.2.0/24,10.0.3.0/24,10.0.0.0/24"
       ND_REVERSEPROXYUSERHEADER: "X-authentik-username"
     networks:
       - mediaserver
