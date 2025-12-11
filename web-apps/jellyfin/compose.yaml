@@ -534,12 +534,9 @@ services:
 
       zdvr1:
         ipv4_address: 192.168.187.163
-        gw_priority: 3
-        priority: 3
       zdvr2:
         ipv4_address: 192.168.83.68
-        gw_priority: 4
-        priority: 4
+        
     deploy:
       mode: replicated
       replicas: 1
