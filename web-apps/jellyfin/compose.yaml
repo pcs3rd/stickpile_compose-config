@@ -326,6 +326,7 @@ services:
       ND_BASEURL: ""
       ND_REVERSEPROXYWHITELIST: "10.0.4.0/24,10.0.7.0/24,10.0.2.0/24,10.0.3.0/24,10.0.0.0/24"
       ND_REVERSEPROXYUSERHEADER: "X-authentik-username"
+      
     networks:
       - mediaserver
       - traefik_backbone
@@ -521,23 +522,23 @@ services:
       - PUID
       - PGID
       - TZ
-    network_mode: host
-    #networks:
-    #  traefik_backbone:
-    #    gw_priority: 2
-    #    priority: 2
+    #network_mode: host
+    networks:
+     traefik_backbone:
+       gw_priority: 2
+       priority: 2
 
-    #  mediaserver:
-    #    gw_priority: 1
-    #    priority: 1
-    #  zdvr1:
-    #    ipv4_address: 192.168.187.163
-    #    gw_priority: 3
-    #    priority: 3
-    #  zdvr2:
-    #    ipv4_address: 192.168.83.68
-    #    gw_priority: 4
-    #    priority: 4
+     mediaserver:
+       gw_priority: 1
+       priority: 1
+     zdvr1:
+       ipv4_address: 192.168.187.163
+       gw_priority: 3
+       priority: 3
+     zdvr2:
+       ipv4_address: 192.168.83.68
+       gw_priority: 4
+       priority: 4
     deploy:
       mode: replicated
       replicas: 1
