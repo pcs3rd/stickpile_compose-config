@@ -524,21 +524,22 @@ services:
       - TZ
     #network_mode: host
     networks:
-     traefik_backbone:
-       gw_priority: 2
-       priority: 2
+      traefik_backbone:
+        gw_priority: 2
+        priority: 2
 
-     mediaserver:
-       gw_priority: 1
-       priority: 1
-     zdvr1:
-       ipv4_address: 192.168.187.163
-       gw_priority: 3
-       priority: 3
-     zdvr2:
-       ipv4_address: 192.168.83.68
-       gw_priority: 4
-       priority: 4
+      mediaserver:
+        gw_priority: 1
+        priority: 1
+
+      zdvr1:
+        ipv4_address: 192.168.187.163
+        gw_priority: 3
+        priority: 3
+      zdvr2:
+        ipv4_address: 192.168.83.68
+        gw_priority: 4
+        priority: 4
     deploy:
       mode: replicated
       replicas: 1
