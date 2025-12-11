@@ -525,13 +525,7 @@ services:
     #network_mode: host
     networks:
       traefik_backbone:
-        gw_priority: 2
-        priority: 2
-
       mediaserver:
-        gw_priority: 1
-        priority: 1
-
       zdvr1:
         ipv4_address: 192.168.187.163
       zdvr2:
@@ -764,8 +758,6 @@ networks:
     name: web-prod-media-server_Internal
     driver: overlay
     attachable: true
-  internet:
-    driver: bridge
   traefik_backbone:
     # For external containers.
     name: traefik_backbone
