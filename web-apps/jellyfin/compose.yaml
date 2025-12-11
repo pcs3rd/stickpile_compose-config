@@ -764,7 +764,7 @@ networks:
     external: true
   zdvr1:
     external: true
-    name: zdvr1
+    name: swarm-zdvr1
   zdvr2:
     external: true
-    name: zdvr2
+    name: swarm-zdvr2
