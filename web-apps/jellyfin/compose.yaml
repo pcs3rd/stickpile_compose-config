@@ -529,7 +529,7 @@ services:
       zdvr1:
         ipv4_address: 192.168.187.163
       zdvr2:
-        ipv4_address: 192.168.83.68
+        ipv4_address: 192.168.83.67
         
     deploy:
       mode: replicated
