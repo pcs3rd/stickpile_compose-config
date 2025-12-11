@@ -522,14 +522,14 @@ services:
       - PUID
       - PGID
       - TZ
-    #network_mode: host
-    networks:
-      traefik_backbone:
-      mediaserver:
-      zdvr1:
-        ipv4_address: 192.168.187.163
-      zdvr2:
-        ipv4_address: 192.168.83.68
+    network_mode: host
+    # networks:
+    #   traefik_backbone:
+    #   mediaserver:
+    #   zdvr1:
+    #     ipv4_address: 192.168.187.163
+    #   zdvr2:
+    #     ipv4_address: 192.168.83.68
         
     deploy:
       mode: replicated
