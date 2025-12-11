@@ -522,7 +522,7 @@ services:
       - PUID
       - PGID
       - TZ
-    network_mode: host
+    #network_mode: host
     networks:
       traefik_backbone:
       mediaserver:
