@@ -26,7 +26,7 @@ services:
       - $persist_data_home/blocky-redis-state:/data
 
   blocky-ui:
-    image: gabrielduartem/blocky-ui:1.1.5
+    image: gabrielduartem/blocky-ui:latest
     container_name: blocky-ui
     restart: unless-stopped
     depends_on:
