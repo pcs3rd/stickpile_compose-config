@@ -756,7 +756,7 @@ services:
 networks:
   mediaserver:
     name: web-prod-media-server_Internal
-    driver: overlay
+    driver: bridge
     attachable: true
   traefik_backbone:
     # For external containers.

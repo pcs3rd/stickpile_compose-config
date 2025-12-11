@@ -2,7 +2,7 @@
 networks:
 #  internal:
 #    name: web-prod-kiwix_Internal
-#    driver: overlay
+#    driver: bridge
 #    attachable: true
   traefik_backbone: # For external containers.
     name: traefik_backbone

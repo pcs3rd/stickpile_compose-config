@@ -3,7 +3,7 @@
 networks:
   internal:
     name: web-prod-seafile_Internal
-    driver: overlay
+    driver: bridge
     attachable: true
   backbone: # For external containers.
     name: traefik_backbone

@@ -5,7 +5,7 @@ networks:
     external: true
 
   moose:
-    driver: overlay
+    driver: bridge
     ipam:
       config:
         - subnet: 172.20.0.0/16

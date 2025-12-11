@@ -1,7 +1,7 @@
 networks:
   authentik:
     name: core-prod-authentik_Internal
-    driver: overlay
+    driver: bridge
     attachable: true
 
   traefik_backbone: # For external containers.

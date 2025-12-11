@@ -1,7 +1,7 @@
 networks:
   internal:
     name: web-prod-wordpress_Internal
-    driver: overlay
+    driver: bridge
     attachable: true
   traefik_backbone: # For external containers.
     name: traefik_backbone
