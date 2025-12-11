@@ -522,14 +522,14 @@ services:
       - PUID
       - PGID
       - TZ
-    #network_mode: host
-    networks:
-      traefik_backbone:
-      mediaserver:
-      zdvr1:
-        ipv4_address: 192.168.187.163
-      zdvr2:
-        ipv4_address: 192.168.83.67
+    network_mode: host
+    # networks:
+    #   traefik_backbone:
+    #   mediaserver:
+    #   zdvr1:
+    #     ipv4_address: 192.168.187.163
+    #   zdvr2:
+    #     ipv4_address: 192.168.83.67
         
     deploy:
       mode: replicated
@@ -762,9 +762,9 @@ networks:
     # For external containers.
     name: traefik_backbone
     external: true
-  zdvr1:
-    external: true
-    name: swarm-zdvr1
-  zdvr2:
-    external: true
-    name: swarm-zdvr2
+  # zdvr1:
+  #   external: true
+  #   name: swarm-zdvr1
+  # zdvr2:
+  #   external: true
+  #   name: swarm-zdvr2
