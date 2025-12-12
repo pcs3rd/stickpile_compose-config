@@ -549,7 +549,7 @@ services:
       - "traefik.http.routers.tve.rule=Host(`tve.stickpile.net`)"
       - "traefik.http.routers.tve.entrypoints=websecure"
       - "traefik.http.routers.tve.tls.certresolver=httpsResolve"
-      - "traefik.http.services.tve.loadbalancer.server.port=9981"
+      #- "traefik.http.services.tve.loadbalancer.server.port=9981"
       - "traefik.http.services.tve.loadbalancer.server.url=http://172.16.0.7:9981/"
       - "traefik.http.routers.tve.middlewares=middlewares-authentik@file"
 
