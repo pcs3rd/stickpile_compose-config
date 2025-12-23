@@ -323,17 +323,17 @@ services:
       ND_SCANSCHEDULE: 1h
       ND_LOGLEVEL: info
       ND_SESSIONTIMEOUT: 24h
-      ND_BASEURL: ""
-      ND_REVERSEPROXYWHITELIST: "10.0.4.0/24,10.0.7.0/24,10.0.2.0/24,10.0.3.0/24,10.0.0.0/24"
-      ND_REVERSEPROXYUSERHEADER: "X-authentik-username"
-      
+      ND_BASEURL: "https://music.stickpile.net"
+      ND_EXTAUTH_TRUSTEDSOURCES: 0.0.0.0/0
+      ND_ENABLEUSEREDITING: false
+
     networks:
       - mediaserver
       - traefik_backbone
     
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.navi.rule=Host(`music.stickpile.net`)"
+      - "traefik.http.routers.navi.rule=Host(`music.stickpile.net`) && PathPrefix(`/rest/`) && !Query(`c`, `NavidromeUI`)"
       - "traefik.http.routers.navi.entrypoints=websecure"
       - "traefik.http.routers.navi.tls.certresolver=httpsResolve"
       - "traefik.http.services.navi.loadbalancer.server.port=4533"
