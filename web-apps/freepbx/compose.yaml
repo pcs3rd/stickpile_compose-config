@@ -1,0 +1,64 @@
+volumes:
+  mysql_data:
+  var_data:
+  etc_data:
+
+networks:
+  web_pbx_internal:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1
+
+  traefik_backbone:
+    name: traefik_backbone
+    external: true
+
+services:
+  tailscale: 
+    restart: always
+    image: ghcr.io/tailscale/tailscale:latest
+    networks:
+      - web_pbx_internal
+    environment: 
+    - TS_AUTHKEY
+    - TS_ACCEPT_DNS
+    - TS_STATE_DIR
+    - TS_USERSPACE=false
+    cap_add:
+      - NET_ADMIN
+
+  db:
+    restart: always
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+      MYSQL_USER: freepbxuser
+      MYSQL_PASSWORD_FILE: /run/secrets/freepbxuser_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/my.cnf:ro
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      web_pbx_internal:
+        ipv4_address: 172.18.0.10
+
+  freepbx:
+    restart: always
+    image: escomputers/freepbx:17
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - var_data:/var
+      - etc_data:/etc
+    networks:
+      web_pbx_internal:
+        ipv4_address: 172.18.0.20
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "5060:5060/udp"
+    depends_on:
+      - db

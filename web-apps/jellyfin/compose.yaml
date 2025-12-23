@@ -334,7 +334,7 @@ services:
     
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.navi.rule=Host(`music.stickpile.net`) && PathPrefix(`/rest/`) && !Query(`c`, `NavidromeUI`)"
+      - "traefik.http.routers.navi.rule=Host(`music.stickpile.net`)"
       - "traefik.http.routers.navi.entrypoints=websecure"
       - "traefik.http.routers.navi.tls.certresolver=httpsResolve"
       - "traefik.http.services.navi.loadbalancer.server.port=4533"

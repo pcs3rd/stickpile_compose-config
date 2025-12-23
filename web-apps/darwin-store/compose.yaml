@@ -1,0 +1,15 @@
+  static-file-server:
+    volumes:
+      - $persist_data_home/mtd/downloads:/downloads
+    env_file:  
+      - secrets.enc.env  
+    image: halverneus/static-file-server:latest
+    labels:                                                                              # Optional if accessing directly via port
+      - "traefik.enable=true"                                                            # Enable/Disable Traefik
+      - "traefik.http.routers.servMapTilesDownloader.rule=Host(`cache.mtd.stickpile.net`)"             # Access domain
+      - "traefik.http.routers.servMapTilesDownloader.entrypoints=websecure"                  # Use HTTPS
+      - "traefik.http.routers.servMapTilesDownloader.tls.certresolver=httpsResolve"          # HTTPS Cert Resolver
+      - "traefik.http.services.servMapTilesDownloader.loadbalancer.server.port=8080"         # Container Port
+#      - "traefik.http.routers.MapTilesDownloader.middlewares=middlewares-authentik@file" # If you're using authentik 
+    networks: 
+      traefik_backbone:
