@@ -315,6 +315,8 @@ services:
     env_file:  
       - secrets.enc.env  
     image: deluan/navidrome:0.59.0
+    ports: 
+      - 4533:4533
     volumes:
       - $persist_data_home/navidrome:/data
       - $media_mount:/music
