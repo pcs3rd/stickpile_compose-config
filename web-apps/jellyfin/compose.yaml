@@ -324,6 +324,7 @@ services:
       ND_LOGLEVEL: info
       ND_SESSIONTIMEOUT: 24h
       ND_BASEURL: "https://music.stickpile.net"
+      ND_REVERSEPROXYUSERHEADER: "X-authentik-username"
       ND_EXTAUTH_TRUSTEDSOURCES: 0.0.0.0/0
       ND_ENABLEUSEREDITING: false
 
