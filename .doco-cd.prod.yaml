@@ -70,7 +70,7 @@ compose_files:
 env_files:
   - remote:secrets.enc.env
 ---
-name: PBX
+name: pbx
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: other-apps/asterisk-pbx
