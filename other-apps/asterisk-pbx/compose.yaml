@@ -7,16 +7,20 @@ services:
       - NET_ADMIN
     environment:
       - TS_AUTHKEY = $tailscale_auth_key
-    volumes:
-      - dev/net/tun:/dev/net/tun 
+    # volumes: # Don't do this. I don't care about tailscale on the host, and in fact don't want this instance of TS on the host.
+    #   - dev/net/tun:/dev/net/tun 
     networks: 
       asterisk-internal:
   
   asterisk: 
-    image: andrius/asterisk:22.7.0_debian-trixie
+    image: andrius/asterisk:andrius/asterisk:23.1.0_debian-trixie-amd64
     ports: 
       - 5060:5060/udp
       - 10000-20000:10000-10499/udp
-      
+    volumes:
+      - $persist_data_home/asterisk/config:/etc/asterisk
+      - $persist_data_home/asterisk/data:/var/lib/asterisk
+    networks: 
+      asterisk-internal:
 ## TODO 
 ## Create. freepbx docker image
