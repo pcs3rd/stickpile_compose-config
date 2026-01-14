@@ -518,7 +518,7 @@ services:
   tvheadend:
     env_file:  
       - secrets.enc.env  
-    image: ghcr.io/linuxserver/tvheadend:version-23e2089e
+    image: ghcr.io/linuxserver/tvheadend:version-e60aa936
     volumes:
       - $persist_data_home/tvheadend/data:/config
     environment:
