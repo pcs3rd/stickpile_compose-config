@@ -65,8 +65,9 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=httpsResolve"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       # Tar1090
-      - "traefik.http.routers.tar.rule=Host(`flights.kc3zxi.net`) && PathPrefix(`/tar1090`)"
+      - "traefik.http.routers.tar.rule=Host(`adbs.kc3zxi.net`) && ( PathPrefix(/tar1090) ) "
       - "traefik.http.routers.tar.entrypoints=websecure"
+      - "traefik.http.services.tve.loadbalancer.server.url=http://100.96.14.67:80/tar1090"
       - "traefik.http.routers.tar.tls.certresolver=httpsResolve"
       - "traefik.http.services.tar.loadbalancer.server.port=80"
       # Tar1090 end
