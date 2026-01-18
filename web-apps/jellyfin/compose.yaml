@@ -768,6 +768,8 @@ services:
     #   - NVIDIA_DRIVER_CAPABILITIES:all
     # devices:
     #   - nvidia.com/gpu=all
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
     networks:
       - mediaserver
     ports: # This maps port from host:container
