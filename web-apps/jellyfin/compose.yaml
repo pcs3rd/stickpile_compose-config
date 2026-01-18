@@ -756,6 +756,32 @@ services:
       - "traefik.http.routers.bliss.tls.certresolver=httpsResolve"
       - "traefik.http.services.bliss.loadbalancer.server.port=3220"
       - "traefik.http.routers.bliss.middlewares=middlewares-authentik@file"
+
+  ersatztv:
+    image: ghcr.io/ersatztv/ersatztv
+    container_name: ersatztv
+    # env_file:  
+    #   - secrets.enc.env  
+    environment:
+      - TZ # Edit for your timezone, list can be found https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      - NVIDIA_VISIBLE_DEVICES:all
+      - NVIDIA_DRIVER_CAPABILITIES:all
+    devices:
+      - nvidia.com/gpu=all
+    networks:
+      - mediaserver
+    ports: # This maps port from host:container
+      - "8409:8409"
+    volumes:
+     # Required: Configuration data (must be writable)
+      - $persist_data_home/ErsatzTV:/config
+     # Required: media directories - Where your media files are stored. Use :ro at the end of the path to limit container to Read-Only
+      - $media_mount:/media:ro
+# tmpfs is optional but recommended: Limits writing to SSD/disk by using RAM for transcode files. Comment out to disable
+    tmpfs:
+      - /transcode
+    restart: unless-stopped
+
 networks:
   mediaserver:
     name: web-prod-media-server_Internal
