@@ -29,6 +29,7 @@ $ git commit -m "What changes did I make?
 ```
 $ git push 
 ```
+#### DONE!
 
 ## Step 4: Wait.
 Depending on the host (and it's configuration), changes may take up to five minutes to propagate.
