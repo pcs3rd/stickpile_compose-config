@@ -19,7 +19,7 @@ env_files:
 name: tailscale-support
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
-working_dir: core_services/tailscale-support
+working_dir: core_services/tailscale_support
 compose_files: 
   - compose.yaml
 env_files:
