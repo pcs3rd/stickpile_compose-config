@@ -38,7 +38,7 @@ services:
     restart: always
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
-      - $persist_data_home/blocky-redis-state:/data
+      - $persist_data_home/blocky/redis:/data
 
   blocky-ui:
     networks:
@@ -68,7 +68,7 @@ services:
     env_file:  
       - secrets.enc.env  
     volumes: 
-      - $persist_data_home/blocky-db-state:/var/lib/mysql
+      - $persist_data_home/blocky/db:/var/lib/mysql
     networks:
       - tailscale_support
   adminer:
