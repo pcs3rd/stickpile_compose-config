@@ -28,7 +28,7 @@ services:
     #   - TS_AUTHKEY: $tailscale_auth_key
     volumes: # Don't do this. I don't care about tailscale on the host, and in fact don't want this instance of TS on the host.
     #   - dev/net/tun:/dev/net/tun 
-      - $$persist_data_home/tailscale/state:/var/lib/tailscale
+      - $persist_data_home/tailscale/state:/var/lib/tailscale
     networks:
       - tailscale_support
 
