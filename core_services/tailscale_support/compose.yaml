@@ -18,7 +18,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       # config file
       # - ./config.yml:/app/config.yml
-      - $persist_data_home/blocky/config.yml:/app/config.yml
+      - $persist_data_home/blocky/config.yml:/app/config.yml:ro
       - $persist_data_home/blocky/lists/:/userlists
   tailscale:
     image: tailscale/tailscale:v1.90.9
