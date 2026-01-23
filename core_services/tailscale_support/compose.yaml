@@ -45,7 +45,6 @@ services:
       - tailscale_support
       - traefik_backbone
     image: gabrielduartem/blocky-ui:latest
-    container_name: blocky-ui
     restart: unless-stopped
     depends_on:
       - blocky
