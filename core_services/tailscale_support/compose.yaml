@@ -6,10 +6,10 @@ services:
     image: spx01/blocky:v0.28.2
     restart: on-failure
     # Optional the instance hostname for logging purpose
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "4000:4000/tcp"
+    # ports:
+    #   - "53:53/tcp"
+    #   - "53:53/udp"
+    #   - "4000:4000/tcp"
     environment:
       - TZ
     env_file:  
@@ -18,8 +18,8 @@ services:
       - /etc/localtime:/etc/localtime:ro
       # config file
       # - ./config.yml:/app/config.yml
-      - $persist_data_home/blocky-state/config.yml:/app/config.yml
-      - $persist_data_home/blocky-lists/:/userlists
+      - $persist_data_home/blocky/config.yml:/app/config.yml
+      - $persist_data_home/blocky/lists/:/userlists
   tailscale:
     image: tailscale/tailscale:v1.90.9
     cap_add:
@@ -38,14 +38,13 @@ services:
     restart: always
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
-      - $persist_data_home/blocky-redis-state:/data
+      - $persist_data_home/blocky/redis:/data
 
   blocky-ui:
     networks:
       - tailscale_support
       - traefik_backbone
     image: gabrielduartem/blocky-ui:latest
-    container_name: blocky-ui
     restart: unless-stopped
     depends_on:
       - blocky
@@ -68,7 +67,7 @@ services:
     env_file:  
       - secrets.enc.env  
     volumes: 
-      - $persist_data_home/blocky-db-state:/var/lib/mysql
+      - $persist_data_home/blocky/db:/var/lib/mysql
     networks:
       - tailscale_support
   adminer:
