@@ -3,7 +3,7 @@ http:
     tar1090:
       entryPoints:
         - web
-      rule: "Host(`flights.stickpile.net`)"
+      rule: "(Host(`flights.stickpile.net`) && PathPrefix(`/tar1090`))"
       service: tar1090
       tls:
         certResolver: "httpsResolve"
@@ -11,5 +11,5 @@ http:
     tar1090:
       loadBalancer:
         servers:
-          - url: "http://100.96.14.67:80/"
+          - url: "http://100.96.14.67:80/tar1090"
         passHostHeader: false
