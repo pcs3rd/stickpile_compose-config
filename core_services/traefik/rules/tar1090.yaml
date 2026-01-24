@@ -11,5 +11,5 @@ http:
     tar1090:
       loadBalancer:
         servers:
-          - url: "http://100.96.14.67/"
+          - url: "http://100.96.14.67:80/"
         passHostHeader: true
