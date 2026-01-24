@@ -67,21 +67,6 @@ services:
       - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
       - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
       - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
-    # END TRAEFIK STUFF
-      - "traefik.http.routers.traefik.rule=Host(`flights.stickpile.net`)"
-      - "traefik.http.services.tar1090.loadBalancer.strategy=wrr"
-      - "traefik.http.services.tar1090.loadBalancer.servers[0].url=http://100.96.14.67/tar1090/"
-      - "traefik.http.services.tar1090.loadBalancer.servers[0].weight=2"
-      - "traefik.http.services.tar1090.loadBalancer.servers[0].preservePath=true"
-      #- "traefik.http.services.tar1090.loadBalancer.sticky.cookie.name=sticky-cookie"
-      #- "traefik.http.services.tar1090.loadBalancer.healthcheck.path=/health"
-      #- "traefik.http.services.tar1090.loadBalancer.healthcheck.interval=10s"
-      #- "traefik.http.services.tar1090.loadBalancer.healthcheck.timeout=3s"
-      #- "traefik.http.services.tar1090.loadBalancer.passiveHealthcheck.failureWindow=3s"
-      #- "traefik.http.services.tar1090.loadBalancer.passiveHealthcheck.maxFailedAttempts=3"
-      - "traefik.http.services.tar1090.loadBalancer.passHostHeader=true"
-      #- "traefik.http.services.tar1090.loadBalancer.serversTransport=customTransport@file"
-      #- "traefik.http.services.tar1090.loadBalancer.responseForwarding.flushInterval=150ms"
     # healthcheck:
     #   test: ["CMD", "traefik", "healthcheck", "--ping"]
     #   interval: 30s

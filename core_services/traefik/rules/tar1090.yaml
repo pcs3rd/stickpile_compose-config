@@ -1,0 +1,15 @@
+http:
+  routers:
+    tar1090:
+      entryPoints:
+        - web
+      rule: "Host(`flights.stickpile.net`)"
+      service: tar1090
+      tls:
+        certResolver: "httpsResolve"
+  services:
+    tar1090:
+      loadBalancer:
+        servers:
+          - url: "http://100.96.14.67/"
+        passHostHeader: true
