@@ -1,0 +1,97 @@
+services:
+# BLOCKY - GO Based DNS Server with CLI Support
+  blocky:
+    image: spx01/blocky:v0.28.2
+    restart: on-failure
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "4000:4000/tcp"
+    environment:
+      - PUID
+      - PGID
+      - TZ
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./blocky/config.yml:/app/config.yml:rw
+      - ./blocky/lists/:/userlists
+  blocky-redis: 
+    image: redis:6.2-alpine
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - ./blocky/redis:/data
+
+  blocky-ui:
+    image: gabrielduartem/blocky-ui:latest
+    restart: unless-stopped
+    depends_on:
+      - blocky
+    ports:
+      - 3000:3000
+    environment:
+      - BLOCKY_API_URL=http://blocky:4000
+      - DATABASE_URL=mysql://${MARIADB_USER}:${MARIADB_PASSWORD}@db:3306/${LOG_TABLE}
+
+  db:
+    image: mariadb
+    restart: unless-stopped
+    volumes: 
+      - ./blocky/db:/var/lib/mysql
+#
+# UNIFI
+#
+
+  unifi-network-application:
+    image: lscr.io/linuxserver/unifi-network-application:10.0.160
+    environment:
+      - PUID
+      - PGID
+      - TZ
+      - MONGO_USER
+      - MONGO_PASS
+      - MONGO_HOST
+      - MONGO_PORT
+      - MONGO_DBNAME
+      - MONGO_AUTHSOURCE
+      - MEM_LIMIT
+      - MEM_STARTUP
+    volumes:
+      - ./unifi/config:/config
+    ports:
+      - 8443:8443
+      - 3478:3478/udp
+      - 10001:10001/udp
+      - 8080:8080
+      - 1900:1900/udp #optional
+      - 8843:8843 #optional
+      - 8880:8880 #optional
+      - 6789:6789 #optional
+      - 5514:5514/udp #optional
+    restart: on-failure
+
+  mongo:
+    image: docker.io/mongo:8.2.2
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD
+      - MONGO_USER
+      - MONGO_PASS
+      - MONGO_DBNAME
+      - MONGO_AUTHSOURCE
+    volumes: 
+      - ./unifi/mongodb:/data/db
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    env_file:  
+      - secrets.enc.env  
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME
+      - ME_CONFIG_MONGODB_ADMINPASSWORD
+      - ME_CONFIG_MONGODB_URL
+      - ME_CONFIG_BASICAUTH
