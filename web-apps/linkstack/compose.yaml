@@ -30,6 +30,9 @@ services:
       - "traefik.http.services.linkstack.loadbalancer.server.port=80"
       # Disable authentik middleware
       #- "traefik.http.routers.linkstack.middlewares=middlewares-authentik@file"
+    networks:
+      - traefik_backbone
+      - internal
   mysql:
     image: mysql:8
     # env: 
@@ -38,3 +41,14 @@ services:
       - MYSQL_ROOT_PASSWORD
     ports:
         - 3306:3306
+    networks:
+      - internal
+networks:
+  internal:
+    name: web-prod-linkstack_Internal
+    driver: bridge
+    attachable: true
+  traefik_backbone:
+    # For external containers.
+    name: traefik_backbone
+    external: true
