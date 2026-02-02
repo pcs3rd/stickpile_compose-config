@@ -27,7 +27,13 @@ services:
       - "traefik.http.routers.linkstack.rule=Host(`links.stickpile.net`)"
       - "traefik.http.routers.linkstack.entrypoints=websecure"
       - "traefik.http.routers.linkstack.tls.certresolver=httpsResolve"
-      - "traefik.http.services.linkstack.loadbalancer.server.port=80"
+      - "traefik.http.services.linkstack.loadbalancer.server.port=443"
+      - "traefik.http.routers.linkstack.middlewares=linkstack-head"
+      - "traefik.http.middlewares.linkstack-head.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.linkstack-head.headers.customResponseHeaders.X-Robots-Tag=none"
+      - "traefik.http.middlewares.linkstack-head.headers.customResponseHeaders.Strict-Transport-Security=max-age=63072000"
+      - "traefik.http.middlewares.linkstack-head.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.linkstack-head.headers.accesscontrolalloworiginlist=*"
       # Disable authentik middleware
       #- "traefik.http.routers.linkstack.middlewares=middlewares-authentik@file"
     networks:
