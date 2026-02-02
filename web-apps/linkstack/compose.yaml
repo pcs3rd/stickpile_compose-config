@@ -32,6 +32,7 @@ services:
       #- "traefik.http.routers.linkstack.middlewares=middlewares-authentik@file"
     networks:
       - traefik_backbone
+      - internal
   mysql:
     image: mysql:8
     # env: 
