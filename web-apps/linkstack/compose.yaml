@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  linkstack:
+    image: 'linkstackorg/linkstack:latest'
+    # env: 
+    #   secrets.enc.env
+    environment: 
+      - TZ
+      - SERVER_ADMIN
+      - HTTP_SERVER_NAME
+      - HTTPS_SERVER_NAME
+      - LOG_LEVEL
+      - PHP_MEMORY_LIMIT
+      - UPLOAD_MAX_FILESIZE
+    volumes:
+      - $persist_data_home/linkstack/data:/htdocs
+    restart: unless-stopped
+    user: apache:apache
+    # read_only: true
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.linkstack.rule=Host(`links.stickpile.net`)"
+      - "traefik.http.routers.linkstack.entrypoints=websecure"
+      - "traefik.http.routers.linkstack.tls.certresolver=httpsResolve"
+      - "traefik.http.services.linkstack.loadbalancer.server.port=80"
+      # Disable authentik middleware
+      #- "traefik.http.routers.linkstack.middlewares=middlewares-authentik@file"
+  mysql:
+    image: mysql:8
+    # env: 
+    #   secrets.enc.env
+    environment:
+      - MYSQL_ROOT_PASSWORD
+    ports:
+        - 3306:3306
