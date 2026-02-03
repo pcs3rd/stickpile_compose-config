@@ -1,0 +1,35 @@
+---
+version: "3.7"
+services:
+  tailscale-nginx:
+    image: tailscale/tailscale:latest
+    hostname: tailscale-nginx
+    environment:
+      - TS_AUTHKEY=tskey-client-notAReal-OAuthClientSecret1Atawk
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - ${PWD}/tailscale-nginx/state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    restart: unless-stopped
+  blocky:
+    image: spx01/blocky
+    container_name: blocky
+    restart: unless-stopped
+    # Optional the instance hostname for logging purpose
+    hostname: blocky-hostname
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "4000:4000/tcp"
+    environment:
+      - TZ=Europe/Berlin # Optional to synchronize the log timestamp with host
+    volumes:
+      # Optional to synchronize the log timestamp with host
+      - /etc/localtime:/etc/localtime:ro
+      # config file
+      - ./config.yml:/app/config.yml:ro
