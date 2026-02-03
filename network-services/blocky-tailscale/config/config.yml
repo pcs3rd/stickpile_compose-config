@@ -183,7 +183,7 @@ caching:
 # optional: Blocky can synchronize its cache and blocking state between multiple instances through redis.
 redis:
   # Server address and port or master name if sentinel is used
-  address: blocky-redis:6379
+  address: redis:6379
   required: true
   # Max connection attempts, default: 3
   connectionAttempts: 10
