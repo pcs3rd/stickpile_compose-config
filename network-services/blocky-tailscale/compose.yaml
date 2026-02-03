@@ -35,7 +35,7 @@ services:
       - ./config/config.yml:/app/config.yml:ro
       - qlogs:/querylog
     depends_on:
-      - db
+      - tailscale
 
   blocky-ui:
     image: ghcr.io/gabeduartem/blocky-ui:latest # or for example `blocky-ui:1.5.0` if you prefer pinned versions
