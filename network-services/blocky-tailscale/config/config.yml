@@ -33,6 +33,7 @@ upstreams:
 bootstrapDns:
   - tcp+udp:1.1.1.1
   - https://1.1.1.1/dns-query
+
 ports:
   # optional: DNS listener port(s) and bind ip address(es), default 53 (UDP and TCP). Example: 53, :53, "127.0.0.1:5353,[::1]:5353"
   dns: 53
@@ -58,7 +59,6 @@ connectIPVersion: dual
 #    example.com: printer.lan
 #  mapping:
 #    printer.lan: 192.168.178.3,2001:0db8:85a3:08d3:1319:8a2e:0370:7344
-
 
 
 blocking:
@@ -243,9 +243,3 @@ ecs:
   # optional: if the request contains a ecs option it will be forwarded to the upstream resolver
   forward: true
 
-bootstrapDns:
- - tcp+udp:1.1.1.1
- - https://1.1.1.1/dns-query
- - upstream: https://dns.digitale-gesellschaft.ch/dns-query
-   ips:
-     - 18 

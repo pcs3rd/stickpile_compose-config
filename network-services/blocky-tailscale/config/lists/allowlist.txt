@@ -48,15 +48,7 @@ s.amazon-adsystem.com
 device-metrics-us.amazon.com 
 sync.crwdcntrl.net 
 ichnaea.netflix.com 
-(\.|^)cbsinteractive\.hb\.omtrdc\.net$ 
-(\.|^)saa\.paramountplus\.com$ 
-(\.|^)http://www\.kqzyfj\.com/click-46157-13112209?url=https%3a%2f%2fwww\.woot\.com%2f&amp;sid=ebs3970183231sbe$ 
-(\.|^)https://www\.emjcd\.com/$ 
-(\.|^)tkqlhce\.com$ 
-(\.|^)http://www\.dpbolvw\.net/$ 
-(\.|^)www\.dpbolvw\.net$ 
-(\.|^)www\.dpbolvw\.ne$ 
-(\.|^)r20\.rs6\.net\.$ 
+neverssl.com
 
 
 #----------------------------------------#
