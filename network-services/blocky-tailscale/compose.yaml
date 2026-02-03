@@ -1,0 +1,75 @@
+services:
+  tailscale:
+    networks:
+      - internal
+    image: tailscale/tailscale:latest
+    environment:
+      - TS_AUTHKEY
+      - TS_EXTRA_ARGS
+      - TS_STATE_DIR
+      - TS_USERSPACE
+    volumes:
+      - $persist_data_home/tailscale/state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    restart: unless-stopped    
+  blocky:
+    networks:
+      - internal
+    image: spx01/blocky
+    container_name: blocky
+    restart: unless-stopped
+    # Optional the instance hostname for logging purpose
+    ports:
+      #- "53:53/tcp"
+      #- "53:53/udp"
+      #- "4000:4000/tcp"
+    environment:
+      - TZ
+    volumes:
+      # Optional to synchronize the log timestamp with host
+      - /etc/localtime:/etc/localtime:ro
+      # config file
+      - ./config/config.yml:/app/config.yml:ro
+      - qlogs:/querylog
+    depends_on:
+      - db
+
+  blocky-ui:
+    image: ghcr.io/gabeduartem/blocky-ui:latest # or for example `blocky-ui:1.5.0` if you prefer pinned versions
+    restart: unless-stopped
+    depends_on:
+      - blocky
+    ports:
+      #- 3000:3000
+    volumes:
+      - qlogs:/querylog
+    environment:
+      - BLOCKY_API_URL
+      - QUERY_LOG_TYPE
+      - QUERY_LOG_TARGET
+      - INSTANCE_NAME
+    networks:
+      - internal
+      - traefik_backbone
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.blocky.rule=Host(`blocky.stickpile.net`)"
+      - "traefik.http.routers.blocky.entrypoints=websecure"
+      - "traefik.http.routers.blocky.tls.certresolver=httpsResolve"
+      - "traefik.http.services.blocky.loadbalancer.server.port=3000"
+      - "traefik.http.routers.blocky.middlewares=middlewares-authentik@file"
+
+networks:
+  internal:
+    name: web-prod-blocky_Internal
+    driver: bridge
+    attachable: true
+  traefik_backbone: # For external containers.
+    name: traefik_backbone
+    external: true
+
+volumes:
+  qlogs:

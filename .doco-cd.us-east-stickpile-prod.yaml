@@ -7,6 +7,15 @@ compose_files:
 env_files:
   - remote:secrets.enc.env
 ---
+name: blocky-tailscale
+repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+reference: prod
+working_dir: network-services/blocky-tailscale
+compose_files: 
+  - compose.yaml
+env_files:
+  - remote:secrets.enc.env
+---
 name: authentik
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
