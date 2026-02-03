@@ -1,4 +1,21 @@
-services: 
+services:
+  tailscale:
+    networks:
+      - internal
+    image: tailscale/tailscale:latest
+    environment:
+      - TS_AUTHKEY
+      - TS_EXTRA_ARGS
+      - TS_STATE_DIR
+      - TS_HOSTNAME
+      - TS_USERSPACE
+    volumes:
+      - $persist_data_home/tailscale/state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    restart: unless-stopped   
   redis: 
     image: redis:6.2-alpine
     restart: unless-stopped
@@ -9,9 +26,9 @@ services:
       - internal
  
   blocky:
-    networks:
-      - internal
-      - tailscale
+    network_mode: "service:immich-ts"
+    # networks:
+    #   - internal
     image: spx01/blocky
     restart: unless-stopped
     # Optional the instance hostname for logging purpose
@@ -29,6 +46,7 @@ services:
       - ./config/lists:/userlists
       - qlogs:/querylog
     depends_on:
+      - tailscale
       - redis
 
   blocky-ui:
@@ -61,17 +79,6 @@ networks:
     name: web-prod-blocky_Internal
     driver: bridge
     attachable: true
-  tailscale:
-    name: tailscale
-    driver: macvlan
-    driver_opts:
-      paret: tailscale0
-    ipam:
-      driver: default
-      config:
-        - subnet: 100.64.0.0/10
-          ip_range: 100.64.0.0/24
-          gateway: 100.64.0.1
   traefik_backbone: # For external containers.
     name: traefik_backbone
     external: true
