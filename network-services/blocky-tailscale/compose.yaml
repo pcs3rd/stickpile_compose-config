@@ -70,7 +70,7 @@ networks:
       driver: default
       config:
         - subnet: 100.64.0.0/10
-          ip_range: 100.64.0.2/24
+          ip_range: 100.64.0.0/24
           gateway: 100.64.0.1
   traefik_backbone: # For external containers.
     name: traefik_backbone
