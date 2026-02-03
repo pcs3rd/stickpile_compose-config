@@ -205,9 +205,24 @@ log:
   privacy: false
 
 queryLog:
-  type: mysql
-  target: 'root:g8BFqKiRGk@tcp(db:3306)/blocky_query_log?charset=utf8mb4&parseTime=True&loc=Local&timeout=15s'
+  # optional one of: mysql, postgresql, csv, csv-client. If empty, log to console
+  type: csv
+  # directory (should be mounted as volume in docker) for csv, db connection string for mysql/postgresql
+  target: /querylog
   logRetentionDays: 7
+  # optional: Max attempts to create specific query log writer, default: 3
+  creationAttempts: 1
+  # optional: Time between the creation attempts, default: 2s
+  creationCooldown: 2s
+  # optional: Which fields should be logged. You can choose one or more from: clientIP, clientName, responseReason, responseAnswer, question, duration. If not defined, it logs all fields
+  fields:
+    - clientName
+    - clientIP
+    - duration
+    - question
+    - responseAnswer
+  # optional: Interval to write data in bulk to the external database, default: 30s
+  flushInterval: 30s
 
 # optional: add EDE error codes to dns response
 ede:
