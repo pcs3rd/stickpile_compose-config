@@ -243,9 +243,9 @@ ecs:
   # optional: if the request contains a ecs option it will be forwarded to the upstream resolver
   forward: true
 
-#bootstrapDns:
-#  - tcp+udp:1.1.1.1
-#  - https://1.1.1.1/dns-query
-#  - upstream: https://dns.digitale-gesellschaft.ch/dns-query
-#    ips:
-#      - 18
+bootstrapDns:
+ - tcp+udp:1.1.1.1
+ - https://1.1.1.1/dns-query
+ - upstream: https://dns.digitale-gesellschaft.ch/dns-query
+   ips:
+     - 18 
