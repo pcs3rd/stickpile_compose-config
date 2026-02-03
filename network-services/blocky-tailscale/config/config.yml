@@ -227,6 +227,7 @@ queryLog:
     - duration
     - question
     - responseAnswer
+    - responseReason
   # optional: Interval to write data in bulk to the external database, default: 30s
   flushInterval: 30s
 
