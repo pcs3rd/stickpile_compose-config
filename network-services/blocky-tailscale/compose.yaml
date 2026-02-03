@@ -21,12 +21,13 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
       - $persist_data_home/redis-state:/data
+    networks:
+      - internal
  
   blocky:
     networks:
       - internal
     image: spx01/blocky
-    container_name: blocky
     restart: unless-stopped
     # Optional the instance hostname for logging purpose
     #ports:
