@@ -14,7 +14,14 @@ services:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - net_admin
-    restart: unless-stopped    
+    restart: unless-stopped   
+  redis: 
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - $persist_data_home/redis-state:/data
+ 
   blocky:
     networks:
       - internal
@@ -36,6 +43,7 @@ services:
       - qlogs:/querylog
     depends_on:
       - tailscale
+      - redis
 
   blocky-ui:
     image: ghcr.io/gabeduartem/blocky-ui:latest # or for example `blocky-ui:1.5.0` if you prefer pinned versions

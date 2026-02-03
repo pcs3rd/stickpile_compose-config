@@ -11,7 +11,7 @@ services:
     environment:
       - TZ
     env_file:  
-      - secrets.enc.env  
+      - secrets.enc.env
     volumes:
       - /etc/localtime:/etc/localtime:ro
       # config file
