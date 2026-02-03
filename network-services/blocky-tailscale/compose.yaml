@@ -41,6 +41,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       # config file
       - ./config/config.yml:/app/config.yml:ro
+      - ./config/lists:/userlists
       - qlogs:/querylog
     depends_on:
       - tailscale
