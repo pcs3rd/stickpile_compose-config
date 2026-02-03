@@ -1,7 +1,7 @@
----
-version: "3.7"
 services:
-  tailscale-nginx:
+  tailscale-blocky:
+    networks:
+      - internal
     image: tailscale/tailscale:latest
     hostname: tailscale-nginx
     environment:
@@ -17,6 +17,8 @@ services:
       - net_admin
     restart: unless-stopped
   blocky:
+    networks:
+      - internal
     image: spx01/blocky
     container_name: blocky
     restart: unless-stopped
@@ -33,3 +35,24 @@ services:
       - /etc/localtime:/etc/localtime:ro
       # config file
       - ./config.yml:/app/config.yml:ro
+
+  blocky-ui:
+    image: ghcr.io/ivvija/blocky-ui
+    container_name: blocky-ui
+    restart: unless-stopped
+    depends_on:
+      - blocky
+    environment:
+      API_BASE_URL: http://blocky:4000/api
+    ports:
+      - "3000:3000/tcp"
+
+
+networks:
+  internal:
+    name: web-prod-blocky_Internal
+    driver: bridge
+    attachable: true
+  traefik_backbone: # For external containers.
+    name: traefik_backbone
+    external: true
