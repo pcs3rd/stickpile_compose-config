@@ -2,6 +2,7 @@ services:
   tailscale:
     networks:
       - internal
+      - traefik_backbone
     image: tailscale/tailscale:latest
     environment:
       - TS_AUTHKEY
@@ -22,8 +23,10 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
       - $persist_data_home/redis-state:/data
-    networks:
-      - internal
+    # networks:
+    #   - internal
+    network_mode: "service:tailscale"
+
  
   blocky:
     network_mode: "service:tailscale"
@@ -63,9 +66,10 @@ services:
       - QUERY_LOG_TYPE
       - QUERY_LOG_TARGET
       - INSTANCE_NAME
-    networks:
-      - internal
-      - traefik_backbone
+    # networks:
+    #   - internal
+    #   - traefik_backbone
+    network_mode: "service:tailscale"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.blocky.rule=Host(`blocky.stickpile.net`)"
