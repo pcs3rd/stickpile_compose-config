@@ -1,35 +1,17 @@
-services:
-  tailscale:
-    # networks:
-    #   - internal
-    image: tailscale/tailscale:latest
-    environment:
-      - TS_AUTHKEY
-      - TS_EXTRA_ARGS
-      - TS_STATE_DIR
-      - TS_USERSPACE
-    volumes:
-      - $persist_data_home/tailscale/state:/var/lib/tailscale
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - net_admin
-    restart: unless-stopped   
-    
+services: 
   redis: 
     image: redis:6.2-alpine
     restart: unless-stopped
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
       - $persist_data_home/redis-state:/data
-    network_mode: service:tailscale
-    # networks:
-    #   - internal
+    networks:
+      - internal
  
   blocky:
-    # networks:
-    #   - internal
-    network_mode: service:tailscale
+    networks:
+      - internal
+      - tailscale
     image: spx01/blocky
     restart: unless-stopped
     # Optional the instance hostname for logging purpose
@@ -47,11 +29,9 @@ services:
       - ./config/lists:/userlists
       - qlogs:/querylog
     depends_on:
-      - tailscale
       - redis
 
   blocky-ui:
-    network_mode: service:tailscale
     image: ghcr.io/gabeduartem/blocky-ui:latest # or for example `blocky-ui:1.5.0` if you prefer pinned versions
     restart: unless-stopped
     depends_on:
@@ -65,22 +45,33 @@ services:
       - QUERY_LOG_TYPE
       - QUERY_LOG_TARGET
       - INSTANCE_NAME
-    # networks:
-    #   - internal
-    #   - traefik_backbone
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.http.routers.blocky.rule=Host(`blocky.stickpile.net`)"
-    #   - "traefik.http.routers.blocky.entrypoints=websecure"
-    #   - "traefik.http.routers.blocky.tls.certresolver=httpsResolve"
-    #   - "traefik.http.services.blocky.loadbalancer.server.port=3000"
-    #   - "traefik.http.routers.blocky.middlewares=middlewares-authentik@file"
+    networks:
+      - internal
+      - traefik_backbone
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.blocky.rule=Host(`blocky.stickpile.net`)"
+      - "traefik.http.routers.blocky.entrypoints=websecure"
+      - "traefik.http.routers.blocky.tls.certresolver=httpsResolve"
+      - "traefik.http.services.blocky.loadbalancer.server.port=3000"
+      - "traefik.http.routers.blocky.middlewares=middlewares-authentik@file"
 
 networks:
-  # internal:
-  #   name: web-prod-blocky_Internal
-  #   driver: bridge
-  #   attachable: true
+  internal:
+    name: web-prod-blocky_Internal
+    driver: bridge
+    attachable: true
+  tailscale:
+    name: tailscale
+    driver: macvlan
+    driver_opts:
+      paret: tailscale0
+    ipam:
+      driver: default
+      config:
+        - subnet: 100.64.0.0/10
+          ip_range: 100.64.0.2/24
+          gateway: 100.64.0.1
   traefik_backbone: # For external containers.
     name: traefik_backbone
     external: true
