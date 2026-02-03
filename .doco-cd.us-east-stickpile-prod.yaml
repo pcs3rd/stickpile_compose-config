@@ -1,12 +1,3 @@
-# name: moose
-# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-# reference: prod
-# working_dir: core_services/moose
-# compose_files: 
-#   - compose.yaml
-# env_files:
-#   - remote:secrets.enc.env
-# ---
 name: traefik
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
@@ -42,15 +33,6 @@ compose_files:
   - compose.yaml
 env_files:
   - remote:secrets.enc.env
-# ---
-# name: meshing-around
-# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-# reference: prod
-# working_dir: web-apps/seafile
-# compose_files: 
-#   - compose.yaml
-# env_files:
-#   - remote:secrets.enc.env
 ---
 name: affine
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
@@ -69,12 +51,3 @@ compose_files:
   - compose.yaml
 env_files:
   - remote:secrets.enc.env
-# ---
-# name: pbx
-# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-# reference: prod
-# working_dir: other-apps/asterisk-pbx
-# compose_files: 
-#   - compose.yaml
-# env_files:
-#   - remote:secrets.enc.env
