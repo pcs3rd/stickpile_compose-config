@@ -48,7 +48,6 @@ s.amazon-adsystem.com
 device-metrics-us.amazon.com 
 sync.crwdcntrl.net 
 ichnaea.netflix.com 
-neverssl.com
 
 
 #----------------------------------------#
