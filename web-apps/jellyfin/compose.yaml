@@ -474,31 +474,6 @@ services:
       - "traefik.http.services.tve.loadbalancer.server.url=http://172.16.0.7:9981/"
       - "traefik.http.routers.tve.middlewares=middlewares-authentik@file"
 
-  unmanic:
-    image: josh5/unmanic:staging
-    volumes:
-      - $persist_data_home/unmanic:/config
-      - $media_mount:/library
-      - type: tmpfs
-        target: /tmp/unmanic-cache
-        tmpfs:
-          size: 10737418240
-    environment:
-      - PUID
-      - PGID
-    networks:
-      - traefik_backbone
-      - mediaserver
-    devices:
-      - /dev/dri/renderD128:/dev/dri/renderD128
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.unmanic.rule=Host(`unmanic.stickpile.net`)"
-      - "traefik.http.routers.unmanic.entrypoints=websecure"
-      - "traefik.http.routers.unmanic.tls.certresolver=httpsResolve"
-      - "traefik.http.services.unmanic.loadbalancer.server.port=8888"
-      - "traefik.http.routers.unmanic.middlewares=middlewares-authentik@file"
-
   tdarr:
     container_name: tdarr
     image: ghcr.io/haveagitgat/tdarr:latest
@@ -534,7 +509,15 @@ services:
           size: 10737418240
     devices:
       - /dev/dri:/dev/dri
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.unmanic.rule=Host(`unmanic.stickpile.net`)"
+      - "traefik.http.routers.unmanic.entrypoints=websecure"
+      - "traefik.http.routers.unmanic.tls.certresolver=httpsResolve"
+      - "traefik.http.services.unmanic.loadbalancer.server.port=8888"
+      - "traefik.http.routers.unmanic.middlewares=middlewares-authentik@file"
 
+      
   lidarr:
     image: lscr.io/linuxserver/lidarr:2.14.5
     volumes:
