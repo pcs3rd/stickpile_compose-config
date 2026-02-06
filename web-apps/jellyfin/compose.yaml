@@ -499,10 +499,10 @@ services:
       - maxLogSizeMB
       - cronPluginUpdate
     volumes:
-      - /docker/tdarr/server:/app/server
-      - /docker/tdarr/configs:/app/configs
-      - /docker/tdarr/logs:/app/logs
-      - /media:/media
+      - $persist_data_home/tdarr/server:/app/server
+      - $persist_data_home/tdarr/configs:/app/configs
+      - $persist_data_home/tdarr/logs:/app/logs
+      - $media_mount:/media
       - type: tmpfs
         target: /transcode_cache
         tmpfs:
@@ -517,7 +517,7 @@ services:
       - "traefik.http.services.unmanic.loadbalancer.server.port=8888"
       - "traefik.http.routers.unmanic.middlewares=middlewares-authentik@file"
 
-      
+
   lidarr:
     image: lscr.io/linuxserver/lidarr:2.14.5
     volumes:
