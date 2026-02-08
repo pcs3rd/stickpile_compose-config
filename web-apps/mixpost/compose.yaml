@@ -57,7 +57,7 @@ services:
         - internal
 
 networks:
-  intenal:
+  internal:
     name: web-prod-mixpost_Internal
     driver: bridge
     attachable: true
