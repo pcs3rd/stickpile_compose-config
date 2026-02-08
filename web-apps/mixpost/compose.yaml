@@ -37,7 +37,7 @@ services:
           MYSQL_USER: ${DB_USERNAME}
           MYSQL_PASSWORD: ${DB_PASSWORD}
       volumes:
-          - persist_data_home/db:/var/lib/mysql
+          - $persist_data_home/db:/var/lib/mysql
       healthcheck:
           test: ["CMD", "mysqladmin", "ping", "-p ${DB_PASSWORD}"]
           retries: 3
