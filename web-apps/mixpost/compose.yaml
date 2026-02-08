@@ -25,7 +25,12 @@ services:
           - mysql
           - redis 
       restart: unless-stopped
+      networks:
+        - internal
+        - traefik_backbone
   mysql:
+      networks:
+        - internal
       image: 'mysql/mysql-server:8.0'
       environment:
           MYSQL_DATABASE: ${DB_DATABASE}
@@ -48,3 +53,15 @@ services:
           retries: 3
           timeout: 5s
       restart: unless-stopped  
+      networks:
+        - internal
+
+networks:
+  intenal:
+    name: web-prod-mixpost_Internal
+    driver: bridge
+    attachable: true
+  traefik_backbone:
+    # For external containers.
+    name: traefik_backbone
+    external: true
