@@ -1,8 +1,8 @@
 services:
   mixpost:
       image: inovector/mixpost:latest
-      env_file:
-          - .env
+      env_file:  
+        - secrets.enc.env  
       labels:
         - traefik.enable=true
         - traefik.http.routers.mixpost.rule=Host(`${APP_DOMAIN}`)
