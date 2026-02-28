@@ -11,7 +11,7 @@ services:
       mesh-internal:
   meshtasticd:
     healthcheck:
-      disable: true
+      test: ["NONE"]
     volumes:
       - meshtasticd-var:/var/
       - meshtasticd-data:/etc/meshtasticd
@@ -20,7 +20,7 @@ services:
       - 4403:4403
     restart: unless-stopped
     container_name: meshtasticd
-    image: meshtastic/meshtasticd:beta
+    image: meshtastic/meshtasticd:daily
     networks:
       mesh-internal:
 
