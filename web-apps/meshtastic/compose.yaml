@@ -29,12 +29,10 @@ volumes:
   meshtasticd-prefs:
   meshing-around:
 
-
-
 networks:
   mesh-internal:
     name: web-prod-meshtastic_Internal
-    driver: overlay
+    driver: bridge
     attachable: true
   traefik_backbone: # For external containers.
     name: traefik_backbone
