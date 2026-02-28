@@ -10,8 +10,9 @@ services:
     networks:
       mesh-internal:
   meshtasticd:
+    healthcheck:
+      disable: true
     volumes:
-#      - ${persist_data_home}/meshtasticd.yaml:/etc/meshtasticd/config.yaml:rw
       - meshtasticd-var:/var/
       - meshtasticd-data:/etc/meshtasticd
       - meshtasticd-prefs:/root/.portduino/default/prefs/
