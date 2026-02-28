@@ -13,6 +13,7 @@ services:
     healthcheck:
       test: ['CMD','true'] 
     volumes:
+      - ./config.yaml:/etc/meshtasticd/config.yaml:rw
       - meshtasticd-var:/var/
       - meshtasticd-data:/etc/meshtasticd
       - meshtasticd-prefs:/root/.portduino/default/prefs/
