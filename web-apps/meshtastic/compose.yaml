@@ -11,7 +11,7 @@ services:
       mesh-internal:
   meshtasticd:
     healthcheck:
-      test: ["NONE"]
+      test: ['CMD','true'] 
     volumes:
       - meshtasticd-var:/var/
       - meshtasticd-data:/etc/meshtasticd
