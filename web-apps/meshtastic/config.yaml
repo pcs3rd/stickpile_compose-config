@@ -8,10 +8,10 @@
 Lora:
   # Default to auto-detecting the module type
   # This will be overridden by configs from config.d
-  Module: auto
+  #Module: auto
 
 #  # Uncomment to enable Simulation mode, or use --sim
-#  Module: sim
+  Module: sim
 
 #  Module: sx1262  # Waveshare SX1302 LISTEN ONLY AT THIS TIME!
 #  CS: 7
