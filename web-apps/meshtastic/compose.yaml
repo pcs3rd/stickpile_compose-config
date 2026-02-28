@@ -21,7 +21,7 @@ services:
       - 4403:4403
     restart: unless-stopped
     container_name: meshtasticd
-    image: meshtastic/meshtasticd:daily
+    image: meshtastic/meshtasticd:2.7.15.d18f3f7-beta-alpine
     networks:
       mesh-internal:
 
