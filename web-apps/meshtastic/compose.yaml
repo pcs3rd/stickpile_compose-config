@@ -1,0 +1,41 @@
+version: "3.7"
+services:
+  meshing-around:
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./config.ini:/app/config.ini:rw
+      - meshing-around:/app/data
+    image: ghcr.io/spudgunman/meshing-around:main
+    networks:
+      mesh-internal:
+  meshtasticd:
+    volumes:
+#      - ${persist_data_home}/meshtasticd.yaml:/etc/meshtasticd/config.yaml:rw
+      - meshtasticd-var:/var/
+      - meshtasticd-data:/etc/meshtasticd
+      - meshtasticd-prefs:/root/.portduino/default/prefs/
+    ports:
+      - 4403:4403
+    restart: unless-stopped
+    container_name: meshtasticd
+    image: meshtastic/meshtasticd:beta
+    networks:
+      mesh-internal:
+
+volumes:
+  meshtasticd-var:
+  meshtasticd-data:
+  meshtasticd-prefs:
+  meshing-around:
+
+
+
+networks:
+  mesh-internal:
+    name: web-prod-meshtastic_Internal
+    driver: overlay
+    attachable: true
+  traefik_backbone: # For external containers.
+    name: traefik_backbone
+    external: true
