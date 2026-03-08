@@ -370,7 +370,7 @@ services:
         window: 120s
 
   chaptarr:
-    image: chaptarr:latest 
+    image: robertlordhood/chaptarr:latest
     volumes:
       - $persist_data_home/chaptarr:/config
       - $media_mount:/storage
