@@ -369,27 +369,27 @@ services:
         ##max_attempts:  3
         window: 120s
 
-    chaptarr:
-      image: chaptarr:latest 
-      volumes:
-        - $persist_data_home/chaptarr:/config
-        - $media_mount:/storage
-        - $downloads_home:/downloads
-      environment:
-        - PUID
-        - PGID
-        - TZ
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
-        - "traefik.http.routers.readarr.entrypoints=websecure"
-        - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
-        - "traefik.http.services.readarr.loadbalancer.server.port=8787"
-        - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
-      networks:
-      - traefik_backbone
-      - mediaserver
-    
+  chaptarr:
+    image: chaptarr:latest 
+    volumes:
+      - $persist_data_home/chaptarr:/config
+      - $media_mount:/storage
+      - $downloads_home:/downloads
+    environment:
+      - PUID
+      - PGID
+      - TZ
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
+      - "traefik.http.routers.readarr.entrypoints=websecure"
+      - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
+      - "traefik.http.services.readarr.loadbalancer.server.port=8787"
+      - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
+    networks:
+    - traefik_backbone
+    - mediaserver
+  
   sonarr:
     # env_file:  
     #   - secrets.enc.env  
