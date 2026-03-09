@@ -384,7 +384,7 @@ services:
       - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
       - "traefik.http.routers.readarr.entrypoints=websecure"
       - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
-      - "traefik.http.services.readarr.loadbalancer.server.port=8787"
+      - "traefik.http.services.readarr.loadbalancer.server.port=8789"
       - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
     networks:
     - traefik_backbone
