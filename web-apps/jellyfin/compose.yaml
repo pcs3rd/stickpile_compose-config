@@ -25,7 +25,7 @@ services:
     #   - secrets.enc.env  
 
   ariang:
-    image: hurlenko/aria2-ariang:1.3.11
+    image: hurlenko/aria2-ariang:1.3.13
     volumes:
       - $downloads_home:/downloads
       - $persist_data_home/aria2:/aria2/conf
@@ -51,7 +51,7 @@ services:
       - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file"
 
   bazarr:
-    image: lscr.io/linuxserver/bazarr:1.5.3
+    image: lscr.io/linuxserver/bazarr:1.5.6
     volumes:
       - $persist_data_home/bazaar:/config
       - $media_mount:/storage
@@ -74,7 +74,7 @@ services:
       - "traefik.http.routers.bazarr.middlewares=middlewares-authentik@file"
 
   flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:v3.4.2
+    image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
     networks:
       - mediaserver
     env_file:  
@@ -167,7 +167,7 @@ services:
   jellyfin:
     # env_file:  
     #   - secrets.enc.env  
-    image: lscr.io/linuxserver/jellyfin:10.11.4
+    image: lscr.io/linuxserver/jellyfin:10.11.6
     volumes:
       - $persist_data_home/jellyfin:/config
       - $media_mount:/media
@@ -194,7 +194,7 @@ services:
   jellyseerr:
     # env_file:  
     #   - secrets.enc.env  
-    image: fallenbagel/jellyseerr:2.7.3
+    image: seerr/seerr:v3.1.0
     volumes:
       - $persist_data_home/jellyseerr:/app/config
     networks:
@@ -212,7 +212,7 @@ services:
   komga:
     # env_file:  
     #   - secrets.enc.env  
-    image: ghcr.io/gotson/komga:1.23.6
+    image: ghcr.io/gotson/komga:1.24.1
     volumes:
       - $persist_data_home/komga/config:/config
       - $persist_data_home/komga/data:/data
@@ -233,7 +233,7 @@ services:
   navidrome:
     # env_file:  
     #   - secrets.enc.env  
-    image: deluan/navidrome:0.59.0
+    image: deluan/navidrome:0.60.3
     ports: 
       - 4533:4533
     volumes:
@@ -340,7 +340,7 @@ services:
   rdtclient:
     env_file:  
       - secrets.enc.env  
-    image: rogerfar/rdtclient:2.0.119
+    image: rogerfar/rdtclient:2.0.125
     volumes:
       - $downloads_home:/downloads
       - $persist_data_home/rdt-client/:/data/db
@@ -425,7 +425,7 @@ services:
   tvheadend:
     # env_file:  
     #   - secrets.enc.env  
-    image: ghcr.io/linuxserver/tvheadend:version-e60aa936
+    image: ghcr.io/linuxserver/tvheadend:version-7c4011de
     volumes:
       - $persist_data_home/tvheadend/data:/config
     environment:
@@ -508,7 +508,7 @@ services:
 
 
   lidarr:
-    image: lscr.io/linuxserver/lidarr:2.14.5
+    image: lscr.io/linuxserver/lidarr:3.1.0
     volumes:
       - $persist_data_home/lidarr:/config
       - $persist_data_home/lidarr-overlay/custom-services.d:/custom-services.d
@@ -545,7 +545,7 @@ services:
   metube:
     env_file:  
       - secrets.enc.env  
-    image: ghcr.io/alexta69/metube:2025.10.01
+    image: ghcr.io/alexta69/metube:2026.03.08
     restart: unless-stopped
     volumes:
       - $downloads_home/yt-dlp:/downloads
@@ -604,8 +604,8 @@ services:
         window: 120s
 
   slskd:
-    env_file:  
-      - secrets.enc.env  
+#    env_file:  
+ #     - secrets.enc.env  
     environment:
       - SLSKD_REMOTE_CONFIGURATION
       - SLSKD_NO_AUTH
