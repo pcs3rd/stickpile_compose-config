@@ -575,7 +575,6 @@ services:
 
   soularr:
     image: mrusse08/soularr:latest
-    container_name: soularr
     hostname: soularr
     user: 911:911 # this should be set to your UID and GID, which can be determined via `id -u` and `id -g`, respectively
     env_file:  
@@ -591,7 +590,6 @@ services:
       - $persist_data_home/soularr:/data
     restart: unless-stopped
     networks:
-      - traefik_backbone
       - mediaserver
     deploy: 
       mode: replicated
@@ -704,7 +702,7 @@ services:
     environment: 
       - PUID
       - PGID
-      - TZ=
+      - TZ
       #Script interval in seconds
       - SCRIPT_INTERVAL=300
     user: "1000:1000"
@@ -716,6 +714,8 @@ services:
       #Select where you are storing your config file. Leave "/data" since thats where the script expects the config file to be
       - $persist_data_home/rsoul:/data
     image: mephistopheles1/rsoul:latest
+    networks:
+      - mediaserver
 
   # Uncomment to run FlareSolverr for DDoS-Guard bypass (used by Stacks backend)
   # flaresolverr:
