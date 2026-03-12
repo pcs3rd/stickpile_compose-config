@@ -575,7 +575,6 @@ services:
 
   soularr:
     image: mrusse08/soularr:latest
-    container_name: soularr
     hostname: soularr
     user: 911:911 # this should be set to your UID and GID, which can be determined via `id -u` and `id -g`, respectively
     env_file:  
@@ -591,7 +590,6 @@ services:
       - $persist_data_home/soularr:/data
     restart: unless-stopped
     networks:
-      - traefik_backbone
       - mediaserver
     deploy: 
       mode: replicated
@@ -697,6 +695,37 @@ services:
       - /transcode
     restart: unless-stopped
 
+  rsoul:
+    restart: unless-stopped
+    container_name: rsoul
+    hostname: rsoul
+    environment: 
+      - PUID
+      - PGID
+      - TZ
+      #Script interval in seconds
+      - SCRIPT_INTERVAL=300
+    user: "1000:1000"
+    volumes:
+      #"You can set /downloads to whatever you want but will then need to change the Slskd download dir in your config file"
+      - $downloads_home:/downloads
+      # Stacks download directory (uncomment if using Stacks backend)
+      # - /path/to/stacks/downloads:/stacks-downloads
+      #Select where you are storing your config file. Leave "/data" since thats where the script expects the config file to be
+      - $persist_data_home/rsoul:/data
+    image: mephistopheles1/rsoul:latest
+    networks:
+      - mediaserver
+
+  # Uncomment to run FlareSolverr for DDoS-Guard bypass (used by Stacks backend)
+  # flaresolverr:
+  #   image: ghcr.io/flaresolverr/flaresolverr:latest
+  #   container_name: flaresolverr
+  #   restart: unless-stopped
+  #   environment:
+  #     - LOG_LEVEL=info
+  #   ports:
+  #     - "8191:8191"
 networks:
   mediaserver:
     name: web-prod-media-server_Internal
