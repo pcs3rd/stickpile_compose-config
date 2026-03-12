@@ -697,14 +697,13 @@ services:
 
   rsoul:
     restart: unless-stopped
-    container_name: rsoul
-    hostname: rsoul
+    command: sh -c "python -u /app/rsoul.py"    
     environment: 
       - PUID
       - PGID
       - TZ
       #Script interval in seconds
-      - SCRIPT_INTERVAL=300
+      - SCRIPT_INTERVAL=30
     user: "1000:1000"
     volumes:
       #"You can set /downloads to whatever you want but will then need to change the Slskd download dir in your config file"
