@@ -711,19 +711,9 @@ services:
       # - /path/to/stacks/downloads:/stacks-downloads
       #Select where you are storing your config file. Leave "/data" since thats where the script expects the config file to be
       - $persist_data_home/rsoul:/data
-    image: mephistopheles1/rsoul:latest
+    image: ghcr.io/pcs3rd/rsoul:release.031320262
     networks:
       - mediaserver
-
-  # Uncomment to run FlareSolverr for DDoS-Guard bypass (used by Stacks backend)
-  # flaresolverr:
-  #   image: ghcr.io/flaresolverr/flaresolverr:latest
-  #   container_name: flaresolverr
-  #   restart: unless-stopped
-  #   environment:
-  #     - LOG_LEVEL=info
-  #   ports:
-  #     - "8191:8191"
 networks:
   mediaserver:
     name: web-prod-media-server_Internal
