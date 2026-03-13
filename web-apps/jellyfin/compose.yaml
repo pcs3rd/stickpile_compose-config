@@ -697,7 +697,6 @@ services:
 
   rsoul:
     restart: unless-stopped
-    command: sh -c "python -u /app/rsoul.py"    
     environment: 
       - PUID
       - PGID
