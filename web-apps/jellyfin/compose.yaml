@@ -716,7 +716,7 @@ services:
       # - /path/to/stacks/downloads:/stacks-downloads
       #Select where you are storing your config file. Leave "/data" since thats where the script expects the config file to be
       - $persist_data_home/rsoul:/data
-    image: ghcr.io/pcs3rd/rsoul:release.031320262
+    image: ghcr.io/pcs3rd/rsoul:release.rate-limit-test
     networks:
       - mediaserver
 networks:
