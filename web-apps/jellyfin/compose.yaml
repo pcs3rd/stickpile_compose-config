@@ -616,7 +616,6 @@ services:
     ports:
       - 5030:5030/tcp
       - 5031:5031/tcp
-      - 50300:50300/tcp
     volumes:
       - $persist_data_home/slskd:/app:rw
       - $media_mount:/media
@@ -642,6 +641,12 @@ services:
       - "traefik.http.routers.slskd.tls.certresolver=httpsResolve"
       - "traefik.http.services.slskd.loadbalancer.server.port=5030"
       - "traefik.http.routers.slskd.middlewares=middlewares-authentik@file"
+
+      - "traefik.tcp.routers.slsk-p2p.entrypoints=p2p"
+      - "traefik.tcp.routers.slsk-p2p.rule=HostSNI(`*`)"
+      - "traefik.tcp.services.slsk-p2p.loadbalancer.server.port=50300"
+
+
       
   bliss_service:
     image: romancin/bliss:latest

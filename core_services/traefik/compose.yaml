@@ -10,16 +10,14 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      
+      - "--entryPoints.p2p.address=:50300"
+
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
-      - "--entryPoints.smtps.address=:465"
-      - "--entryPoints.smtp.address=:587"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entryPoints.web.http.redirections.entrypoint.scheme=https"
-      - "--entrypoints.mqtt.address=:8883"
-      - "--entrypoints.ldaps.address=:636"
-      # - "--entrypoints.websocket.address=:9001"
       - "--providers.docker.network=traefik_backbone"
       - "--providers.docker.network=traefik_backbone" #This is some dumb crap
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge=true"
@@ -40,16 +38,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
-      - "8883:8883"
-      - "8884:8884"
-      - "4883:4883"
-      - "888:888"
-      - "636:636"
-      - "442:442"
-      - "465:465"
-      - "587:587"
-#      - "4318:4318"
+      - "50300:50300"
     volumes:
       - $persist_data_home/letsencrypt:/letsencrypt
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
