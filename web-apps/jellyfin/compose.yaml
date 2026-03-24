@@ -263,7 +263,7 @@ services:
       - "traefik.http.routers.calibre.rule=Host(`calibre.stickpile.net`)"
       - "traefik.http.routers.calibre.entrypoints=websecure"
       - "traefik.http.routers.calibre.tls.certresolver=httpsResolve"
-      - "traefik.http.services.calibre.loadbalancer.server.port=8083"
+      - "traefik.http.services.calibre.loadbalancer.server.port=8181"
       - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file"
   komga:
     # env_file:  
