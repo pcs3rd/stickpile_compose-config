@@ -219,6 +219,8 @@ services:
       - $persist_data_home/kavita/config:/config
       - $media_mount:/data
     restart: unless-stopped
+    networks:
+      - traefik_backbone
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kavita.rule=Host(`kavita.stickpile.net`)"
