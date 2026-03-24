@@ -228,7 +228,43 @@ services:
       - "traefik.http.routers.kavita.tls.certresolver=httpsResolve"
       - "traefik.http.services.kavita.loadbalancer.server.port=5000"
 
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
 
+    security_opt:
+      - seccomp:unconfined #optional
+    environment:
+      - PUID
+      - PGID
+      - TZ
+      - PASSWORD= #optional
+      - CLI_ARGS= #optional
+      - PIXELFLUX_WAYLAND=true
+      # Optional: Specify device if multiple exist (IE: /dev/dri/renderD129)
+      - DRINODE=/dev/dri/renderD128
+      - DRI_NODE=/dev/dri/renderD128
+    devices:
+      - /dev/dri:/dev/dri
+
+    volumes:
+      - $persist_data_home/calibre/config:/config
+      - $media_mount:/data
+    ports:
+      - 8080:8080
+      - 8181:8181
+      - 8083:8083
+      - 8081:8081
+    shm_size: "1gb"
+    restart: unless-stopped
+    networks:
+      - traefik_backbone
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.calibre.rule=Host(`calibre.stickpile.net`)"
+      - "traefik.http.routers.calibre.entrypoints=websecure"
+      - "traefik.http.routers.calibre.tls.certresolver=httpsResolve"
+      - "traefik.http.services.calibre.loadbalancer.server.port=8083"
+      - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file"
   komga:
     # env_file:  
     #   - secrets.enc.env  
