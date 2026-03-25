@@ -248,6 +248,7 @@ services:
 
     volumes:
       - $persist_data_home/calibre/config:/config
+      - $downloads_home:/downloads
       - $media_mount:/data
     ports:
       - 8080:8080
