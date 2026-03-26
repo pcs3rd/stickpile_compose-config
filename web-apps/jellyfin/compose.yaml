@@ -209,24 +209,24 @@ services:
       - "traefik.http.routers.js.tls.certresolver=httpsResolve"
       - "traefik.http.services.js.loadbalancer.server.port=5055"
 
-  kavita:
-    image: lscr.io/linuxserver/kavita:latest
-    environment:
-      - PUID
-      - PGID
-      - TZ
-    volumes:
-      - $persist_data_home/kavita/config:/config
-      - $media_mount:/data
-    restart: unless-stopped
-    networks:
-      - traefik_backbone
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.kavita.rule=Host(`kavita.stickpile.net`)"
-      - "traefik.http.routers.kavita.entrypoints=websecure"
-      - "traefik.http.routers.kavita.tls.certresolver=httpsResolve"
-      - "traefik.http.services.kavita.loadbalancer.server.port=5000"
+  # kavita:
+  #   image: lscr.io/linuxserver/kavita:latest
+  #   environment:
+  #     - PUID
+  #     - PGID
+  #     - TZ
+  #   volumes:
+  #     - $persist_data_home/kavita/config:/config
+  #     - $media_mount:/data
+  #   restart: unless-stopped
+  #   networks:
+  #     - traefik_backbone
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.kavita.rule=Host(`kavita.stickpile.net`)"
+  #     - "traefik.http.routers.kavita.entrypoints=websecure"
+  #     - "traefik.http.routers.kavita.tls.certresolver=httpsResolve"
+  #     - "traefik.http.services.kavita.loadbalancer.server.port=5000"
 
   calibre:
     image: lscr.io/linuxserver/calibre:latest
