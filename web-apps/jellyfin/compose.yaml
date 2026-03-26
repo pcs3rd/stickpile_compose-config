@@ -270,7 +270,7 @@ services:
   komga:
     # env_file:  
     #   - secrets.enc.env  
-    image: ghcr.io/gotson/komga:1.24.1
+    image: ghcr.io/gotson/komga:1.24.2
     volumes:
       - $persist_data_home/komga/config:/config
       - $persist_data_home/komga/data:/data
