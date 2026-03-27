@@ -25,7 +25,7 @@ services:
     #   - secrets.enc.env  
 
   ariang:
-    image: hurlenko/aria2-ariang:1.3.11
+    image: hurlenko/aria2-ariang:1.3.13
     volumes:
       - $downloads_home:/downloads
       - $persist_data_home/aria2:/aria2/conf
@@ -51,7 +51,7 @@ services:
       - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file"
 
   bazarr:
-    image: lscr.io/linuxserver/bazarr:1.5.3
+    image: lscr.io/linuxserver/bazarr:1.5.6
     volumes:
       - $persist_data_home/bazaar:/config
       - $media_mount:/storage
@@ -74,7 +74,7 @@ services:
       - "traefik.http.routers.bazarr.middlewares=middlewares-authentik@file"
 
   flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:v3.4.2
+    image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
     networks:
       - mediaserver
     env_file:  
@@ -117,7 +117,7 @@ services:
     image: ghcr.io/immich-app/immich-machine-learning:$IMMICH_VERSION
     # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
     #   file: hwaccel.ml.yml
-    #   service: cpu # set to one of [armnn, cuda, openvino, openvino-wsl] for accelerated inference - use the `-wsl` version for WSL2 where applicable
+    #   service: cpu # set to one of [armnn, cuda, openvino, openvino-w] for accelerated inference - use the `-wsl` version for WSL2 where applicable
     volumes:
       - $persist_data_home/immich/model-cache:/cache
     # env_file:
@@ -167,7 +167,7 @@ services:
   jellyfin:
     # env_file:  
     #   - secrets.enc.env  
-    image: lscr.io/linuxserver/jellyfin:10.11.4
+    image: lscr.io/linuxserver/jellyfin:10.11.6
     volumes:
       - $persist_data_home/jellyfin:/config
       - $media_mount:/media
@@ -194,7 +194,7 @@ services:
   jellyseerr:
     # env_file:  
     #   - secrets.enc.env  
-    image: fallenbagel/jellyseerr:2.7.3
+    image: seerr/seerr:v3.1.0
     volumes:
       - $persist_data_home/jellyseerr:/app/config
     networks:
@@ -209,10 +209,68 @@ services:
       - "traefik.http.routers.js.tls.certresolver=httpsResolve"
       - "traefik.http.services.js.loadbalancer.server.port=5055"
 
+  # kavita:
+  #   image: lscr.io/linuxserver/kavita:latest
+  #   environment:
+  #     - PUID
+  #     - PGID
+  #     - TZ
+  #   volumes:
+  #     - $persist_data_home/kavita/config:/config
+  #     - $media_mount:/data
+  #   restart: unless-stopped
+  #   networks:
+  #     - traefik_backbone
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.kavita.rule=Host(`kavita.stickpile.net`)"
+  #     - "traefik.http.routers.kavita.entrypoints=websecure"
+  #     - "traefik.http.routers.kavita.tls.certresolver=httpsResolve"
+  #     - "traefik.http.services.kavita.loadbalancer.server.port=5000"
+
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+
+    security_opt:
+      - seccomp:unconfined #optional
+    environment:
+      - PUID
+      - PGID
+      - TZ
+      - PASSWORD= #optional
+      - CLI_ARGS= #optional
+      - PIXELFLUX_WAYLAND=true
+      # Optional: Specify device if multiple exist (IE: /dev/dri/renderD129)
+      - DRINODE=/dev/dri/renderD128
+      - DRI_NODE=/dev/dri/renderD128
+    devices:
+      - /dev/dri:/dev/dri
+
+    volumes:
+      - $persist_data_home/calibre/config:/config
+      - $downloads_home:/downloads
+      - $media_mount:/data
+    ports:
+      - 8080:8080
+      - 8181:8181
+      - 8083:8083
+      - 8081:8081
+    shm_size: "1gb"
+    restart: unless-stopped
+    networks:
+      - traefik_backbone
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.calibre.rule=Host(`calibre.stickpile.net`)"
+      - "traefik.http.routers.calibre.entrypoints=websecure"
+      - "traefik.http.routers.calibre.tls.certresolver=httpsResolve"
+      - "traefik.http.services.calibre.loadbalancer.server.port=8181"
+      - "traefik.http.services.calibre.loadbalancer.server.scheme=https" 
+      - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file"
   komga:
     # env_file:  
     #   - secrets.enc.env  
-    image: ghcr.io/gotson/komga:1.23.6
+    image: ghcr.io/gotson/komga:1.24.3
     volumes:
       - $persist_data_home/komga/config:/config
       - $persist_data_home/komga/data:/data
@@ -233,7 +291,7 @@ services:
   navidrome:
     # env_file:  
     #   - secrets.enc.env  
-    image: deluan/navidrome:0.59.0
+    image: deluan/navidrome:0.60.3
     ports: 
       - 4533:4533
     volumes:
@@ -340,7 +398,7 @@ services:
   rdtclient:
     env_file:  
       - secrets.enc.env  
-    image: rogerfar/rdtclient:2.0.119
+    image: rogerfar/rdtclient:2.0.125
     volumes:
       - $downloads_home:/downloads
       - $persist_data_home/rdt-client/:/data/db
@@ -369,38 +427,27 @@ services:
         ##max_attempts:  3
         window: 120s
 
-  # readarr:
-  #   image: lscr.io/linuxserver/readarr:develop
-  #   volumes:
-  #     - $persist_data_home/readarr:/config
-  #     - $media_mount:/storage
-  #     - $downloads_home:/downloads
-  #   env_file:  
-  #     - secrets.enc.env  
-  #   environment:
-  #     - PUID
-  #     - PGID
-  #     - TZ
-  #   networks:
-  #     - traefik_backbone
-  #     - mediaserver
-    
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
-  #     - "traefik.http.routers.readarr.entrypoints=websecure"
-  #     - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
-  #     - "traefik.http.services.readarr.loadbalancer.server.port=8787"
-  #     - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
-  #     endpoint_mode: vip
-  #     restart_policy:
-  #       condition: on-failure
-  #       delay: 5s
-  #       ##max_attempts:  3
-  #       window: 120s
+  chaptarr:
+    image: robertlordhood/chaptarr:latest
+    volumes:
+      - $persist_data_home/chaptarr:/config
+      - $media_mount:/storage
+      - $downloads_home:/downloads
+    environment:
+      - PUID
+      - PGID
+      - TZ
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
+      - "traefik.http.routers.readarr.entrypoints=websecure"
+      - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
+      - "traefik.http.services.readarr.loadbalancer.server.port=8789"
+      - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
+    networks:
+    - traefik_backbone
+    - mediaserver
+  
   sonarr:
     # env_file:  
     #   - secrets.enc.env  
@@ -436,7 +483,7 @@ services:
   tvheadend:
     # env_file:  
     #   - secrets.enc.env  
-    image: ghcr.io/linuxserver/tvheadend:version-e60aa936
+    image: ghcr.io/linuxserver/tvheadend:version-7c4011de
     volumes:
       - $persist_data_home/tvheadend/data:/config
     environment:
@@ -519,7 +566,7 @@ services:
 
 
   lidarr:
-    image: lscr.io/linuxserver/lidarr:2.14.5
+    image: lscr.io/linuxserver/lidarr:3.1.0
     volumes:
       - $persist_data_home/lidarr:/config
       - $persist_data_home/lidarr-overlay/custom-services.d:/custom-services.d
@@ -556,7 +603,7 @@ services:
   metube:
     env_file:  
       - secrets.enc.env  
-    image: ghcr.io/alexta69/metube:2025.10.01
+    image: ghcr.io/alexta69/metube:2026.03.08
     restart: unless-stopped
     volumes:
       - $downloads_home/yt-dlp:/downloads
@@ -586,7 +633,6 @@ services:
 
   soularr:
     image: mrusse08/soularr:latest
-    container_name: soularr
     hostname: soularr
     user: 911:911 # this should be set to your UID and GID, which can be determined via `id -u` and `id -g`, respectively
     env_file:  
@@ -602,7 +648,6 @@ services:
       - $persist_data_home/soularr:/data
     restart: unless-stopped
     networks:
-      - traefik_backbone
       - mediaserver
     deploy: 
       mode: replicated
@@ -615,8 +660,8 @@ services:
         window: 120s
 
   slskd:
-    env_file:  
-      - secrets.enc.env  
+#    env_file:  
+ #     - secrets.enc.env  
     environment:
       - SLSKD_REMOTE_CONFIGURATION
       - SLSKD_NO_AUTH
@@ -629,7 +674,6 @@ services:
     ports:
       - 5030:5030/tcp
       - 5031:5031/tcp
-      - 50300:50300/tcp
     volumes:
       - $persist_data_home/slskd:/app:rw
       - $media_mount:/media
@@ -638,7 +682,7 @@ services:
       - traefik_backbone
       - mediaserver
     user: 911:911
-    image: slskd/slskd:0.24.1.65534-f80fbac5
+    image: slskd/slskd:0.24.5
     deploy: 
       mode: replicated
       replicas: 1
@@ -655,6 +699,12 @@ services:
       - "traefik.http.routers.slskd.tls.certresolver=httpsResolve"
       - "traefik.http.services.slskd.loadbalancer.server.port=5030"
       - "traefik.http.routers.slskd.middlewares=middlewares-authentik@file"
+
+      - "traefik.tcp.routers.slsk-p2p.entrypoints=p2p"
+      - "traefik.tcp.routers.slsk-p2p.rule=HostSNI(`*`)"
+      - "traefik.tcp.services.slsk-p2p.loadbalancer.server.port=50300"
+
+
       
   bliss_service:
     image: romancin/bliss:latest
@@ -708,6 +758,25 @@ services:
       - /transcode
     restart: unless-stopped
 
+  rsoul:
+    restart: unless-stopped
+    environment: 
+      - PUID
+      - PGID
+      - TZ
+      #Script interval in seconds
+      - SCRIPT_INTERVAL=30
+    user: "1000:1000"
+    volumes:
+      #"You can set /downloads to whatever you want but will then need to change the Slskd download dir in your config file"
+      - $downloads_home:/downloads
+      # Stacks download directory (uncomment if using Stacks backend)
+      # - /path/to/stacks/downloads:/stacks-downloads
+      #Select where you are storing your config file. Leave "/data" since thats where the script expects the config file to be
+      - $persist_data_home/rsoul:/data
+    image: ghcr.io/pcs3rd/rsoul:release.rate-limit-test
+    networks:
+      - mediaserver
 networks:
   mediaserver:
     name: web-prod-media-server_Internal
