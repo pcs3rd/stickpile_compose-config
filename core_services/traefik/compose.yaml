@@ -2,8 +2,8 @@
 services:
   traefik:
     image: "traefik:v3.5.3"
-    env_file:  
-      - secrets.enc.env  
+    # env_file:  
+    #   - secrets.enc.env  
     command:
       #- "--log.level=DEBUG"
       - "-tracing=true"
@@ -77,10 +77,10 @@ services:
   crowdsec:
       image: crowdsecurity/crowdsec:v1.7.4-debian
       environment:
-        PGID: "1000"
-        COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve firix/authentik crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
-        PARSERS: "crowdsecurity/docker-logs"
-        BOUNCER_KEY_TRAEFIK: $BOUNCER_API_KEY
+        - PGID
+        - COLLECTIONS=crowdsecurity/traefik crowdsecurity/http-cve firix/authentik crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules
+        - PARSERS=crowdsecurity/docker-logs
+        - BOUNCER_KEY_TRAEFIK
       # expose:
       #   - "8080"
       volumes:
