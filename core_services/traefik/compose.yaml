@@ -80,7 +80,7 @@ services:
         PGID: "1000"
         COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve firix/authentik crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
         PARSERS: "crowdsecurity/docker-logs"
-        BOUNCER_KEY_TRAEFIK: $BOUNCER-API-KEY
+        BOUNCER_KEY_TRAEFIK: $BOUNCER_API_KEY
       # expose:
       #   - "8080"
       volumes:
