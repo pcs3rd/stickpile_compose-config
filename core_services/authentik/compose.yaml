@@ -36,33 +36,6 @@ services:
     #     delay: 30s
     #     #max_attempts: 3
     #     window: 120s
-
-  redis:
-    image: docker.io/library/redis:alpine
-    command: --save 60 1 --loglevel warning
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-      start_period: 20s
-      interval: 30s
-      retries: 5
-      timeout: 3s
-    volumes:
-      - ${persist_data_home}/redis-data:/data
-    networks:
-      - authentik
-    # deploy: 
-    #   mode: replicated
-    #   replicas: 1
-    #   endpoint_mode: vip
-    #   restart_policy:
-    #     condition: on-failure
-    #     delay: 5s
-    #     ##max_attempts:  3
-    #     window: 600s # jellyfin is a chonker
-    #   #placement:
-    #   #  constraints: [node.hostname == sevenofnine]
-    
-
   authentik:
     image: ghcr.io/goauthentik/server:$AUTHENTIK_TAG
     command: server
@@ -103,34 +76,15 @@ services:
     networks:
       - authentik
       - traefik_backbone
-    # deploy: 
-    #   mode: replicated
-    #   replicas: 1
-    #   endpoint_mode: vip
-    #   restart_policy:
-    #     condition: on-failure
-    #     delay: 5s
-    #     ##max_attempts:  3
-    #     window: 600s # jellyfin is a chonker
-
   worker:
     image: ghcr.io/goauthentik/server:$AUTHENTIK_TAG
-    
-
     command: worker
     environment:
-      AUTHENTIK_REDIS__HOST: redis
       AUTHENTIK_POSTGRESQL__HOST: postgresql
       AUTHENTIK_POSTGRESQL__USER: $POSTGRES_USER
       AUTHENTIK_POSTGRESQL__NAME: $POSTGRES_DB
       AUTHENTIK_POSTGRESQL__PASSWORD: $POSTGRES_PASSWORD
       AUTHENTIK_SECRET_KEY: $SECRET_KEY
-    # `user: root` and the docker socket volume are optional.
-    # See more for the docker socket integration here:
-    # https://goauthentik.io/docs/outposts/integrations/docker
-    # Removing `user: root` also prevents the worker from fixing the permissions
-    # on the mounted folders, so when removing this make sure the folders have the correct UID/GID
-    # (1000:1000 by default)
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -152,24 +106,6 @@ services:
     #     delay: 5s
     #     ##max_attempts:  3
     #     window: 600s # jellyfin is a chonker
-
     networks:
       - authentik
       - traefik_backbone
-  # emailproxy:
-  #   image: blacktirion/email-oauth2-proxy-docker # ghcr.io optional. this is published on both Docker Hub and Github Container Repository
-  #   container_name: emailproxy
-  #   volumes:
-  #     - ${persist_data_home}/emailproxy/config:/config
-  #   ports:
-  #     - 1993:1993
-  #     - 2465:2465
-  #     - 2993:2993
-  #   environment:
-  #     LOGFILE: true
-  #     DEBUG: true
-  #     CACHE_STORE: /config/credstore.config
-  #     LOCAL_SERVER_AUTH: true #Optional
-  #   networks:
-  #     - authentik
-  #     - traefik_backbone
