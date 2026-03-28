@@ -40,7 +40,6 @@ services:
     image: ghcr.io/goauthentik/server:$AUTHENTIK_TAG
     command: server
     environment:
-      AUTHENTIK_REDIS__HOST: redis
       AUTHENTIK_POSTGRESQL__HOST: postgresql
       AUTHENTIK_POSTGRESQL__USER: $POSTGRES_USER
       AUTHENTIK_POSTGRESQL__NAME: $POSTGRES_DB
@@ -72,7 +71,6 @@ services:
       - 9443:9443
     depends_on:
       - postgresql
-      - redis
     networks:
       - authentik
       - traefik_backbone
@@ -96,7 +94,6 @@ services:
       - secrets.enc.env  
     depends_on:
       - postgresql
-      - redis
     # deploy: 
     #   mode: replicated
     #   replicas: 1
