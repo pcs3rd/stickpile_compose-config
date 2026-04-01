@@ -1,0 +1,2 @@
+# This file supports both regex and hosts file formats
+neverssl.com
