@@ -19,13 +19,14 @@ services:
     depends_on:
       - redis
 
-  blocky-redis: 
+  redis: 
     image: redis:6.2-alpine
     restart: always
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
       - $persist_data_home/blocky-redis-state:/data
-  blocky-ui:
+
+  ui:
       image: ghcr.io/gabeduartem/blocky-ui:latest # or for example `blocky-ui:1.5.0` if you prefer pinned versions
       restart: unless-stopped
       depends_on:
