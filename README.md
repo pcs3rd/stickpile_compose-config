@@ -3,13 +3,13 @@ Meant to be deployed on a host from my nix-config repo.
 
 # Need to make changes?
 
-## Step 1: Check out this git repo, or open it in [github.dev](https://github.com/pcs3rd/stickpile_compose-config)
+## Step 1: Check out this git repo, or open it in [github.dev](https://github.dev/pcs3rd/stickpile_compose-config)
 ```
 $ git clone https://github.com/pcs3rd/stickpile_compose-config.git
 ```
 
-## Step 2: Make your changes.
-If access to SOPS-encrypted secrets are needed, please reach out to the local server administrator for access.
+## Step 2: Create a new branch, and make your changes.
+If access to SOPS-encrypted secrets are needed, please reach out to the local server administrator for assistance.
 The linked repo has some further hints on decrypting these files for writing.
 
 ## Step 3: Push to github. 
@@ -36,4 +36,7 @@ Depending on the host (and it's configuration), changes may take up to five minu
 
 In the case that websockets are properly configured, changes may propagate more quickly.
 
-THIS LINE IS A TEST- IGNORE ME PLEASE
+# Quick links to files   
+- [blocky allowlist.txt](core_services/networking/blocky/config/lists/allowlist.txt)
+- [blocky denylist.txt](core_services/networking/blocky/config/lists/denylist.txt)
+- [blocky configuration](core_services/networking/blocky/config/config.yml)
