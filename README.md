@@ -38,4 +38,4 @@ In the case that websockets are properly configured, changes may propagate more 
   
 ---  
 Other Documentaition:   
- - (Services Overview)[docs/services-overview.md]
+ - [Services Overview](docs/services-overview.md)
