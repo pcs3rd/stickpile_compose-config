@@ -34,6 +34,8 @@ $ git push
 ## Step 4: Wait.
 Depending on the host (and it's configuration), changes may take up to five minutes to propagate.
 
-In the case that websockets are properly configured, changes may propagate more quickly.
-
-THIS LINE IS A TEST- IGNORE ME PLEASE
+In the case that websockets are properly configured, changes may propagate more quickly.  
+  
+---  
+Other Documentaition:   
+ - (Services Overview)[docs/services-overview.md]
