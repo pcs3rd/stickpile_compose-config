@@ -4,6 +4,9 @@ services:
     image: "traefik:v3.5.3"
     # env_file:  
     #   - secrets.enc.env  
+    environment:
+      - BOUNCER_API_KEY
+    entrypoint: ["/bin/sh", "/etc/traefik/entrypoint.sh"]
     command:
       #- "--log.level=DEBUG"
       - "-tracing=true"
@@ -33,17 +36,20 @@ services:
       - "--log.format=json"
       - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
       - "--experimental.plugins.crowdsec-bouncer.version=v1.2.1"
-      ## As a note, need to bring $BOUNCER-API-KEY into SOPS on every deployment
+      ## As a note, need to bring BOUNCER-API-KEY into SOPS on every deployment
     ports:
       - "80:80"
       - "443:443"
       - "50300:50300"
     volumes:
+      - ./entrypoint.sh:/etc/traefik/entrypoint.sh:ro   # ← mount the script
       - $persist_data_home/letsencrypt:/letsencrypt
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      #- $persist_data_home/traefik-log:/var/log/traefik
       - ./rules:/rules
       - proxy-logs:/var/log/traefik
+      - /run/secrets:/run/secrets
+    tmpfs:
+      - /run/secrets
     networks: 
       - traefik_backbone
     labels:
@@ -99,3 +105,4 @@ networks:
 
 volumes:
   proxy-logs:
+
