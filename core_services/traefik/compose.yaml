@@ -64,7 +64,7 @@ services:
     #   start_period: 5s
 
   crowdsec:
-      image: crowdsecurity/crowdsec:v1.7.4-debian
+      image: crowdsecurity/crowdsec:v1.7.6-debian
       environment:
         - PGID
         - COLLECTIONS=crowdsecurity/traefik crowdsecurity/http-cve firix/authentik crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules
