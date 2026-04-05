@@ -91,7 +91,7 @@ services:
         - "traefik.http.routers.cs.entrypoints=websecure"
         - "traefik.http.routers.cs.tls.certresolver=httpsResolve"
         - "traefik.http.services.cs.loadbalancer.server.port=8080"
-        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file"
+        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file,bouncer@file"
         ## Middleware configuration
       networks:
         - traefik_backbone
