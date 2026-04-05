@@ -56,6 +56,8 @@ services:
       - "traefik.http.routers.wordpress.entrypoints=websecure"
       - "traefik.http.routers.wordpress.tls.certresolver=httpsResolve"
       - "traefik.http.services.wordpress.loadbalancer.server.port=80"
+      - "traefik.http.routers.wordpress.middlewares=bouncer@file"
+
 
     restart: always
     environment:
