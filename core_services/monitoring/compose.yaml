@@ -26,19 +26,36 @@ services:
       retries: 5
       start_period: 20s
 
-  promtail:
-    image: grafana/promtail:3.6.10
+  # promtail:
+  #   image: grafana/promtail:3.6.10
+  #   restart: unless-stopped
+  #   command: -config.file=/etc/promtail/config.yaml
+  #   volumes:
+  #     - ./config/promtail.yaml:/etc/promtail/config.yaml:ro
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   networks:
+  #     - monitoring
+  #   depends_on:
+  #     loki:
+  #       condition: service_healthy
+
+  alloy:
+    image: grafana/alloy:v1.15.0
     restart: unless-stopped
-    command: -config.file=/etc/promtail/config.yaml
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    ports:
+      - 12345:12345
     volumes:
-      - ./config/promtail.yaml:/etc/promtail/config.yaml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./config/config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - $persist_data_home/alloy:/var/lib/alloy
     networks:
       - monitoring
     depends_on:
       loki:
         condition: service_healthy
+ 
 
   grafana:
     image: grafana/grafana-oss:12.4.2
