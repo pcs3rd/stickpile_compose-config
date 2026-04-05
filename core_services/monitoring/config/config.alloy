@@ -1,0 +1,67 @@
+// ============================================================
+// Docker container log collection pipeline
+// Discovers all containers via Docker socket, applies labels,
+// and ships logs to Loki.
+// ============================================================
+
+// Step 1: Discover all running Docker containers
+discovery.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+}
+
+// Step 2: Relabel - extract useful metadata from container labels
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  // Strip the leading slash from container names (e.g. /myapp -> myapp)
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  // Expose the compose service name
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+
+  // Expose the compose stack (project) name
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    target_label  = "stack"
+  }
+
+  // Drop containers that have opted out with label logging=false
+  rule {
+    source_labels = ["__meta_docker_container_label_logging"]
+    regex         = "false"
+    action        = "drop"
+  }
+}
+
+// Step 3: Collect logs from discovered containers
+loki.source.docker "containers" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.relabel.containers.output
+  forward_to    = [loki.write.local.receiver]
+  relabel_rules = discovery.relabel.containers.rules
+}
+
+// Step 4: Ship logs to Loki
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+// ============================================================
+// Alloy's own internal logs → also forwarded to Loki
+// so you can query Alloy's health from Grafana
+// ============================================================
+logging {
+  level    = "info"
+  format   = "logfmt"
+  write_to = [loki.write.local.receiver]
+}
