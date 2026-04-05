@@ -4,6 +4,9 @@ All stacks are deployed via [DocoCD](https://github.com/pcs3rd/stickpile_doco-cd
 Secrets are managed via SOPS-encrypted `secrets.enc.env` files per stack.
 All externally accessible services are routed through Traefik on `traefik_backbone` using HTTPS (`websecure` entrypoint, `httpsResolve` cert resolver).
 
+> ⚙️ Container versions in this file are automatically updated by GitHub Actions on every push to `prod`.
+> Last updated: <!-- LAST-UPDATED -->2026-04-05 00:55 UTC<!-- /LAST-UPDATED -->
+
 ---
 
 ## Deployment Targets
@@ -21,11 +24,13 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Reverse proxy, TLS termination, CrowdSec security, and OpenTelemetry tracing.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
+<!-- STACK-TABLE:core_services/traefik -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `traefik` | `traefik` | `v3.5.3` | `traefik_backbone` | ❌ |
 | `crowdsec` | `crowdsecurity/crowdsec` | `v1.7.4-debian` | `traefik_backbone` | ❌ |
 | `otel-collector` | `otel/opentelemetry-collector-contrib` | `latest` | *(none defined)* | ❌ |
+<!-- /STACK-TABLE:core_services/traefik -->
 
 ---
 
@@ -33,11 +38,13 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Identity provider and SSO. Used as the forward-auth middleware for most services.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
+<!-- STACK-TABLE:core_services/authentik -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `postgresql` | `docker.io/library/postgres` | `16-alpine` | `authentik` | ❌ |
 | `authentik` | `ghcr.io/goauthentik/server` | `$AUTHENTIK_TAG` | `authentik`, `traefik_backbone` | ✅ (`postgresql`) |
 | `worker` | `ghcr.io/goauthentik/server` | `$AUTHENTIK_TAG` | `authentik`, `traefik_backbone` | ✅ (`postgresql`) |
+<!-- /STACK-TABLE:core_services/authentik -->
 
 ---
 
@@ -45,11 +52,13 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Log aggregation and alerting. Promtail auto-discovers all Docker containers via the socket — no per-service changes needed. Grafana is SSO-integrated with Authentik.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
+<!-- STACK-TABLE:core_services/monitoring -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `loki` | `grafana/loki` | `latest` | `monitoring` | ❌ |
 | `promtail` | `grafana/promtail` | `latest` | `monitoring` | ✅ (`loki`) |
 | `grafana` | `grafana/grafana` | `latest` | `monitoring`, `traefik_backbone` | ✅ (`loki`) |
+<!-- /STACK-TABLE:core_services/monitoring -->
 
 ---
 
@@ -57,11 +66,13 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Unifi Network Application and MongoDB backend for managing Ubiquiti network hardware.
 > In DocoCD (`us-east-network-prod`): ✅
 
+<!-- STACK-TABLE:core_services/networking/ubnt_console -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
-| `unifi-network-application` | `lscr.io/linuxserver/unifi-network-application` | `10.1.89` | *(host ports only)* | ❌ |
+| `unifi-network-application` | `lscr.io/linuxserver/unifi-network-application` | `10.1.89` | *(none defined)* | ❌ |
 | `mongo` | `docker.io/mongo` | `8.2.2` | *(none defined)* | ❌ |
 | `mongo-express` | `mongo-express` | `latest` | *(none defined)* | ❌ |
+<!-- /STACK-TABLE:core_services/networking/ubnt_console -->
 
 ---
 
@@ -69,11 +80,13 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > LAN-facing DNS server with ad/tracker blocking and query logging.
 > In DocoCD (`us-east-network-prod`): ✅
 
+<!-- STACK-TABLE:core_services/networking/blocky -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `blocky` | `spx01/blocky` | `latest` | *(none defined)* | ✅ (`redis`) |
 | `redis` | `redis` | `6.2-alpine` | *(none defined)* | ❌ |
 | `ui` | `ghcr.io/gabeduartem/blocky-ui` | `latest` | *(none defined)* | ✅ (`blocky`) |
+<!-- /STACK-TABLE:core_services/networking/blocky -->
 
 ---
 
@@ -83,12 +96,14 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Tailscale-networked Blocky DNS instance. Blocky runs in the Tailscale container's network namespace so it is only reachable over the tailnet.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
+<!-- STACK-TABLE:network-services/blocky-tailscale -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `tailscale` | `tailscale/tailscale` | `latest` | `internal` | ❌ |
 | `redis` | `redis` | `6.2-alpine` | `internal` | ❌ |
 | `blocky` | `spx01/blocky` | `latest` | `service:tailscale` (network_mode) | ✅ (`tailscale`, `redis`) |
 | `blocky-ui` | `ghcr.io/gabeduartem/blocky-ui` | `latest` | `internal`, `traefik_backbone` | ✅ (`blocky`) |
+<!-- /STACK-TABLE:network-services/blocky-tailscale -->
 
 ---
 
@@ -98,35 +113,37 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Full media server stack including Jellyfin, Immich, *arr suite, download clients, and media management tools.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
+<!-- STACK-TABLE:web-apps/jellyfin -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
-| `jellyfin` | `lscr.io/linuxserver/jellyfin` | `10.11.6` | `mediaserver`, `traefik_backbone` | ❌ |
-| `jellyseerr` | `seerr/seerr` | `v3.1.0` | `mediaserver`, `traefik_backbone` | ❌ |
-| `immich-server` | `ghcr.io/immich-app/immich-server` | `$IMMICH_VERSION` | `mediaserver`, `traefik_backbone` | ✅ (`immich-database`, `immich-redis`) |
-| `immich-machine-learning` | `ghcr.io/immich-app/immich-machine-learning` | `$IMMICH_VERSION` | `mediaserver` | ❌ |
+| `tinshop` | `ghcr.io/ajmandourah/tinshop-ng` | `v0.5.3` | `traefik_backbone`, `mediaserver` | ❌ |
+| `ariang` | `hurlenko/aria2-ariang` | `1.3.13` | `traefik_backbone`, `mediaserver` | ❌ |
+| `bazarr` | `lscr.io/linuxserver/bazarr` | `1.5.6` | `traefik_backbone`, `mediaserver` | ❌ |
+| `flaresolverr` | `ghcr.io/flaresolverr/flaresolverr` | `v3.4.6` | `mediaserver` | ❌ |
 | `immich-database` | `docker.io/tensorchord/pgvecto-rs` | `pg14-v0.2.0` | `mediaserver` | ❌ |
+| `immich-machine-learning` | `ghcr.io/immich-app/immich-machine-learning` | `$IMMICH_VERSION` | `mediaserver` | ❌ |
 | `immich-redis` | `docker.io/redis` | `6.2-alpine` | `mediaserver` | ❌ |
-| `sonarr` | `lscr.io/linuxserver/sonarr` | `4.0.16` | `mediaserver`, `traefik_backbone` | ❌ |
-| `radarr` | `lscr.io/linuxserver/radarr` | `6.0.4` | `mediaserver`, `traefik_backbone` | ❌ |
-| `lidarr` | `lscr.io/linuxserver/lidarr` | `3.1.0` | `mediaserver`, `traefik_backbone` | ❌ |
-| `prowlarr` | `lscr.io/linuxserver/prowlarr` | `2.3.0` | `mediaserver`, `traefik_backbone` | ❌ |
-| `bazarr` | `lscr.io/linuxserver/bazarr` | `1.5.6` | `mediaserver`, `traefik_backbone` | ❌ |
-| `chaptarr` | `robertlordhood/chaptarr` | `latest` | `mediaserver`, `traefik_backbone` | ❌ |
-| `rdtclient` | `rogerfar/rdtclient` | `2.0.125` | `mediaserver`, `traefik_backbone` | ❌ |
-| `ariang` | `hurlenko/aria2-ariang` | `1.3.13` | `mediaserver`, `traefik_backbone` | ❌ |
-| `metube` | `ghcr.io/alexta69/metube` | `2026.03.08` | `mediaserver`, `traefik_backbone` | ❌ |
-| `navidrome` | `deluan/navidrome` | `0.60.3` | `mediaserver`, `traefik_backbone` | ❌ |
-| `slskd` | `slskd/slskd` | `0.24.5` | `mediaserver`, `traefik_backbone` | ❌ |
-| `soularr` | `mrusse08/soularr` | `latest` | `mediaserver` | ❌ |
-| `rsoul` | `ghcr.io/pcs3rd/rsoul` | `release.rate-limit-test` | `mediaserver` | ❌ |
-| `bliss_service` | `romancin/bliss` | `latest` | `mediaserver`, `traefik_backbone` | ❌ |
-| `komga` | `ghcr.io/gotson/komga` | `1.24.3` | `mediaserver`, `traefik_backbone` | ❌ |
-| `tinshop` | `ghcr.io/ajmandourah/tinshop-ng` | `v0.5.3` | `mediaserver`, `traefik_backbone` | ❌ |
+| `immich-server` | `ghcr.io/immich-app/immich-server` | `$IMMICH_VERSION` | `traefik_backbone`, `mediaserver` | ✅ (`immich-database`, `immich-redis`) |
+| `jellyfin` | `lscr.io/linuxserver/jellyfin` | `10.11.6` | `mediaserver`, `traefik_backbone` | ❌ |
+| `jellyseerr` | `seerr/seerr` | `v3.1.0` | `traefik_backbone`, `mediaserver` | ❌ |
 | `calibre` | `lscr.io/linuxserver/calibre` | `latest` | `traefik_backbone` | ❌ |
+| `komga` | `ghcr.io/gotson/komga` | `1.24.3` | `traefik_backbone`, `mediaserver` | ❌ |
+| `navidrome` | `deluan/navidrome` | `0.60.3` | `mediaserver`, `traefik_backbone` | ❌ |
+| `prowlarr` | `lscr.io/linuxserver/prowlarr` | `2.3.0` | `traefik_backbone`, `mediaserver` | ❌ |
+| `radarr` | `lscr.io/linuxserver/radarr` | `6.0.4` | `traefik_backbone`, `mediaserver` | ❌ |
+| `rdtclient` | `rogerfar/rdtclient` | `2.0.125` | `traefik_backbone`, `mediaserver` | ❌ |
+| `chaptarr` | `robertlordhood/chaptarr` | `latest` | `traefik_backbone`, `mediaserver` | ❌ |
+| `sonarr` | `lscr.io/linuxserver/sonarr` | `4.0.16` | `traefik_backbone`, `mediaserver` | ❌ |
 | `tvheadend` | `ghcr.io/linuxserver/tvheadend` | `version-7c4011de` | `host` (network_mode) | ❌ |
 | `tdarr` | `ghcr.io/haveagitgat/tdarr` | `latest` | `bridge` (network_mode) | ❌ |
+| `lidarr` | `lscr.io/linuxserver/lidarr` | `3.1.0` | `traefik_backbone`, `mediaserver` | ❌ |
+| `metube` | `ghcr.io/alexta69/metube` | `2026.03.08` | `traefik_backbone`, `mediaserver` | ❌ |
+| `soularr` | `mrusse08/soularr` | `latest` | `mediaserver` | ❌ |
+| `slskd` | `slskd/slskd` | `0.24.5` | `traefik_backbone`, `mediaserver` | ❌ |
+| `bliss_service` | `romancin/bliss` | `latest` | `traefik_backbone`, `mediaserver` | ❌ |
 | `ersatztv` | `ghcr.io/ersatztv/ersatztv` | `latest` | `mediaserver` | ❌ |
-| `flaresolverr` | `ghcr.io/flaresolverr/flaresolverr` | `v3.4.6` | `mediaserver` | ❌ |
+| `rsoul` | `ghcr.io/pcs3rd/rsoul` | `release.rate-limit-test` | `mediaserver` | ❌ |
+<!-- /STACK-TABLE:web-apps/jellyfin -->
 
 ---
 
@@ -134,11 +151,13 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Self-hosted file sync and share with WebDAV support.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
+<!-- STACK-TABLE:web-apps/seafile -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `db` | `mariadb` | `10.11` | `internal` | ❌ |
 | `memcached` | `memcached` | `1.6.18` | `internal` | ❌ |
-| `seafile` | `seafileltd/seafile-mc` | `11.0-latest` | `internal`, `traefik_backbone` (`backbone`) | ✅ (`db`, `memcached`) |
+| `seafile` | `seafileltd/seafile-mc` | `11.0-latest` | `internal`, `backbone` | ✅ (`db`, `memcached`) |
+<!-- /STACK-TABLE:web-apps/seafile -->
 
 ---
 
@@ -146,12 +165,14 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Collaborative knowledge base / whiteboard workspace.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
+<!-- STACK-TABLE:web-apps/affine -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `affine` | `ghcr.io/toeverything/affine` | `$AFFINE_REVISION` | `internal`, `traefik_backbone` | ❌ |
 | `affine_migration` | `ghcr.io/toeverything/affine` | `$AFFINE_REVISION` | `internal` | ❌ |
 | `redis` | `redis` | `latest` | `internal` | ❌ |
 | `postgres` | `pgvector/pgvector` | `pg16` | `internal` | ❌ |
+<!-- /STACK-TABLE:web-apps/affine -->
 
 ---
 
@@ -159,9 +180,11 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Offline Wikipedia, Gutenberg, iFixit, CDC, and other ZIM archive server.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
+<!-- STACK-TABLE:web-apps/kiwix -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `kiwix-server` | `ghcr.io/kiwix/kiwix-serve` | `latest` | `traefik_backbone` | ❌ |
+<!-- /STACK-TABLE:web-apps/kiwix -->
 
 ---
 
@@ -169,10 +192,12 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Meshtastic daemon and mesh bot for LoRa radio mesh networking.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
+<!-- STACK-TABLE:web-apps/meshtastic -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `meshing-around` | `ghcr.io/spudgunman/meshing-around` | `main` | `mesh-internal` | ❌ |
 | `meshtasticd` | `meshtastic/meshtasticd` | `2.7.15.d18f3f7-beta-alpine` | `mesh-internal` | ❌ |
+<!-- /STACK-TABLE:web-apps/meshtastic -->
 
 ---
 
@@ -180,11 +205,13 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > Social media scheduling and management. ⚠️ Currently commented out in DocoCD.
 > In DocoCD (`us-east-stickpile-prod`): ❌ *(commented out)*
 
+<!-- STACK-TABLE:web-apps/mixpost -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `mixpost` | `inovector/mixpost` | `latest` | `internal`, `traefik_backbone` | ✅ (`mysql`, `redis`) |
 | `mysql` | `mysql/mysql-server` | `8.0` | `internal` | ❌ |
 | `redis` | `redis` | `latest` | `internal` | ❌ |
+<!-- /STACK-TABLE:web-apps/mixpost -->
 
 ---
 
@@ -192,10 +219,12 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 > WordPress site (raymonddean.me). Not present in either DocoCD file.
 > In DocoCD: ❌
 
+<!-- STACK-TABLE:web-apps/wordpress -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `wpdb` | `mariadb` | `10.6.4-focal` | `internal` | ❌ |
 | `wordpress` | `wordpress` | `latest` | `internal`, `traefik_backbone` | ❌ |
+<!-- /STACK-TABLE:web-apps/wordpress -->
 
 ---
 

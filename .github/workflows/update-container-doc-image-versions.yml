@@ -1,0 +1,45 @@
+name: Update Stack README
+
+on:
+  push:
+    branches:
+      - prod
+    paths:
+      # Run when any compose file changes
+      - "**/compose.yaml"
+      # Also run if the script itself changes
+      - "scripts/generate_stack_table.py"
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout prod
+        uses: actions/checkout@v4
+        with:
+          ref: prod
+          # Use a token so the commit triggers other workflows if needed
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Generate stack tables
+        run: python3 scripts/generate_stack_table.py
+
+      - name: Commit updated README
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add STACKS_README.md
+          # Only commit if something actually changed
+          git diff --staged --quiet || git commit -m "chore: update stack versions in STACKS_README [skip ci]"
+          git push
