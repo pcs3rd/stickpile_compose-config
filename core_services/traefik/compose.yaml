@@ -55,7 +55,9 @@ services:
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
       - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
-      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
+#      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
+      - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
+
     # healthcheck:
     #   test: ["CMD", "traefik", "healthcheck", "--ping"]
     #   interval: 30s
@@ -92,11 +94,43 @@ services:
       networks:
         - traefik_backbone
       
+
+# Define the geoip filter middleware along with your Traefik service config, so that other services can use the filter
+# To do this add the below label to the Traefik service
+#
+#      labels:
+#        - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
+#
+# Here "middlewares-geoipfilter" is the middleware name, "geoipfilter" is the name of the geoip filter container, and "8080" is the listen port value.
+# If you use different names or port, you need to change the example.
+#
+# Then, to apply the geoipfilter middleware to a service, add the below label to that service.
+#
+#       labels:
+#         - "traefik.http.routers.routerName.middlewares=middlewares-geoipfilter"
+#
+# Here "routerName" is the name of the router the filter is being applied to, and "middlewares-geoipfilter" is the middleware name. 
+
+  geoipfilter:
+    image: mpdcampbell/traefik-geoip-filter
+    container_name: geoipfilter
+    #Optional, If you want the Geolite2 databases to persist add the below volume
+    volumes:
+    - geoip:/geoip
+    environment:
+        - MAXMIND_ID
+        - MAXMIND_KEY
+        - FILTER_TYPE
+        - COUNTRY_CODES
+        - SUB_CODES
+        - TZ
+    #- SEARCH_MODE="true"
+
+volumes:
+  proxy-logs:
+  geoip:
+
 networks:
   traefik_backbone: # For external containers.
     name: traefik_backbone
     external: true
-
-
-volumes:
-  proxy-logs:

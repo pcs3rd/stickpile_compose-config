@@ -72,7 +72,7 @@ services:
       - "traefik.http.routers.blocky.entrypoints=websecure"
       - "traefik.http.routers.blocky.tls.certresolver=httpsResolve"
       - "traefik.http.services.blocky.loadbalancer.server.port=3000"
-      - "traefik.http.routers.blocky.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.blocky.middlewares=middlewares-authentik@file,middlewares-geoipfilter"
 
 networks:
   internal:
