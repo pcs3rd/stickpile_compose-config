@@ -47,7 +47,6 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - ./rules:/rules
       - proxy-logs:/var/log/traefik
-      - /run/secrets:/run/secrets
     tmpfs:
       - /run/secrets
     networks: 
