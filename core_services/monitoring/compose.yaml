@@ -68,7 +68,6 @@ services:
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls.certresolver=httpsResolve"
-      - "traefik.http.routers.grafana.middlewares=bouncer@docker"
     depends_on:
       loki:
         condition: service_healthy
