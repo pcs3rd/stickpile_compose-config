@@ -47,4 +47,4 @@ services:
       - "traefik.http.routers.kiwix.entrypoints=websecure"
       - "traefik.http.routers.kiwix.tls.certresolver=httpsResolve"
       - "traefik.http.services.kiwix.loadbalancer.server.port=8080"
-      - "traefik.http.routers.kiwix.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.kiwix.middlewares=middlewares-authentik@file,bouncer@file"
