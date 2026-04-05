@@ -249,7 +249,7 @@ services:
       - "traefik.http.routers.calibre.tls.certresolver=httpsResolve"
       - "traefik.http.services.calibre.loadbalancer.server.port=8181"
       - "traefik.http.services.calibre.loadbalancer.server.scheme=https" 
-      - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file,middlewares-geoipfilter,bouncer@file"
+      - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file,bouncer@file"
 
   komga:
     # env_file:  
@@ -271,7 +271,7 @@ services:
       - "traefik.http.routers.komga.entrypoints=websecure"
       - "traefik.http.routers.komga.tls.certresolver=httpsResolve"
       - "traefik.http.services.komga.loadbalancer.server.port=25600"
-      - "traefik.http.routers.komga.middlewares=middlewares-geoipfilter,bouncer@file"
+      - "traefik.http.routers.komga.middlewares=bouncer@file"
 
   navidrome:
     # env_file:  
@@ -301,7 +301,7 @@ services:
       - "traefik.http.routers.navi.entrypoints=websecure"
       - "traefik.http.routers.navi.tls.certresolver=httpsResolve"
       - "traefik.http.services.navi.loadbalancer.server.port=4533"
-      - "traefik.http.routers.navi.middlewares=middlewares-authentik@file,middlewares-geoipfilter,bouncer@file"
+      - "traefik.http.routers.navi.middlewares=middlewares-authentik@file,bouncer@file"
     # # should be owner of volumes
     
     deploy:

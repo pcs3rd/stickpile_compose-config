@@ -60,7 +60,7 @@ services:
       - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
       - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
 #      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
-      - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
+#      - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
 
       # - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
       # - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
