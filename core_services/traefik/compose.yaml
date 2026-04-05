@@ -4,15 +4,16 @@ services:
     image: "traefik:v3.5.3"
     # env_file:  
     #   - secrets.enc.env  
+    environment:
+      - BOUNCER_KEY_TRAEFIK
+    entrypoint: ["/bin/sh", "/etc/traefik/entrypoint.sh"]
     command:
       #- "--log.level=DEBUG"
       - "-tracing=true"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      
       - "--entryPoints.p2p.address=:50300"
-
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
@@ -23,6 +24,7 @@ services:
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge=true"
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge.entrypoint=web"
       - "--accesslog=true"
+      - "--accesslog.format=json"
       #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.httpsResolve.acme.email=rdean@stickpile.net"
       - "--certificatesresolvers.httpsResolve.acme.storage=/letsencrypt/acme.json"
@@ -34,17 +36,19 @@ services:
       - "--log.format=json"
       - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
       - "--experimental.plugins.crowdsec-bouncer.version=v1.2.1"
-      ## As a note, need to bring $BOUNCER-API-KEY into SOPS on every deployment
+      ## As a note, need to bring BOUNCER-API-KEY into SOPS on every deployment
     ports:
       - "80:80"
       - "443:443"
       - "50300:50300"
     volumes:
+      - ./entrypoint.sh:/etc/traefik/entrypoint.sh:ro   # ← mount the script
       - $persist_data_home/letsencrypt:/letsencrypt
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      #- $persist_data_home/traefik-log:/var/log/traefik
       - ./rules:/rules
       - proxy-logs:/var/log/traefik
+    tmpfs:
+      - /run/secrets
     networks: 
       - traefik_backbone
     labels:
@@ -56,8 +60,10 @@ services:
       - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
       - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
 #      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
-      - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
+#      - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
 
+      # - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
+      # - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
     # healthcheck:
     #   test: ["CMD", "traefik", "healthcheck", "--ping"]
     #   interval: 30s
@@ -89,7 +95,7 @@ services:
         - "traefik.http.routers.cs.entrypoints=websecure"
         - "traefik.http.routers.cs.tls.certresolver=httpsResolve"
         - "traefik.http.services.cs.loadbalancer.server.port=8080"
-        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file"
+        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file,bouncer@file"
         ## Middleware configuration
       networks:
         - traefik_backbone
@@ -129,8 +135,8 @@ services:
 volumes:
   proxy-logs:
   geoip:
-
 networks:
   traefik_backbone: # For external containers.
     name: traefik_backbone
     external: true
+

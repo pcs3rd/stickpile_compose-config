@@ -10,7 +10,7 @@ services:
       - "traefik.http.routers.affine.entrypoints=websecure"
       - "traefik.http.routers.affine.tls.certresolver=httpsResolve"
       - "traefik.http.services.affine.loadbalancer.server.port=3010"
-      #- "traefik.http.routers.affine.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.affine.middlewares=bouncer@file"
     volumes:
       # custom configurations
       - $persist_data_home/upload:/root/.affine/storage
