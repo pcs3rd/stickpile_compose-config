@@ -58,8 +58,8 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=httpsResolve"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
-      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
-      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
+      # - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
+      # - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
     # healthcheck:
     #   test: ["CMD", "traefik", "healthcheck", "--ping"]
     #   interval: 30s
