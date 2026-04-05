@@ -17,7 +17,7 @@ services:
       - "traefik.http.routers.tin.entrypoints=websecure"
       - "traefik.http.routers.tin.tls.certresolver=httpsResolve"
       - "traefik.http.services.tin.loadbalancer.server.port=3000"
-      - "traefik.http.routers.tin.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.tin.middlewares=middlewares-authentik@file,bouncer@file"
     networks:
       - traefik_backbone
       - mediaserver
@@ -48,7 +48,7 @@ services:
       - "traefik.http.routers.ariang.entrypoints=websecure"
       - "traefik.http.routers.ariang.tls.certresolver=httpsResolve"
       - "traefik.http.services.ariang.loadbalancer.server.port=8080"
-      - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file,bouncer@file"
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:1.5.6
@@ -71,7 +71,7 @@ services:
       - "traefik.http.routers.bazarr.entrypoints=websecure"
       - "traefik.http.routers.bazarr.tls.certresolver=httpsResolve"
       - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
-      - "traefik.http.routers.bazarr.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.bazarr.middlewares=middlewares-authentik@file,bouncer@file"
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
@@ -158,6 +158,8 @@ services:
       - "traefik.http.routers.immich.entrypoints=websecure"
       - "traefik.http.routers.immich.tls.certresolver=httpsResolve"
       - "traefik.http.services.immich.loadbalancer.server.port=2283"
+      - "traefik.http.routers.immich.middlewares=bouncer@file"
+
     networks:
       - traefik_backbone
       - mediaserver
@@ -186,8 +188,7 @@ services:
       - "traefik.http.routers.jf.entrypoints=websecure"
       - "traefik.http.routers.jf.tls.certresolver=httpsResolve"
       - "traefik.http.services.jf.loadbalancer.server.port=8096"
-#      - 'traefik.http.routers.jf.middlewares=jellyfin-mw'
-
+      - "traefik.http.routers.jf.middlewares=bouncer@file"
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
 
@@ -208,25 +209,7 @@ services:
       - "traefik.http.routers.js.entrypoints=websecure"
       - "traefik.http.routers.js.tls.certresolver=httpsResolve"
       - "traefik.http.services.js.loadbalancer.server.port=5055"
-
-  # kavita:
-  #   image: lscr.io/linuxserver/kavita:latest
-  #   environment:
-  #     - PUID
-  #     - PGID
-  #     - TZ
-  #   volumes:
-  #     - $persist_data_home/kavita/config:/config
-  #     - $media_mount:/data
-  #   restart: unless-stopped
-  #   networks:
-  #     - traefik_backbone
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.kavita.rule=Host(`kavita.stickpile.net`)"
-  #     - "traefik.http.routers.kavita.entrypoints=websecure"
-  #     - "traefik.http.routers.kavita.tls.certresolver=httpsResolve"
-  #     - "traefik.http.services.kavita.loadbalancer.server.port=5000"
+      - "traefik.http.routers.js.middlewares=bouncer@file"
 
   calibre:
     image: lscr.io/linuxserver/calibre:latest
@@ -266,7 +249,8 @@ services:
       - "traefik.http.routers.calibre.tls.certresolver=httpsResolve"
       - "traefik.http.services.calibre.loadbalancer.server.port=8181"
       - "traefik.http.services.calibre.loadbalancer.server.scheme=https" 
-      - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file,bouncer@file"
+
   komga:
     # env_file:  
     #   - secrets.enc.env  
@@ -287,6 +271,8 @@ services:
       - "traefik.http.routers.komga.entrypoints=websecure"
       - "traefik.http.routers.komga.tls.certresolver=httpsResolve"
       - "traefik.http.services.komga.loadbalancer.server.port=25600"
+      - "traefik.http.routers.komga.middlewares=bouncer@file"
+
 
   navidrome:
     # env_file:  
@@ -316,7 +302,7 @@ services:
       - "traefik.http.routers.navi.entrypoints=websecure"
       - "traefik.http.routers.navi.tls.certresolver=httpsResolve"
       - "traefik.http.services.navi.loadbalancer.server.port=4533"
-      - "traefik.http.routers.navi.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.navi.middlewares=middlewares-authentik@file,bouncer@file"
     # # should be owner of volumes
     
     deploy:
@@ -349,7 +335,7 @@ services:
       - "traefik.http.routers.prowlarr.entrypoints=websecure"
       - "traefik.http.routers.prowlarr.tls.certresolver=httpsResolve"
       - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
-      - "traefik.http.routers.prowlarr.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.prowlarr.middlewares=middlewares-authentik@file,bouncer@file"
     deploy:
       mode: replicated
       replicas: 1
@@ -383,7 +369,7 @@ services:
       - "traefik.http.routers.radarr.entrypoints=websecure"
       - "traefik.http.routers.radarr.tls.certresolver=httpsResolve"
       - "traefik.http.services.radarr.loadbalancer.server.port=7878"
-      - "traefik.http.routers.radarr.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.radarr.middlewares=middlewares-authentik@file,bouncer@file"
     deploy:
       mode: replicated
       replicas: 1
@@ -416,7 +402,7 @@ services:
       - "traefik.http.routers.rdt.entrypoints=websecure"
       - "traefik.http.routers.rdt.tls.certresolver=httpsResolve"
       - "traefik.http.services.rdt.loadbalancer.server.port=6500"
-      - "traefik.http.routers.rdt.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.rdt.middlewares=middlewares-authentik@file,bouncer@file"
     deploy:
       mode: replicated
       replicas: 1
@@ -443,7 +429,7 @@ services:
       - "traefik.http.routers.readarr.entrypoints=websecure"
       - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
       - "traefik.http.services.readarr.loadbalancer.server.port=8789"
-      - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file,bouncer@file"
     networks:
     - traefik_backbone
     - mediaserver
@@ -469,7 +455,7 @@ services:
       - "traefik.http.routers.sonarr.entrypoints=websecure"
       - "traefik.http.routers.sonarr.tls.certresolver=httpsResolve"
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
-      - "traefik.http.routers.sonarr.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.sonarr.middlewares=middlewares-authentik@file,bouncer@file"
     deploy:
       mode: replicated
       replicas: 1
@@ -519,7 +505,7 @@ services:
       - "traefik.http.routers.tve.tls.certresolver=httpsResolve"
       #- "traefik.http.services.tve.loadbalancer.server.port=9981"
       - "traefik.http.services.tve.loadbalancer.server.url=http://172.16.0.7:9981/"
-      - "traefik.http.routers.tve.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.tve.middlewares=middlewares-authentik@file,bouncer@file"
 
   tdarr:
     container_name: tdarr
@@ -562,7 +548,7 @@ services:
       - "traefik.http.routers.unmanic.entrypoints=websecure"
       - "traefik.http.routers.unmanic.tls.certresolver=httpsResolve"
       - "traefik.http.services.unmanic.loadbalancer.server.port=8888"
-      - "traefik.http.routers.unmanic.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.unmanic.middlewares=middlewares-authentik@file,bouncer@file"
 
 
   lidarr:
@@ -598,7 +584,7 @@ services:
       - "traefik.http.routers.lidarr.entrypoints=websecure"
       - "traefik.http.routers.lidarr.tls.certresolver=httpsResolve"
       - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
-      - "traefik.http.routers.lidarr.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.lidarr.middlewares=middlewares-authentik@file,bouncer@file"
 
   metube:
     env_file:  
@@ -613,7 +599,7 @@ services:
       - "traefik.http.routers.metube.entrypoints=websecure"
       - "traefik.http.routers.metube.tls.certresolver=httpsResolve"
       - "traefik.http.services.metube.loadbalancer.server.port=8081"
-      - "traefik.http.routers.metube.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.metube.middlewares=middlewares-authentik@file,bouncer@file"
     networks:
       - traefik_backbone
       - mediaserver
@@ -660,8 +646,6 @@ services:
         window: 120s
 
   slskd:
-#    env_file:  
- #     - secrets.enc.env  
     environment:
       - SLSKD_REMOTE_CONFIGURATION
       - SLSKD_NO_AUTH
@@ -698,14 +682,12 @@ services:
       - "traefik.http.routers.slskd.entrypoints=websecure"
       - "traefik.http.routers.slskd.tls.certresolver=httpsResolve"
       - "traefik.http.services.slskd.loadbalancer.server.port=5030"
-      - "traefik.http.routers.slskd.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.slskd.middlewares=middlewares-authentik@file,bouncer@file"
 
       - "traefik.tcp.routers.slsk-p2p.entrypoints=p2p"
       - "traefik.tcp.routers.slsk-p2p.rule=HostSNI(`*`)"
       - "traefik.tcp.services.slsk-p2p.loadbalancer.server.port=50300"
 
-
-      
   bliss_service:
     image: romancin/bliss:latest
     env_file:  
@@ -729,7 +711,7 @@ services:
       - "traefik.http.routers.bliss.entrypoints=websecure"
       - "traefik.http.routers.bliss.tls.certresolver=httpsResolve"
       - "traefik.http.services.bliss.loadbalancer.server.port=3220"
-      - "traefik.http.routers.bliss.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.bliss.middlewares=middlewares-authentik@file,bouncer@file"
 
   ersatztv:
     image: ghcr.io/ersatztv/ersatztv
@@ -753,7 +735,6 @@ services:
       - $persist_data_home/ErsatzTV:/config
      # Required: media directories - Where your media files are stored. Use :ro at the end of the path to limit container to Read-Only
       - $media_mount:/media:ro
-# tmpfs is optional but recommended: Limits writing to SSD/disk by using RAM for transcode files. Comment out to disable
     tmpfs:
       - /transcode
     restart: unless-stopped
