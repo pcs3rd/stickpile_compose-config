@@ -188,7 +188,7 @@ services:
       - "traefik.http.routers.jf.entrypoints=websecure"
       - "traefik.http.routers.jf.tls.certresolver=httpsResolve"
       - "traefik.http.services.jf.loadbalancer.server.port=8096"
-      - "traefik.http.routers.jf.middlewares=bouncer@file"
+      #- "traefik.http.routers.jf.middlewares=bouncer@file"
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
 
