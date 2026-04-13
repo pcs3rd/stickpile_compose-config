@@ -1,29 +1,4 @@
 services:
-  tinshop:
-    image: ghcr.io/ajmandourah/tinshop-ng:v0.5.3
-    restart: always
-    environment:
-      - PUID
-      - PGID
-      - TINSHOP_REVERSEPROXY=True
-      - TINSHOP_SOURCES_DIRECTORIES=/games
-      - TINSHOP_WELCOMEMESSAGE=Welcome to my Tinshop!
-    volumes:
-      - $media_mount/2111/games:/games
-      - $persist_data_home/tinshop:/data  #this is where config.yaml and titles json file will live. added keys here should also be modifed in config.yaml file as /data/prod.keys 
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.tin.rule=Host(`shop.stickpile.net`)"
-      - "traefik.http.routers.tin.entrypoints=websecure"
-      - "traefik.http.routers.tin.tls.certresolver=httpsResolve"
-      - "traefik.http.services.tin.loadbalancer.server.port=3000"
-      - "traefik.http.routers.tin.middlewares=middlewares-authentik@file,bouncer@file"
-    networks:
-      - traefik_backbone
-      - mediaserver
-    # env_file:  
-    #   - secrets.enc.env  
-
   ariang:
     image: hurlenko/aria2-ariang:1.3.13
     volumes:
