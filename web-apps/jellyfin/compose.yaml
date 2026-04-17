@@ -1,4 +1,36 @@
 services:
+  cleanuparr:
+    image: ghcr.io/cleanuparr/cleanuparr:latest
+    restart: unless-stopped
+    ports:
+      - "11011:11011"
+    volumes:
+      # - /path/to/config:/config
+      # # Mount your downloads directory if needed
+      # - /path/to/downloads:/downloads
+      - $downloads_home:/downloads
+      - $persist_data_home/cleanuparr:/config
+    environment:
+      - PORT=11011
+      - BASE_PATH=
+      - PUID
+      - PGID
+      - UMASK
+      - TZ
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
+      interval: 30s        # Check every 30 seconds
+      timeout: 10s         # Allow up to 10 seconds for response
+      start_period: 30s    # Wait 30 seconds before first check
+      retries: 3           # Mark unhealthy after 3 consecutive failures
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ariang.rule=Host(`dl.stickpile.net`)"
+      - "traefik.http.routers.ariang.entrypoints=websecure"
+      - "traefik.http.routers.ariang.tls.certresolver=httpsResolve"
+      - "traefik.http.services.ariang.loadbalancer.server.port=8080"
+      - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file,bouncer@file"
   ariang:
     image: hurlenko/aria2-ariang:1.3.13
     volumes:
