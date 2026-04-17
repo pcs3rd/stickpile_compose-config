@@ -26,11 +26,11 @@ services:
       retries: 3           # Mark unhealthy after 3 consecutive failures
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ariang.rule=Host(`dl.stickpile.net`)"
-      - "traefik.http.routers.ariang.entrypoints=websecure"
-      - "traefik.http.routers.ariang.tls.certresolver=httpsResolve"
-      - "traefik.http.services.ariang.loadbalancer.server.port=8080"
-      - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file,bouncer@file"
+      - "traefik.http.routers.cl.rule=Host(`cleanup.stickpile.net`)"
+      - "traefik.http.routers.cl.entrypoints=websecure"
+      - "traefik.http.routers.cl.tls.certresolver=httpsResolve"
+      - "traefik.http.services.cl.loadbalancer.server.port=11011"
+      - "traefik.http.routers.cl.middlewares=middlewares-authentik@file,bouncer@file"
   ariang:
     image: hurlenko/aria2-ariang:1.3.13
     volumes:
