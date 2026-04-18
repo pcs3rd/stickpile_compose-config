@@ -2,6 +2,9 @@ services:
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:latest
     restart: unless-stopped
+    networks:
+      - traefik_backbone
+      - mediaserver
     ports:
       - "11011:11011"
     volumes:
