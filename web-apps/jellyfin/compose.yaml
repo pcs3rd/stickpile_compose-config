@@ -1,23 +1,32 @@
 services:
-  funkwhale:
-    environment:
-        - FUNKWHALE_HOSTNAME=funkwhale.stickpile.net
-        - NESTED_PROXY=0
-    volumes:
-      - $persist_data_home/funkwhale:/data
-      - $media_mount:/music:ro
+
+
+  navidrome:
+    image: deluan/navidrome:latest
+    user: 1000:1000 # should be owner of volumes
     ports:
-        - 3030:80
-    image: thetarkus/funkwhale
+      - "4533:4533"
+    restart: unless-stopped
+    environment:
+      # Optional: put your config options customization here. Examples:
+      # ND_LOGLEVEL: debug
+      - ND_SCANSCHEDULE
+      - ND_LOGLEVEL
+      - ND_SESSIONTIMEOUT
+      - ND_BASEURL
+      - ND_REVERSEPROXYUSERHEADER
+      - ND_EXTAUTH_TRUSTEDSOURCES
+      - ND_ENABLEUSEREDITING
+    volumes:
+      - $persist_data_home/navidrome:/data
+      - $media_mount:/music:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.funk.rule=Host(`funkwhale.stickpile.net`)"
-      - "traefik.http.routers.funk.entrypoints=websecure"
-      - "traefik.http.routers.funk.tls.certresolver=httpsResolve"
-      - "traefik.http.services.funk.loadbalancer.server.port=80"
-      - "traefik.http.routers.funk.middlewares=bouncer@file"
-
-
+      - "traefik.http.routers.navidrome.rule=Host(`navidrome.stickpile.net`)"
+      - "traefik.http.routers.navidrome.entrypoints=websecure"
+      - "traefik.http.routers.navidrome.tls.certresolver=httpsResolve"
+      - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
+      - "traefik.http.routers.navidrome.middlewares=bouncer@file"
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:latest
     restart: unless-stopped
