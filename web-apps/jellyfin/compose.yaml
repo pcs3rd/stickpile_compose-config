@@ -1,4 +1,23 @@
 services:
+  funkwhale:
+    environment:
+        - FUNKWHALE_HOSTNAME=funkwhale.stickpile.net
+        - NESTED_PROXY=0
+    volumes:
+      - $persist_data_home/funkwhale:/data
+      - $media_mount:/music:ro
+    ports:
+        - 3030:80
+    image: thetarkus/funkwhale
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.funk.rule=Host(`funkwhale.stickpile.net`)"
+      - "traefik.http.routers.funk.entrypoints=websecure"
+      - "traefik.http.routers.funk.tls.certresolver=httpsResolve"
+      - "traefik.http.services.funk.loadbalancer.server.port=80"
+      - "traefik.http.routers.funk.middlewares=bouncer@file"
+
+
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:latest
     restart: unless-stopped
@@ -196,48 +215,6 @@ services:
       - "traefik.http.routers.komga.tls.certresolver=httpsResolve"
       - "traefik.http.services.komga.loadbalancer.server.port=25600"
       - "traefik.http.routers.komga.middlewares=bouncer@file"
-
-  navidrome:
-    # env_file:  
-    #   - secrets.enc.env  
-    image: deluan/navidrome:0.60.3
-    ports: 
-      - 4533:4533
-    volumes:
-      - $persist_data_home/navidrome:/data
-      - $media_mount:/music
-    environment:
-      # Optional: put your config options customization here. Examples:
-      - ND_SCANSCHEDULE
-      - ND_LOGLEVEL
-      - ND_SESSIONTIMEOUT
-      - ND_BASEURL
-      - ND_REVERSEPROXYUSERHEADER
-      - ND_EXTAUTH_TRUSTEDSOURCES
-      - ND_ENABLEUSEREDITING
-    networks:
-      - mediaserver
-      - traefik_backbone
-    
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.navi.rule=Host(`music.stickpile.net`)"
-      - "traefik.http.routers.navi.entrypoints=websecure"
-      - "traefik.http.routers.navi.tls.certresolver=httpsResolve"
-      - "traefik.http.services.navi.loadbalancer.server.port=4533"
-      - "traefik.http.routers.navi.middlewares=middlewares-authentik@file,bouncer@file"
-    # # should be owner of volumes
-    
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        ##max_attempts:  3
-        window: 600s # jellyfin is a chonker
-
   prowlarr:
     # env_file:  
     #   - secrets.enc.env  
