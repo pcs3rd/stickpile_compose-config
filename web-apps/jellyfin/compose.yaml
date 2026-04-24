@@ -1,4 +1,23 @@
 services:
+  funkwhale:
+    environment:
+        - FUNKWHALE_HOSTNAME=funkwhale.stickpile.net
+        - NESTED_PROXY=0
+    volumes:
+      - $persist_data_home/funkwhale:/data
+      - $media_mount:/music:ro
+    ports:
+        - 3030:80
+    image: thetarkus/funkwhale
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.funk.rule=Host(`funkwhale.stickpile.net`)"
+      - "traefik.http.routers.funk.entrypoints=websecure"
+      - "traefik.http.routers.funk.tls.certresolver=httpsResolve"
+      - "traefik.http.services.funk.loadbalancer.server.port=80"
+      - "traefik.http.routers.funk.middlewares=bouncer@file"
+
+
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:latest
     restart: unless-stopped
