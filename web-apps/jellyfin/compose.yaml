@@ -24,7 +24,7 @@ services:
       - $media_mount:/music:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.navidrome.rule=Host(`navidrome.stickpile.net`)"
+      - "traefik.http.routers.navidrome.rule=Host(`music.stickpile.net`)"
       - "traefik.http.routers.navidrome.entrypoints=websecure"
       - "traefik.http.routers.navidrome.tls.certresolver=httpsResolve"
       - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
