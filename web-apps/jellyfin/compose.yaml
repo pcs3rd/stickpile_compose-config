@@ -28,7 +28,7 @@ services:
       - "traefik.http.routers.navidrome.entrypoints=websecure"
       - "traefik.http.routers.navidrome.tls.certresolver=httpsResolve"
       - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
-      - "traefik.http.routers.navidrome.middlewares=bouncer@file,middlewares-authentik@file"
+      - "traefik.http.routers.navidrome.middlewares=middlewares-authentik@file"
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:latest
     restart: unless-stopped
