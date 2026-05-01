@@ -2,7 +2,7 @@ services:
   hugo:
     image: hugomods/hugo:exts-non-root
     command: server --bind 0.0.0.0
-    user: "1000:1000"
+    user: 1000:1000
     volumes:
       - hugo_data:/src
     working_dir: /src
@@ -10,6 +10,7 @@ services:
       - webhook
     environment:
       - HUGO_ENVIRONMENT
+      - HUGO_THEME
     networks:
       - traefik_backbone
     labels:
