@@ -12,6 +12,9 @@ else
   echo "Repository already present, skipping clone."
 fi
 
+# Ensure pull.sh is executable (volume mounts don't preserve build-time chmod)
+chmod +x /hooks/pull.sh
+
 # Generate hooks.json with the secret injected at runtime
 cat > /tmp/hooks.json << EOF
 [
