@@ -10,6 +10,7 @@ services:
       - webhook
     environment:
       - HUGO_ENVIRONMENT
+      - HUGO_THEME
     networks:
       - traefik_backbone
     labels:
