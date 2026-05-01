@@ -4,8 +4,6 @@ services:
     command: server --bind 0.0.0.0
     volumes:
       - hugo_data:/src
-    ports:
-      - "1313:1313"
     working_dir: /src
     depends_on:
       - webhook
@@ -27,8 +25,6 @@ services:
     volumes:
       - hugo_data:/src
       - ./webhook:/hooks
-    ports:
-      - "9000:9000"
     working_dir: /src
     environment:
       - WEBHOOK_SECRET
