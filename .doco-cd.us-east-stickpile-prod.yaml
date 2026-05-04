@@ -6,84 +6,84 @@ compose_files:
   - compose.yaml
 env_files:
   - remote:secrets.enc.env
----
-name: blocky-tailscale
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: network-services/blocky-tailscale
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
-name: monitoring
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: core_services/monitoring
-compose_files:
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
-name: meshtastic
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: web-apps/meshtastic
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
-name: authentik
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: core_services/authentik
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
-name: media_server
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: web-apps/jellyfin
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
-name: seafile
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: web-apps/seafile
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
-name: affine
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: web-apps/affine
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
 # ---
-# name: kiwix
+# name: blocky-tailscale
 # repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 # reference: prod
-# working_dir: web-apps/kiwix
+# working_dir: network-services/blocky-tailscale
 # compose_files: 
 #   - compose.yaml
 # env_files:
 #   - remote:secrets.enc.env
----
-name: hugo
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: web-apps/hugo
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
+# ---
+# name: monitoring
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: core_services/monitoring
+# compose_files:
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
+# ---
+# name: meshtastic
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: web-apps/meshtastic
+# compose_files: 
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
+# ---
+# name: authentik
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: core_services/authentik
+# compose_files: 
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
+# ---
+# name: media_server
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: web-apps/jellyfin
+# compose_files: 
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
+# ---
+# name: seafile
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: web-apps/seafile
+# compose_files: 
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
+# ---
+# name: affine
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: web-apps/affine
+# compose_files: 
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
+# # ---
+# # name: kiwix
+# # repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# # reference: prod
+# # working_dir: web-apps/kiwix
+# # compose_files: 
+# #   - compose.yaml
+# # env_files:
+# #   - remote:secrets.enc.env
+# ---
+# name: hugo
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: web-apps/hugo
+# compose_files: 
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
