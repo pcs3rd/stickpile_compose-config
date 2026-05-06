@@ -1,19 +1,9 @@
-
-networks:
-#  internal:
-#    name: web-prod-kiwix_Internal
-#    driver: bridge
-#    attachable: true
-  traefik_backbone: # For external containers.
-    name: traefik_backbone
-    external: true
-
-
 services:
+
   kiwix-server:
     image: ghcr.io/kiwix/kiwix-serve:latest
-    volumes:
-      - $persist_data_home/kiwix-server/data:/data
+    env_file:
+      - secrets.enc.env
     environment:
       - TZ
       - UMASK_SET
@@ -28,11 +18,11 @@ services:
       TheHydroponicsPlanet_2025-02.zim
       wikipedia_en_all_maxi_2024-01.zim
       www.cdc.gov_en_all_novid_2025-01.zim
-    env_file:  
-      - secrets.enc.env  
+    volumes:
+      - $persist_data_home/kiwix-server/data:/data
     networks:
       - traefik_backbone
-    deploy: 
+    deploy:
       mode: replicated
       replicas: 2
       endpoint_mode: vip
@@ -48,3 +38,12 @@ services:
       - "traefik.http.routers.kiwix.tls.certresolver=httpsResolve"
       - "traefik.http.services.kiwix.loadbalancer.server.port=8080"
       - "traefik.http.routers.kiwix.middlewares=middlewares-authentik@file,bouncer@file"
+
+networks:
+  #  internal:
+  #    name: web-prod-kiwix_Internal
+  #    driver: bridge
+  #    attachable: true
+  traefik_backbone: # For external containers.
+    name: traefik_backbone
+    external: true
