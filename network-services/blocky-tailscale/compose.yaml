@@ -1,47 +1,13 @@
 services:
-  tailscale:
-    networks:
-      - internal
-    image: tailscale/tailscale:latest
-    environment:
-      - TS_AUTHKEY
-      - TS_EXTRA_ARGS
-      - TS_STATE_DIR
-      - TS_HOSTNAME
-      - TS_USERSPACE
-    volumes:
-      - $persist_data_home/tailscale/state:/var/lib/tailscale
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - net_admin
-    restart: unless-stopped   
-  redis: 
-    image: redis:6.2-alpine
-    restart: unless-stopped
-    command: redis-server --save 20 1 --loglevel warning
-    volumes: 
-      - $persist_data_home/redis-state:/data
-    networks:
-      - internal
- 
+
   blocky:
-    network_mode: "service:tailscale"
-    # networks:
-    #   - internal
     image: spx01/blocky
+    network_mode: "service:tailscale"
     restart: unless-stopped
-    # Optional the instance hostname for logging purpose
-    #ports:
-      #- "53:53/tcp"
-      #- "53:53/udp"
-      #- "4000:4000/tcp"
     environment:
       - TZ
     volumes:
-      # Optional to synchronize the log timestamp with host
       - /etc/localtime:/etc/localtime:ro
-      # config file
       - ./config/config.yml:/app/config.yml:ro
       - ./config/lists:/userlists
       - qlogs:/querylog
@@ -50,22 +16,20 @@ services:
       - redis
 
   blocky-ui:
-    image: ghcr.io/gabeduartem/blocky-ui:latest # or for example `blocky-ui:1.5.0` if you prefer pinned versions
+    image: ghcr.io/gabeduartem/blocky-ui:latest
     restart: unless-stopped
-    depends_on:
-      - blocky
-    #ports:
-      #- 3000:3000
-    volumes:
-      - qlogs:/querylog
     environment:
       - BLOCKY_API_URL
       - QUERY_LOG_TYPE
       - QUERY_LOG_TARGET
       - INSTANCE_NAME
+    volumes:
+      - qlogs:/querylog
     networks:
       - internal
       - traefik_backbone
+    depends_on:
+      - blocky
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.blocky.rule=Host(`blocky.stickpile.net`)"
@@ -73,6 +37,33 @@ services:
       - "traefik.http.routers.blocky.tls.certresolver=httpsResolve"
       - "traefik.http.services.blocky.loadbalancer.server.port=3000"
       - "traefik.http.routers.blocky.middlewares=middlewares-authentik@file,bouncer@file"
+
+  redis:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+
+  tailscale:
+    image: tailscale/tailscale:latest
+    restart: unless-stopped
+    environment:
+      - TS_AUTHKEY
+      - TS_EXTRA_ARGS
+      - TS_STATE_DIR
+      - TS_HOSTNAME
+      - TS_USERSPACE
+    volumes:
+      - tailscale_data:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    networks:
+      - internal
 
 networks:
   internal:
@@ -85,3 +76,22 @@ networks:
 
 volumes:
   qlogs:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/blocky/querylog"
+
+  redis_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/redis-state"
+
+  tailscale_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/tailscale/state"

@@ -19,7 +19,7 @@ services:
       wikipedia_en_all_maxi_2024-01.zim
       www.cdc.gov_en_all_novid_2025-01.zim
     volumes:
-      - $persist_data_home/kiwix-server/data:/data
+      - kiwix_data:/data
     networks:
       - traefik_backbone
     deploy:
@@ -47,3 +47,11 @@ networks:
   traefik_backbone: # For external containers.
     name: traefik_backbone
     external: true
+
+volumes:
+  kiwix_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/kiwix-server/data"

@@ -10,9 +10,9 @@ services:
       - RPC_SECRET
       - ARIA2RPCPORT
     volumes:
-      - $downloads_home:/downloads
-      - $persist_data_home/aria2:/aria2/conf
-      - $media_mount/2111/games:/games
+      - aria2_data:/aria2/conf
+      - downloads:/downloads
+      - games_data:/games
     networks:
       - traefik_backbone
       - mediaserver
@@ -32,8 +32,8 @@ services:
       - PGID
       - TZ
     volumes:
-      - $persist_data_home/bazaar:/config
-      - $media_mount:/storage
+      - bazarr_data:/config
+      - media:/storage
     networks:
       - traefik_backbone
       - mediaserver
@@ -54,8 +54,8 @@ services:
       - PGID
       - TZ
     volumes:
-      - $persist_data_home/bliss:/config
-      - $media_mount:/storage
+      - bliss_data:/config
+      - media:/storage
     networks:
       - traefik_backbone
       - mediaserver
@@ -83,9 +83,9 @@ services:
     devices:
       - /dev/dri:/dev/dri
     volumes:
-      - $persist_data_home/calibre/config:/config
-      - $downloads_home:/downloads
-      - $media_mount:/data
+      - calibre_data:/config
+      - downloads:/downloads
+      - media:/data
     ports:
       - 8080:8080
       - 8081:8081
@@ -111,9 +111,9 @@ services:
       - PGID
       - TZ
     volumes:
-      - $persist_data_home/chaptarr:/config
-      - $media_mount:/storage
-      - $downloads_home:/downloads
+      - chaptarr_data:/config
+      - media:/storage
+      - downloads:/downloads
     networks:
       - traefik_backbone
       - mediaserver
@@ -135,8 +135,8 @@ services:
       - UMASK
       - TZ
     volumes:
-      - $downloads_home:/downloads
-      - $persist_data_home/cleanuparr:/config
+      - cleanuparr_data:/config
+      - downloads:/downloads
     ports:
       - "11011:11011"
     networks:
@@ -169,8 +169,8 @@ services:
     ports:
       - "8409:8409"
     volumes:
-      - $persist_data_home/ErsatzTV:/config
-      - $media_mount:/media:ro
+      - ersatztv_data:/config
+      - media:/media:ro
     tmpfs:
       - /transcode
     restart: unless-stopped
@@ -190,8 +190,9 @@ services:
       - TZ
       - JELLYFIN_PublishedServerUrl
     volumes:
-      - $persist_data_home/jellyfin:/config
-      - $media_mount:/media
+      - jellyfin_data:/config
+      - jellyfin_db:/config/data  # local volume — SQLite is unreliable over NFS
+      - media:/media
       - ./web-config.json:/usr/share/jellyfin/web/config.json:rw
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
@@ -211,7 +212,7 @@ services:
     environment:
       - LOG_LEVEL
     volumes:
-      - $persist_data_home/jellyseerr:/app/config
+      - jellyseerr_data:/app/config
     networks:
       - traefik_backbone
       - mediaserver
@@ -229,9 +230,9 @@ services:
     environment:
       - TZ
     volumes:
-      - $persist_data_home/komga/config:/config
-      - $persist_data_home/komga/data:/data
-      - $media_mount:/media
+      - komga_config:/config
+      - komga_data:/data
+      - media:/media
     networks:
       - traefik_backbone
       - mediaserver
@@ -252,11 +253,11 @@ services:
       - PGID
       - TZ
     volumes:
-      - $persist_data_home/lidarr:/config
-      - $persist_data_home/lidarr-overlay/custom-services.d:/custom-services.d
-      - $persist_data_home/lidarr-overlay/custom-cont-init.d:/custom-cont-init.d
-      - $media_mount:/storage
-      - $downloads_home:/downloads
+      - lidarr_data:/config
+      - lidarr_custom_services:/custom-services.d
+      - lidarr_custom_init:/custom-cont-init.d
+      - media:/storage
+      - downloads:/downloads
     restart: unless-stopped
     networks:
       - traefik_backbone
@@ -287,7 +288,7 @@ services:
       - PGID
       - TZ
     volumes:
-      - $downloads_home/yt-dlp:/downloads
+      - metube_downloads:/downloads
     restart: unless-stopped
     networks:
       - traefik_backbone
@@ -323,8 +324,8 @@ services:
       - ND_EXTAUTH_TRUSTEDSOURCES
       - ND_ENABLEUSEREDITING
     volumes:
-      - $persist_data_home/navidrome:/data
-      - $media_mount:/music:ro
+      - navidrome_data:/data
+      - media:/music:ro
     ports:
       - "4533:4533"
     restart: unless-stopped
@@ -345,7 +346,7 @@ services:
       - PGID
       - TZ
     volumes:
-      - $persist_data_home/prowlarr:/config
+      - prowlarr_data:/config
     networks:
       - traefik_backbone
       - mediaserver
@@ -373,9 +374,9 @@ services:
       - PGID
       - TZ
     volumes:
-      - $persist_data_home/radarr:/config
-      - $media_mount:/storage
-      - $downloads_home:/downloads
+      - radarr_data:/config
+      - media:/storage
+      - downloads:/downloads
     networks:
       - traefik_backbone
       - mediaserver
@@ -402,8 +403,8 @@ services:
     env_file:
       - secrets.enc.env
     volumes:
-      - $downloads_home:/downloads
-      - $persist_data_home/rdt-client/:/data/db
+      - downloads:/downloads
+      - rdtclient_data:/data/db
     networks:
       - traefik_backbone
       - mediaserver
@@ -438,8 +439,8 @@ services:
       - TZ
       - SCRIPT_INTERVAL=30 # Script interval in seconds
     volumes:
-      - $downloads_home:/downloads
-      - $persist_data_home/rsoul:/data
+      - downloads:/downloads
+      - rsoul_data:/data
     networks:
       - mediaserver
     restart: unless-stopped
@@ -457,9 +458,9 @@ services:
       - SLSKD_SHARED_DIR
       - SLSKD_DOWNLOADS_DIR
     volumes:
-      - $persist_data_home/slskd:/app:rw
-      - $media_mount:/media
-      - $downloads_home:/downloads
+      - slskd_data:/app:rw
+      - media:/media
+      - downloads:/downloads
     ports:
       - 5030:5030/tcp
       - 5031:5031/tcp
@@ -493,9 +494,9 @@ services:
       - PGID
       - TZ
     volumes:
-      - $persist_data_home/sonarr:/config
-      - $media_mount:/storage
-      - $downloads_home:/downloads
+      - sonarr_data:/config
+      - media:/storage
+      - downloads:/downloads
     networks:
       - traefik_backbone
       - mediaserver
@@ -526,8 +527,8 @@ services:
       - TZ
       - SCRIPT_INTERVAL=300 # Script interval in seconds
     volumes:
-      - $downloads_home:/downloads
-      - $persist_data_home/soularr:/data
+      - downloads:/downloads
+      - soularr_data:/data
     restart: unless-stopped
     networks:
       - mediaserver
@@ -561,10 +562,9 @@ services:
       - maxLogSizeMB
       - cronPluginUpdate
     volumes:
-      - $persist_data_home/tdarr/server:/app/server
-      - $persist_data_home/tdarr/configs:/app/configs
-      - $persist_data_home/tdarr/logs:/app/logs
-      - $media_mount:/media
+      # tdarr_data covers /app/server, /app/configs, and /app/logs via NFS subfolders
+      - tdarr_data:/app
+      - media:/media
       - type: tmpfs
         target: /transcode_cache
         tmpfs:
@@ -591,7 +591,7 @@ services:
       - PGID
       - TZ
     volumes:
-      - $persist_data_home/tvheadend/data:/config
+      - tvheadend_data:/config
     network_mode: host
     devices:
       - /dev/dri:/dev/dri #optional
@@ -622,10 +622,208 @@ networks:
     external: true
 
 volumes:
+  # ── Shared across services ─────────────────────────────────────────────────
+
+  downloads:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/downloads"
+
+  games_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/media/2111/games"
+
+  media:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/media"
+
+  metube_downloads:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/downloads/yt-dlp"
+
+  # ── Per-service app data ────────────────────────────────────────────────────
+
   aria2_data:
     driver: local
     driver_opts:
       type: "nfs"
-      o: "addr=192.168.1.100,rw,nfsvers=4"
-      # The device path includes the subfolder
-      device: ":/mnt/<nfs_share>/aria2_data"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/aria2"
+
+  bazarr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/bazaar"
+
+  bliss_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/bliss"
+
+  calibre_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/calibre/config"
+
+  chaptarr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/chaptarr"
+
+  cleanuparr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/cleanuparr"
+
+  ersatztv_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/ErsatzTV"
+
+  jellyfin_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/jellyfin"
+
+  jellyfin_db:
+    # Local volume for Jellyfin's SQLite databases (/config/data).
+    # Mounted on top of jellyfin_data to avoid NFS file-locking issues.
+    driver: local
+
+  jellyseerr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/jellyseerr"
+
+  komga_config:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/komga/config"
+
+  komga_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/komga/data"
+
+  lidarr_custom_init:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/lidarr-overlay/custom-cont-init.d"
+
+  lidarr_custom_services:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/lidarr-overlay/custom-services.d"
+
+  lidarr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/lidarr"
+
+  navidrome_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/navidrome"
+
+  prowlarr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/prowlarr"
+
+  radarr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/radarr"
+
+  rdtclient_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/rdt-client"
+
+  rsoul_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/rsoul"
+
+  slskd_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/slskd"
+
+  sonarr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/sonarr"
+
+  soularr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/soularr"
+
+  tdarr_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      # Covers /app/server, /app/configs, and /app/logs as NFS subfolders
+      device: ":${nfs_share}/appdata/tdarr"
+
+  tvheadend_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/tvheadend/data"

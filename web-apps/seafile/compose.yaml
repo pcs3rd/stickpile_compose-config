@@ -10,7 +10,7 @@ services:
       - MARIADB_LOG_CONSOLE=true
       - MARIADB_AUTO_UPGRADE=1
     volumes:
-      - ${persist_data_home}/db:/var/lib/mysql
+      - seafile_db:/var/lib/mysql
     networks:
       - internal
     deploy:
@@ -51,7 +51,7 @@ services:
       - SEAFILE_SERVER_HOSTNAME
       - SEAFILE_SERVER_LETSENCRYPT
     volumes:
-      - ${persist_data_home}/seafile-data:/shared
+      - seafile_data:/shared
     ports:
       - "8000:8000"
       - "8082:8082"
@@ -103,3 +103,18 @@ networks:
   backbone: # For external containers.
     name: traefik_backbone
     external: true
+
+volumes:
+  seafile_db:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/db"
+
+  seafile_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/seafile-data"

@@ -1,22 +1,61 @@
-
-networks:
-  monitoring:
-    name: core-prod-monitoring_internal
-    driver: bridge
-    attachable: true
-
-  traefik_backbone:
-    name: traefik_backbone
-    external: true
-
 services:
+
+  alloy:
+    image: grafana/alloy:v1.15.0
+    restart: unless-stopped
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    volumes:
+      - ./config/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy
+    ports:
+      - 12345:12345
+    networks:
+      - monitoring
+    depends_on:
+      loki:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana-oss:12.4.2
+    restart: unless-stopped
+    environment:
+      - GF_SERVER_ROOT_URL
+      - GF_AUTH_GENERIC_OAUTH_ENABLED
+      - GF_AUTH_GENERIC_OAUTH_NAME
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+      - GF_AUTH_GENERIC_OAUTH_SCOPES
+      - GF_AUTH_GENERIC_OAUTH_AUTH_URL
+      - GF_AUTH_GENERIC_OAUTH_TOKEN_URL
+      - GF_AUTH_GENERIC_OAUTH_API_URL
+      - GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
+      - GF_AUTH_SIGNOUT_REDIRECT_URL
+      - GF_AUTH_OAUTH_AUTO_LOGIN
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/datasources:/etc/grafana/provisioning:ro
+    networks:
+      - monitoring
+      - traefik_backbone
+    depends_on:
+      loki:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.stickpile.net`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.grafana.middlewares=bouncer@file"
+
   loki:
     image: grafana/loki:3.6.10
     restart: unless-stopped
     command: -config.file=/etc/loki/config.yaml
     volumes:
       - ./config/loki.yaml:/etc/loki/config.yaml:ro
-      - $persist_data_home/loki:/loki
+      - loki_data:/loki
     networks:
       - monitoring
     healthcheck:
@@ -40,54 +79,33 @@ services:
   #     loki:
   #       condition: service_healthy
 
-  alloy:
-    image: grafana/alloy:v1.15.0
-    restart: unless-stopped
-    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
-    ports:
-      - 12345:12345
-    volumes:
-      - ./config/config.alloy:/etc/alloy/config.alloy:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - $persist_data_home/alloy:/var/lib/alloy
-    networks:
-      - monitoring
-    depends_on:
-      loki:
-        condition: service_healthy
- 
+networks:
+  monitoring:
+    name: core-prod-monitoring_internal
+    driver: bridge
+    attachable: true
+  traefik_backbone:
+    name: traefik_backbone
+    external: true
 
-  grafana:
-    image: grafana/grafana-oss:12.4.2
-    restart: unless-stopped
-    environment:
-      - GF_SERVER_ROOT_URL
-      - GF_AUTH_GENERIC_OAUTH_ENABLED
-      - GF_AUTH_GENERIC_OAUTH_NAME
-      - GF_AUTH_GENERIC_OAUTH_CLIENT_ID
-      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
-      - GF_AUTH_GENERIC_OAUTH_SCOPES
-      - GF_AUTH_GENERIC_OAUTH_AUTH_URL
-      - GF_AUTH_GENERIC_OAUTH_TOKEN_URL
-      - GF_AUTH_GENERIC_OAUTH_API_URL
-      - GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
-      - GF_AUTH_SIGNOUT_REDIRECT_URL
-      - GF_AUTH_OAUTH_AUTO_LOGIN
-    volumes:
-      - $persist_data_home/grafana:/var/lib/grafana
-      - ./config/datasources:/etc/grafana/provisioning:ro
-    networks:
-      - monitoring
-      - traefik_backbone
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.stickpile.net`)"
-      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-      - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.tls.certresolver=httpsResolve"
-      - "traefik.http.routers.grafana.middlewares=bouncer@file"
+volumes:
+  alloy_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/alloy"
 
-    depends_on:
-      loki:
-        condition: service_healthy
+  grafana_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/grafana"
 
+  loki_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/loki"
