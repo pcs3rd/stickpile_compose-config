@@ -21,15 +21,15 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 ## Core Services
 
 ### `traefik` · `core_services/traefik`
-> Reverse proxy, TLS termination, CrowdSec security, and OpenTelemetry tracing.
+> Reverse proxy, TLS termination, CrowdSec bouncer, and GeoIP filtering. Uses the Swarm provider (`--providers.swarm`) for service discovery. Must run on a manager node.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
 <!-- STACK-TABLE:core_services/traefik -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
 | `traefik` | `traefik` | `v3.5.3` | `traefik_backbone` | ❌ |
-| `crowdsec` | `crowdsecurity/crowdsec` | `v1.7.4-debian` | `traefik_backbone` | ❌ |
-| `otel-collector` | `otel/opentelemetry-collector-contrib` | `latest` | *(none defined)* | ❌ |
+| `crowdsec` | `crowdsecurity/crowdsec` | `v1.7.6-debian` | `traefik_backbone` | ❌ |
+| `geoipfilter` | `mpdcampbell/traefik-geoip-filter` | `latest` | *(none — middleware only)* | ❌ |
 <!-- /STACK-TABLE:core_services/traefik -->
 
 ---
@@ -49,15 +49,15 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 ---
 
 ### `monitoring` · `core_services/monitoring`
-> Log aggregation and alerting. Promtail auto-discovers all Docker containers via the socket — no per-service changes needed. Grafana is SSO-integrated with Authentik.
+> Log aggregation and dashboards. Alloy collects Docker logs via the socket and ships to Loki. Grafana is SSO-integrated with Authentik. Promtail is present but commented out.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
 <!-- STACK-TABLE:core_services/monitoring -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
-| `loki` | `grafana/loki` | `latest` | `monitoring` | ❌ |
-| `promtail` | `grafana/promtail` | `latest` | `monitoring` | ✅ (`loki`) |
-| `grafana` | `grafana/grafana` | `latest` | `monitoring`, `traefik_backbone` | ✅ (`loki`) |
+| `loki` | `grafana/loki` | `3.6.10` | `monitoring` | ❌ |
+| `alloy` | `grafana/alloy` | `v1.15.0` | `monitoring` | ✅ (`loki`) |
+| `grafana` | `grafana/grafana-oss` | `12.4.2` | `monitoring`, `traefik_backbone` | ✅ (`loki`) |
 <!-- /STACK-TABLE:core_services/monitoring -->
 
 ---
@@ -110,39 +110,35 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 ## Web Apps
 
 ### `media_server` · `web-apps/jellyfin`
-> Full media server stack including Jellyfin, Immich, *arr suite, download clients, and media management tools.
+> Full media server stack: Jellyfin, *arr suite, download clients, and media management tools. GPU-dependent services (jellyfin, tdarr, calibre, ersatztv, tvheadend) require `node.labels.intel.gpu=true`. Jellyfin also requires `node.labels.role=media` for its local SQLite volume. tvheadend uses `network_mode: host` and tdarr uses `devices:` — both must run as standalone Compose, not `stack deploy`.
 > In DocoCD (`us-east-stickpile-prod`): ✅
 
 <!-- STACK-TABLE:web-apps/jellyfin -->
 | Container | Image | Version | Networks | depends_on |
 |---|---|---|---|---|
-| `tinshop` | `ghcr.io/ajmandourah/tinshop-ng` | `v0.5.3` | `traefik_backbone`, `mediaserver` | ❌ |
 | `ariang` | `hurlenko/aria2-ariang` | `1.3.13` | `traefik_backbone`, `mediaserver` | ❌ |
 | `bazarr` | `lscr.io/linuxserver/bazarr` | `1.5.6` | `traefik_backbone`, `mediaserver` | ❌ |
-| `flaresolverr` | `ghcr.io/flaresolverr/flaresolverr` | `v3.4.6` | `mediaserver` | ❌ |
-| `immich-database` | `docker.io/tensorchord/pgvecto-rs` | `pg14-v0.2.0` | `mediaserver` | ❌ |
-| `immich-machine-learning` | `ghcr.io/immich-app/immich-machine-learning` | `$IMMICH_VERSION` | `mediaserver` | ❌ |
-| `immich-redis` | `docker.io/redis` | `6.2-alpine` | `mediaserver` | ❌ |
-| `immich-server` | `ghcr.io/immich-app/immich-server` | `$IMMICH_VERSION` | `traefik_backbone`, `mediaserver` | ✅ (`immich-database`, `immich-redis`) |
-| `jellyfin` | `lscr.io/linuxserver/jellyfin` | `10.11.6` | `mediaserver`, `traefik_backbone` | ❌ |
-| `jellyseerr` | `seerr/seerr` | `v3.1.0` | `traefik_backbone`, `mediaserver` | ❌ |
+| `bliss_service` | `romancin/bliss` | `latest` | `traefik_backbone`, `mediaserver` | ❌ |
 | `calibre` | `lscr.io/linuxserver/calibre` | `latest` | `traefik_backbone` | ❌ |
+| `chaptarr` | `robertlordhood/chaptarr` | `latest` | `traefik_backbone`, `mediaserver` | ❌ |
+| `cleanuparr` | `ghcr.io/cleanuparr/cleanuparr` | `latest` | `traefik_backbone`, `mediaserver` | ❌ |
+| `ersatztv` | `ghcr.io/ersatztv/ersatztv` | `latest` | `mediaserver` | ❌ |
+| `flaresolverr` | `ghcr.io/flaresolverr/flaresolverr` | `v3.4.6` | `mediaserver` | ❌ |
+| `jellyfin` | `lscr.io/linuxserver/jellyfin` | `10.11.8` | `mediaserver`, `traefik_backbone` | ❌ |
+| `jellyseerr` | `seerr/seerr` | `v3.1.0` | `traefik_backbone`, `mediaserver` | ❌ |
 | `komga` | `ghcr.io/gotson/komga` | `1.24.3` | `traefik_backbone`, `mediaserver` | ❌ |
-| `navidrome` | `deluan/navidrome` | `0.60.3` | `mediaserver`, `traefik_backbone` | ❌ |
+| `lidarr` | `lscr.io/linuxserver/lidarr` | `3.1.0` | `traefik_backbone`, `mediaserver` | ❌ |
+| `metube` | `ghcr.io/alexta69/metube` | `2026.03.08` | `traefik_backbone`, `mediaserver` | ❌ |
+| `navidrome` | `deluan/navidrome` | `latest` | `traefik_backbone` | ❌ |
 | `prowlarr` | `lscr.io/linuxserver/prowlarr` | `2.3.0` | `traefik_backbone`, `mediaserver` | ❌ |
 | `radarr` | `lscr.io/linuxserver/radarr` | `6.0.4` | `traefik_backbone`, `mediaserver` | ❌ |
 | `rdtclient` | `rogerfar/rdtclient` | `2.0.125` | `traefik_backbone`, `mediaserver` | ❌ |
-| `chaptarr` | `robertlordhood/chaptarr` | `latest` | `traefik_backbone`, `mediaserver` | ❌ |
-| `sonarr` | `lscr.io/linuxserver/sonarr` | `4.0.16` | `traefik_backbone`, `mediaserver` | ❌ |
-| `tvheadend` | `ghcr.io/linuxserver/tvheadend` | `version-7c4011de` | `host` (network_mode) | ❌ |
-| `tdarr` | `ghcr.io/haveagitgat/tdarr` | `latest` | `bridge` (network_mode) | ❌ |
-| `lidarr` | `lscr.io/linuxserver/lidarr` | `3.1.0` | `traefik_backbone`, `mediaserver` | ❌ |
-| `metube` | `ghcr.io/alexta69/metube` | `2026.03.08` | `traefik_backbone`, `mediaserver` | ❌ |
-| `soularr` | `mrusse08/soularr` | `latest` | `mediaserver` | ❌ |
-| `slskd` | `slskd/slskd` | `0.24.5` | `traefik_backbone`, `mediaserver` | ❌ |
-| `bliss_service` | `romancin/bliss` | `latest` | `traefik_backbone`, `mediaserver` | ❌ |
-| `ersatztv` | `ghcr.io/ersatztv/ersatztv` | `latest` | `mediaserver` | ❌ |
 | `rsoul` | `ghcr.io/pcs3rd/rsoul` | `release.rate-limit-test` | `mediaserver` | ❌ |
+| `slskd` | `slskd/slskd` | `0.24.5` | `traefik_backbone`, `mediaserver` | ❌ |
+| `sonarr` | `lscr.io/linuxserver/sonarr` | `4.0.16` | `traefik_backbone`, `mediaserver` | ❌ |
+| `soularr` | `mrusse08/soularr` | `latest` | `mediaserver` | ❌ |
+| `tdarr` | `ghcr.io/haveagitgat/tdarr` | `latest` | `mediaserver` | ❌ |
+| `tvheadend` | `ghcr.io/linuxserver/tvheadend` | `version-7c4011de` | `host` (network_mode) | ❌ |
 <!-- /STACK-TABLE:web-apps/jellyfin -->
 
 ---
@@ -230,16 +226,31 @@ All externally accessible services are routed through Traefik on `traefik_backbo
 
 ## Network Overview
 
-| Network Name | Type | Used By |
+Internal networks use `overlay` driver for Swarm compatibility. `traefik_backbone` is a pre-existing external overlay network that must exist before deploying any stack.
+
+| Network Name | Driver | Used By |
 |---|---|---|
-| `traefik_backbone` | External (shared) | All Traefik-exposed services |
-| `core-prod-authentik_Internal` | Bridge | authentik stack internal |
-| `core-prod-monitoring_internal` | Bridge | monitoring stack internal |
-| `web-prod-media-server_Internal` | Bridge | media_server stack internal |
-| `web-prod-seafile_Internal` | Bridge | seafile stack internal |
-| `web-prod-affine_Internal` | Bridge | affine stack internal |
-| `web-prod-kiwix_Internal` | Bridge | *(commented out)* |
-| `web-prod-meshtastic_Internal` | Bridge | meshtastic stack internal |
-| `web-prod-blocky_Internal` | Bridge | blocky-tailscale stack internal |
-| `web-prod-mixpost_Internal` | Bridge | mixpost stack internal |
-| `web-prod-wordpress_Internal` | Bridge | wordpress stack internal |
+| `traefik_backbone` | Overlay (external, shared) | All Traefik-exposed services |
+| `core-prod-authentik_Internal` | Overlay | authentik stack internal |
+| `core-prod-monitoring_internal` | Overlay | monitoring stack internal |
+| `web-prod-media-server_Internal` | Overlay | media_server stack internal |
+| `web-prod-seafile_Internal` | Overlay | seafile stack internal |
+| `web-prod-affine_Internal` | Overlay | affine stack internal |
+| `web-prod-meshtastic_Internal` | Overlay | meshtastic stack internal |
+| `web-prod-blocky_Internal` | Overlay | blocky-tailscale stack internal |
+| `web-prod-mixpost_Internal` | Overlay | mixpost stack internal |
+| `web-prod-wordpress_Internal` | Overlay | wordpress stack internal |
+
+---
+
+## Swarm Node Labels
+
+Services with local volumes or hardware requirements use placement constraints. See the [README](../README.md#swarm-node-labels) for the label commands, and [migrating.md](migrating.md) for data migration steps.
+
+| Label | Required by |
+|---|---|
+| `node.role == manager` | `traefik`, `crowdsec` (automatic — no label needed) |
+| `node.labels.role=media` | `jellyfin` (local SQLite volume) |
+| `node.labels.role=authentik` | `postgresql` (local PostgreSQL volume) |
+| `node.labels.role=seafile` | `db` (local MariaDB volume) |
+| `node.labels.intel.gpu=true` | `jellyfin`, `calibre`, `ersatztv`, `tdarr`, `tvheadend` |

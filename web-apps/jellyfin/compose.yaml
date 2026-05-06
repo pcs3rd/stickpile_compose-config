@@ -1,3 +1,10 @@
+# Node labels required before deploying this stack:
+#
+#   docker node update --label-add role=media     <node>  # jellyfin (local SQLite volume)
+#   docker node update --label-add intel.gpu=true <node>  # calibre, ersatztv, jellyfin, tdarr, tvheadend
+#
+# A single node can hold both labels if it has an Intel iGPU.
+
 services:
 
   ariang:
@@ -16,14 +23,22 @@ services:
     networks:
       - traefik_backbone
       - mediaserver
-    restart: always
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ariang.rule=Host(`dl.stickpile.net`)"
-      - "traefik.http.routers.ariang.entrypoints=websecure"
-      - "traefik.http.routers.ariang.tls.certresolver=httpsResolve"
-      - "traefik.http.services.ariang.loadbalancer.server.port=8080"
-      - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file,bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.ariang.rule=Host(`dl.stickpile.net`)"
+        - "traefik.http.routers.ariang.entrypoints=websecure"
+        - "traefik.http.routers.ariang.tls.certresolver=httpsResolve"
+        - "traefik.http.services.ariang.loadbalancer.server.port=8080"
+        - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file,bouncer@file"
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:1.5.6
@@ -37,13 +52,22 @@ services:
     networks:
       - traefik_backbone
       - mediaserver
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.bazarr.rule=Host(`bazarr.stickpile.net`)"
-      - "traefik.http.routers.bazarr.entrypoints=websecure"
-      - "traefik.http.routers.bazarr.tls.certresolver=httpsResolve"
-      - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
-      - "traefik.http.routers.bazarr.middlewares=middlewares-authentik@file,bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.bazarr.rule=Host(`bazarr.stickpile.net`)"
+        - "traefik.http.routers.bazarr.entrypoints=websecure"
+        - "traefik.http.routers.bazarr.tls.certresolver=httpsResolve"
+        - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
+        - "traefik.http.routers.bazarr.middlewares=middlewares-authentik@file,bouncer@file"
 
   bliss_service:
     image: romancin/bliss:latest
@@ -59,13 +83,22 @@ services:
     networks:
       - traefik_backbone
       - mediaserver
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.bliss.rule=Host(`tags.stickpile.net`)"
-      - "traefik.http.routers.bliss.entrypoints=websecure"
-      - "traefik.http.routers.bliss.tls.certresolver=httpsResolve"
-      - "traefik.http.services.bliss.loadbalancer.server.port=3220"
-      - "traefik.http.routers.bliss.middlewares=middlewares-authentik@file,bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.bliss.rule=Host(`tags.stickpile.net`)"
+        - "traefik.http.routers.bliss.entrypoints=websecure"
+        - "traefik.http.routers.bliss.tls.certresolver=httpsResolve"
+        - "traefik.http.services.bliss.loadbalancer.server.port=3220"
+        - "traefik.http.routers.bliss.middlewares=middlewares-authentik@file,bouncer@file"
 
   calibre:
     image: lscr.io/linuxserver/calibre:latest
@@ -80,6 +113,8 @@ services:
       - PIXELFLUX_WAYLAND=true
       - DRINODE=/dev/dri/renderD128 # Specify device if multiple exist (e.g. /dev/dri/renderD129)
       - DRI_NODE=/dev/dri/renderD128
+    # NOTE: devices: is not supported in Swarm stack deploy.
+    # calibre must run as a standalone Compose service for GPU/DRI access.
     devices:
       - /dev/dri:/dev/dri
     volumes:
@@ -92,17 +127,28 @@ services:
       - 8083:8083
       - 8181:8181
     shm_size: "1gb"
-    restart: unless-stopped
     networks:
       - traefik_backbone
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.calibre.rule=Host(`calibre.stickpile.net`)"
-      - "traefik.http.routers.calibre.entrypoints=websecure"
-      - "traefik.http.routers.calibre.tls.certresolver=httpsResolve"
-      - "traefik.http.services.calibre.loadbalancer.server.port=8181"
-      - "traefik.http.services.calibre.loadbalancer.server.scheme=https"
-      - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file,bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.calibre.rule=Host(`calibre.stickpile.net`)"
+        - "traefik.http.routers.calibre.entrypoints=websecure"
+        - "traefik.http.routers.calibre.tls.certresolver=httpsResolve"
+        - "traefik.http.services.calibre.loadbalancer.server.port=8181"
+        - "traefik.http.services.calibre.loadbalancer.server.scheme=https"
+        - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file,bouncer@file"
 
   chaptarr:
     image: robertlordhood/chaptarr:latest
@@ -117,13 +163,22 @@ services:
     networks:
       - traefik_backbone
       - mediaserver
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
-      - "traefik.http.routers.readarr.entrypoints=websecure"
-      - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
-      - "traefik.http.services.readarr.loadbalancer.server.port=8789"
-      - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file,bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.readarr.rule=Host(`readarr.stickpile.net`)"
+        - "traefik.http.routers.readarr.entrypoints=websecure"
+        - "traefik.http.routers.readarr.tls.certresolver=httpsResolve"
+        - "traefik.http.services.readarr.loadbalancer.server.port=8789"
+        - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file,bouncer@file"
 
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:latest
@@ -142,26 +197,36 @@ services:
     networks:
       - traefik_backbone
       - mediaserver
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
       interval: 30s
       timeout: 10s
       start_period: 30s
       retries: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.cl.rule=Host(`cleanup.stickpile.net`)"
-      - "traefik.http.routers.cl.entrypoints=websecure"
-      - "traefik.http.routers.cl.tls.certresolver=httpsResolve"
-      - "traefik.http.services.cl.loadbalancer.server.port=11011"
-      - "traefik.http.routers.cl.middlewares=middlewares-authentik@file,bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.cl.rule=Host(`cleanup.stickpile.net`)"
+        - "traefik.http.routers.cl.entrypoints=websecure"
+        - "traefik.http.routers.cl.tls.certresolver=httpsResolve"
+        - "traefik.http.services.cl.loadbalancer.server.port=11011"
+        - "traefik.http.routers.cl.middlewares=middlewares-authentik@file,bouncer@file"
 
   ersatztv:
     image: ghcr.io/ersatztv/ersatztv
-    container_name: ersatztv
+    # NOTE: container_name removed — not supported in Swarm mode.
     environment:
       - TZ
+    # NOTE: devices: is not supported in Swarm stack deploy.
+    # ersatztv must run as a standalone Compose service for GPU/DRI access.
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
     networks:
@@ -173,7 +238,18 @@ services:
       - media:/media:ro
     tmpfs:
       - /transcode
-    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
@@ -181,6 +257,15 @@ services:
       - secrets.enc.env
     networks:
       - mediaserver
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:10.11.8
@@ -194,18 +279,33 @@ services:
       - jellyfin_db:/config/data  # local volume — SQLite is unreliable over NFS
       - media:/media
       - ./web-config.json:/usr/share/jellyfin/web/config.json:rw
+    # NOTE: devices: is not supported in Swarm stack deploy.
+    # jellyfin must run as a standalone Compose service for GPU/DRI access.
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
     networks:
       - mediaserver
       - traefik_backbone
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.jf.rule=Host(`media.stickpile.net`)"
-      - "traefik.http.routers.jf.entrypoints=websecure"
-      - "traefik.http.routers.jf.tls.certresolver=httpsResolve"
-      - "traefik.http.services.jf.loadbalancer.server.port=8096"
-      #- "traefik.http.routers.jf.middlewares=bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.labels.role == media      # Pin to node with local jellyfin_db volume
+          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.jf.rule=Host(`media.stickpile.net`)"
+        - "traefik.http.routers.jf.entrypoints=websecure"
+        - "traefik.http.routers.jf.tls.certresolver=httpsResolve"
+        - "traefik.http.services.jf.loadbalancer.server.port=8096"
+        #- "traefik.http.routers.jf.middlewares=bouncer@file"
 
   jellyseerr:
     image: seerr/seerr:v3.1.0
@@ -216,13 +316,22 @@ services:
     networks:
       - traefik_backbone
       - mediaserver
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.js.rule=Host(`requests.stickpile.net`)"
-      - "traefik.http.routers.js.entrypoints=websecure"
-      - "traefik.http.routers.js.tls.certresolver=httpsResolve"
-      - "traefik.http.services.js.loadbalancer.server.port=5055"
-      - "traefik.http.routers.js.middlewares=bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.js.rule=Host(`requests.stickpile.net`)"
+        - "traefik.http.routers.js.entrypoints=websecure"
+        - "traefik.http.routers.js.tls.certresolver=httpsResolve"
+        - "traefik.http.services.js.loadbalancer.server.port=5055"
+        - "traefik.http.routers.js.middlewares=bouncer@file"
 
   komga:
     image: ghcr.io/gotson/komga:1.24.3
@@ -236,13 +345,22 @@ services:
     networks:
       - traefik_backbone
       - mediaserver
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.komga.rule=Host(`komga.stickpile.net`)"
-      - "traefik.http.routers.komga.entrypoints=websecure"
-      - "traefik.http.routers.komga.tls.certresolver=httpsResolve"
-      - "traefik.http.services.komga.loadbalancer.server.port=25600"
-      - "traefik.http.routers.komga.middlewares=bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.komga.rule=Host(`komga.stickpile.net`)"
+        - "traefik.http.routers.komga.entrypoints=websecure"
+        - "traefik.http.routers.komga.tls.certresolver=httpsResolve"
+        - "traefik.http.services.komga.loadbalancer.server.port=25600"
+        - "traefik.http.routers.komga.middlewares=bouncer@file"
 
   lidarr:
     image: lscr.io/linuxserver/lidarr:3.1.0
@@ -258,7 +376,6 @@ services:
       - lidarr_custom_init:/custom-cont-init.d
       - media:/storage
       - downloads:/downloads
-    restart: unless-stopped
     networks:
       - traefik_backbone
       - mediaserver
@@ -271,13 +388,13 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.lidarr.rule=Host(`lidarr.stickpile.net`)"
-      - "traefik.http.routers.lidarr.entrypoints=websecure"
-      - "traefik.http.routers.lidarr.tls.certresolver=httpsResolve"
-      - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
-      - "traefik.http.routers.lidarr.middlewares=middlewares-authentik@file,bouncer@file"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.lidarr.rule=Host(`lidarr.stickpile.net`)"
+        - "traefik.http.routers.lidarr.entrypoints=websecure"
+        - "traefik.http.routers.lidarr.tls.certresolver=httpsResolve"
+        - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
+        - "traefik.http.routers.lidarr.middlewares=middlewares-authentik@file,bouncer@file"
 
   metube:
     image: ghcr.io/alexta69/metube:2026.03.08
@@ -289,7 +406,6 @@ services:
       - TZ
     volumes:
       - metube_downloads:/downloads
-    restart: unless-stopped
     networks:
       - traefik_backbone
       - mediaserver
@@ -302,13 +418,13 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.metube.rule=Host(`metube.stickpile.net`)"
-      - "traefik.http.routers.metube.entrypoints=websecure"
-      - "traefik.http.routers.metube.tls.certresolver=httpsResolve"
-      - "traefik.http.services.metube.loadbalancer.server.port=8081"
-      - "traefik.http.routers.metube.middlewares=middlewares-authentik@file,bouncer@file"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.metube.rule=Host(`metube.stickpile.net`)"
+        - "traefik.http.routers.metube.entrypoints=websecure"
+        - "traefik.http.routers.metube.tls.certresolver=httpsResolve"
+        - "traefik.http.services.metube.loadbalancer.server.port=8081"
+        - "traefik.http.routers.metube.middlewares=middlewares-authentik@file,bouncer@file"
 
   navidrome:
     image: deluan/navidrome:latest
@@ -328,16 +444,24 @@ services:
       - media:/music:ro
     ports:
       - "4533:4533"
-    restart: unless-stopped
     networks:
       - traefik_backbone
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.navidrome.rule=Host(`music.stickpile.net`)"
-      - "traefik.http.routers.navidrome.entrypoints=websecure"
-      - "traefik.http.routers.navidrome.tls.certresolver=httpsResolve"
-      - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
-      - "traefik.http.routers.navidrome.middlewares=middlewares-authentik@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.navidrome.rule=Host(`music.stickpile.net`)"
+        - "traefik.http.routers.navidrome.entrypoints=websecure"
+        - "traefik.http.routers.navidrome.tls.certresolver=httpsResolve"
+        - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
+        - "traefik.http.routers.navidrome.middlewares=middlewares-authentik@file"
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:2.3.0
@@ -359,13 +483,13 @@ services:
         delay: 5s
         ##max_attempts: 3
         window: 120s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.stickpile.net`)"
-      - "traefik.http.routers.prowlarr.entrypoints=websecure"
-      - "traefik.http.routers.prowlarr.tls.certresolver=httpsResolve"
-      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
-      - "traefik.http.routers.prowlarr.middlewares=middlewares-authentik@file,bouncer@file"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.stickpile.net`)"
+        - "traefik.http.routers.prowlarr.entrypoints=websecure"
+        - "traefik.http.routers.prowlarr.tls.certresolver=httpsResolve"
+        - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+        - "traefik.http.routers.prowlarr.middlewares=middlewares-authentik@file,bouncer@file"
 
   radarr:
     image: lscr.io/linuxserver/radarr:6.0.4
@@ -389,13 +513,13 @@ services:
         delay: 5s
         ##max_attempts: 3
         window: 120s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.radarr.rule=Host(`radarr.stickpile.net`)"
-      - "traefik.http.routers.radarr.entrypoints=websecure"
-      - "traefik.http.routers.radarr.tls.certresolver=httpsResolve"
-      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
-      - "traefik.http.routers.radarr.middlewares=middlewares-authentik@file,bouncer@file"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.radarr.rule=Host(`radarr.stickpile.net`)"
+        - "traefik.http.routers.radarr.entrypoints=websecure"
+        - "traefik.http.routers.radarr.tls.certresolver=httpsResolve"
+        - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+        - "traefik.http.routers.radarr.middlewares=middlewares-authentik@file,bouncer@file"
 
   rdtclient:
     # Real-Debrid torrent client
@@ -408,7 +532,6 @@ services:
     networks:
       - traefik_backbone
       - mediaserver
-    restart: always
     logging:
       driver: json-file
       options:
@@ -422,13 +545,13 @@ services:
         delay: 5s
         ##max_attempts: 3
         window: 120s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.rdt.rule=Host(`rd.stickpile.net`)"
-      - "traefik.http.routers.rdt.entrypoints=websecure"
-      - "traefik.http.routers.rdt.tls.certresolver=httpsResolve"
-      - "traefik.http.services.rdt.loadbalancer.server.port=6500"
-      - "traefik.http.routers.rdt.middlewares=middlewares-authentik@file,bouncer@file"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.rdt.rule=Host(`rd.stickpile.net`)"
+        - "traefik.http.routers.rdt.entrypoints=websecure"
+        - "traefik.http.routers.rdt.tls.certresolver=httpsResolve"
+        - "traefik.http.services.rdt.loadbalancer.server.port=6500"
+        - "traefik.http.routers.rdt.middlewares=middlewares-authentik@file,bouncer@file"
 
   rsoul:
     image: ghcr.io/pcs3rd/rsoul:release.rate-limit-test
@@ -443,7 +566,15 @@ services:
       - rsoul_data:/data
     networks:
       - mediaserver
-    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   slskd:
     image: slskd/slskd:0.24.5
@@ -476,16 +607,16 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.slskd.rule=Host(`slskd.stickpile.net`)"
-      - "traefik.http.routers.slskd.entrypoints=websecure"
-      - "traefik.http.routers.slskd.tls.certresolver=httpsResolve"
-      - "traefik.http.services.slskd.loadbalancer.server.port=5030"
-      - "traefik.http.routers.slskd.middlewares=middlewares-authentik@file,bouncer@file"
-      - "traefik.tcp.routers.slsk-p2p.entrypoints=p2p"
-      - "traefik.tcp.routers.slsk-p2p.rule=HostSNI(`*`)"
-      - "traefik.tcp.services.slsk-p2p.loadbalancer.server.port=50300"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.slskd.rule=Host(`slskd.stickpile.net`)"
+        - "traefik.http.routers.slskd.entrypoints=websecure"
+        - "traefik.http.routers.slskd.tls.certresolver=httpsResolve"
+        - "traefik.http.services.slskd.loadbalancer.server.port=5030"
+        - "traefik.http.routers.slskd.middlewares=middlewares-authentik@file,bouncer@file"
+        - "traefik.tcp.routers.slsk-p2p.entrypoints=p2p"
+        - "traefik.tcp.routers.slsk-p2p.rule=HostSNI(`*`)"
+        - "traefik.tcp.services.slsk-p2p.loadbalancer.server.port=50300"
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:4.0.16
@@ -509,13 +640,13 @@ services:
         delay: 5s
         ##max_attempts: 3
         window: 120s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.sonarr.rule=Host(`sonarr.stickpile.net`)"
-      - "traefik.http.routers.sonarr.entrypoints=websecure"
-      - "traefik.http.routers.sonarr.tls.certresolver=httpsResolve"
-      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
-      - "traefik.http.routers.sonarr.middlewares=middlewares-authentik@file,bouncer@file"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.sonarr.rule=Host(`sonarr.stickpile.net`)"
+        - "traefik.http.routers.sonarr.entrypoints=websecure"
+        - "traefik.http.routers.sonarr.tls.certresolver=httpsResolve"
+        - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+        - "traefik.http.routers.sonarr.middlewares=middlewares-authentik@file,bouncer@file"
 
   soularr:
     image: mrusse08/soularr:latest
@@ -529,7 +660,6 @@ services:
     volumes:
       - downloads:/downloads
       - soularr_data:/data
-    restart: unless-stopped
     networks:
       - mediaserver
     deploy:
@@ -544,7 +674,7 @@ services:
 
   tdarr:
     image: ghcr.io/haveagitgat/tdarr:latest
-    container_name: tdarr
+    # NOTE: container_name removed — not supported in Swarm mode.
     environment:
       - TZ
       - PUID
@@ -572,17 +702,32 @@ services:
     ports:
       - 8265:8265 # webUI port
       - 8266:8266 # server port
+    # NOTE: devices: is not supported in Swarm stack deploy.
+    # tdarr must run as a standalone Compose service for GPU/DRI access.
     devices:
       - /dev/dri:/dev/dri
-    network_mode: bridge
-    restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.unmanic.rule=Host(`unmanic.stickpile.net`)"
-      - "traefik.http.routers.unmanic.entrypoints=websecure"
-      - "traefik.http.routers.unmanic.tls.certresolver=httpsResolve"
-      - "traefik.http.services.unmanic.loadbalancer.server.port=8888"
-      - "traefik.http.routers.unmanic.middlewares=middlewares-authentik@file,bouncer@file"
+    # NOTE: network_mode: bridge removed — not compatible with Swarm overlay networking.
+    networks:
+      - mediaserver
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.unmanic.rule=Host(`unmanic.stickpile.net`)"
+        - "traefik.http.routers.unmanic.entrypoints=websecure"
+        - "traefik.http.routers.unmanic.tls.certresolver=httpsResolve"
+        - "traefik.http.services.unmanic.loadbalancer.server.port=8888"
+        - "traefik.http.routers.unmanic.middlewares=middlewares-authentik@file,bouncer@file"
 
   tvheadend:
     image: ghcr.io/linuxserver/tvheadend:version-7c4011de
@@ -592,30 +737,37 @@ services:
       - TZ
     volumes:
       - tvheadend_data:/config
+    # NOTE: network_mode: host is not supported in Swarm stack deploy.
+    # tvheadend must run as a standalone Compose service for host networking (DVB tuner access).
     network_mode: host
+    # NOTE: devices: is not supported in Swarm stack deploy.
+    # Run tvheadend as a standalone Compose service.
     devices:
       - /dev/dri:/dev/dri #optional
     deploy:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
+      placement:
+        constraints:
+          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
         ##max_attempts: 3
-        window: 600s # jellyfin is a chonker
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.tve.rule=Host(`tve.stickpile.net`)"
-      - "traefik.http.routers.tve.entrypoints=websecure"
-      - "traefik.http.routers.tve.tls.certresolver=httpsResolve"
-      - "traefik.http.services.tve.loadbalancer.server.url=http://172.16.0.7:9981/"
-      - "traefik.http.routers.tve.middlewares=middlewares-authentik@file,bouncer@file"
+        window: 600s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.tve.rule=Host(`tve.stickpile.net`)"
+        - "traefik.http.routers.tve.entrypoints=websecure"
+        - "traefik.http.routers.tve.tls.certresolver=httpsResolve"
+        - "traefik.http.services.tve.loadbalancer.server.url=http://172.16.0.7:9981/"
+        - "traefik.http.routers.tve.middlewares=middlewares-authentik@file,bouncer@file"
 
 networks:
   mediaserver:
     name: web-prod-media-server_Internal
-    driver: bridge
+    driver: overlay
     attachable: true
   traefik_backbone:
     name: traefik_backbone

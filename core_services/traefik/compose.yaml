@@ -2,7 +2,6 @@ services:
 
   crowdsec:
     image: crowdsecurity/crowdsec:v1.7.6-debian
-    restart: unless-stopped
     environment:
       - PGID
       - COLLECTIONS=crowdsecurity/traefik crowdsecurity/http-cve firix/authentik crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules
@@ -17,17 +16,29 @@ services:
       - crowdsec_logs:/var/log/crowdsec:ro
     networks:
       - traefik_backbone
-    labels:
-      - "traefik.enable=false"
-      - "traefik.http.routers.cs.rule=Host(`npm.crowdsec.stickpile.net`)"
-      - "traefik.http.routers.cs.entrypoints=websecure"
-      - "traefik.http.routers.cs.tls.certresolver=httpsResolve"
-      - "traefik.http.services.cs.loadbalancer.server.port=8080"
-      - "traefik.http.routers.cs.middlewares=middlewares-authentik@file,bouncer@file"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == manager  # Pin to manager — crowdsec_db is a local volume
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=false"
+        - "traefik.http.routers.cs.rule=Host(`npm.crowdsec.stickpile.net`)"
+        - "traefik.http.routers.cs.entrypoints=websecure"
+        - "traefik.http.routers.cs.tls.certresolver=httpsResolve"
+        - "traefik.http.services.cs.loadbalancer.server.port=8080"
+        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file,bouncer@file"
 
   geoipfilter:
     image: mpdcampbell/traefik-geoip-filter
-    container_name: geoipfilter
+    # NOTE: container_name removed — not supported in Swarm mode.
     environment:
       - MAXMIND_ID
       - MAXMIND_KEY
@@ -42,6 +53,15 @@ services:
     #   - "traefik.http.routers.<routerName>.middlewares=middlewares-geoipfilter"
     # And on the traefik service label:
     #   - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   traefik:
     image: "traefik:v3.5.3"
@@ -52,15 +72,15 @@ services:
       #- "--log.level=DEBUG"
       - "-tracing=true"
       - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
+      - "--providers.swarm=true"
+      - "--providers.swarm.exposedbydefault=false"
+      - "--providers.swarm.network=traefik_backbone"
       - "--entryPoints.p2p.address=:50300"
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entryPoints.web.http.redirections.entrypoint.scheme=https"
-      - "--providers.docker.network=traefik_backbone"
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge=true"
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge.entrypoint=web"
       - "--accesslog=true"
@@ -89,16 +109,28 @@ services:
       - /run/secrets
     networks:
       - traefik_backbone
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`npm.stickpile.net`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls.certresolver=httpsResolve"
-      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
-      - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
-      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
-      #- "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
-      #- "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == manager  # Traefik must run on manager to access Swarm API
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.traefik.rule=Host(`npm.stickpile.net`)"
+        - "traefik.http.routers.traefik.entrypoints=websecure"
+        - "traefik.http.routers.traefik.tls.certresolver=httpsResolve"
+        - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+        - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
+        - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
+        #- "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
+        #- "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
 
 networks:
   traefik_backbone: # For external containers.

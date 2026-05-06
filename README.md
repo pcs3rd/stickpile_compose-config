@@ -39,7 +39,33 @@ In the case that websockets are properly configured, changes may propagate more 
 ---  
 Other Documentaition:   
  - [Services Overview](docs/services-overview.md)
+ - [Migration Guide](docs/migrating.md)
 In the case that websockets are properly configured, changes may propagate more quickly.
+
+# Swarm Node Labels
+
+Services with local volumes or hardware dependencies use placement constraints. When adding a new Swarm node, apply the appropriate labels:
+
+```bash
+# Nodes that run the media stack (jellyfin, ersatztv, etc.) — must have a local volume for jellyfin_db
+docker node update --label-add role=media <node-name>
+
+# Nodes that run authentik — must have a local volume for postgresql_data
+docker node update --label-add role=authentik <node-name>
+
+# Nodes that run seafile — must have a local volume for seafile_db (MariaDB)
+docker node update --label-add role=seafile <node-name>
+
+# Nodes with an Intel iGPU (for hardware transcoding)
+docker node update --label-add intel.gpu=true <node-name>
+```
+
+Manager nodes (`node.role == manager`) are automatically used for Traefik and CrowdSec, which need access to the Swarm API and have local SQLite volumes.
+
+To inspect labels on all nodes:
+```bash
+docker node ls -q | xargs docker node inspect --format '{{ .Description.Hostname }}: {{ .Spec.Labels }}'
+```
 
 # Quick links to files   
 - [blocky allowlist.txt](core_services/networking/blocky/config/lists/allowlist.txt)

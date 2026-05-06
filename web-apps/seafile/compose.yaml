@@ -1,3 +1,7 @@
+# Node labels required before deploying this stack:
+#
+#   docker node update --label-add role=seafile <node>  # db (local MariaDB volume)
+
 services:
 
   db:
@@ -10,13 +14,16 @@ services:
       - MARIADB_LOG_CONSOLE=true
       - MARIADB_AUTO_UPGRADE=1
     volumes:
-      - seafile_db:/var/lib/mysql
+      - seafile_db:/var/lib/mysql  # local — MariaDB is unsafe over NFS
     networks:
       - internal
     deploy:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
+      placement:
+        constraints:
+          - node.labels.role == seafile  # Pin to node with local seafile_db volume
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -72,33 +79,33 @@ services:
         delay: 5s
         #max_attempts: 3
         window: 120s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.seaf.rule=Host(`seafile.stickpile.net`)"
-      - "traefik.http.routers.seaf.entrypoints=websecure"
-      - "traefik.http.routers.seaf.tls.certresolver=httpsResolve"
-      - "traefik.http.routers.seaf.service=seaf"
-      - "traefik.http.services.seaf.loadbalancer.server.port=80"
-      - "traefik.http.routers.seaf.middlewares=bouncer@file"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.seaf.rule=Host(`seafile.stickpile.net`)"
+        - "traefik.http.routers.seaf.entrypoints=websecure"
+        - "traefik.http.routers.seaf.tls.certresolver=httpsResolve"
+        - "traefik.http.routers.seaf.service=seaf"
+        - "traefik.http.services.seaf.loadbalancer.server.port=80"
+        - "traefik.http.routers.seaf.middlewares=bouncer@file"
 
-      - "traefik.http.routers.seafdav.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafdav`)"
-      - "traefik.http.routers.seafdav.entrypoints=websecure"
-      - "traefik.http.routers.seafdav.tls.certresolver=httpsResolve"
-      - "traefik.http.routers.seafdav.service=seafdav"
-      - "traefik.http.services.seafdav.loadbalancer.server.port=8076"
-      - "traefik.http.routers.seafdav.middlewares=bouncer@file"
+        - "traefik.http.routers.seafdav.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafdav`)"
+        - "traefik.http.routers.seafdav.entrypoints=websecure"
+        - "traefik.http.routers.seafdav.tls.certresolver=httpsResolve"
+        - "traefik.http.routers.seafdav.service=seafdav"
+        - "traefik.http.services.seafdav.loadbalancer.server.port=8076"
+        - "traefik.http.routers.seafdav.middlewares=bouncer@file"
 
-      - "traefik.http.routers.seafhttp.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafhttp`)"
-      - "traefik.http.routers.seafhttp.entrypoints=web"
-      - "traefik.http.routers.seafhttp.tls.certresolver=httpsResolve"
-      - "traefik.http.routers.seafhttp.service=seafhttp"
-      - "traefik.http.services.seafhttp.loadbalancer.server.port=8082"
-      - "traefik.http.routers.seafhttp.middlewares=bouncer@file"
+        - "traefik.http.routers.seafhttp.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafhttp`)"
+        - "traefik.http.routers.seafhttp.entrypoints=web"
+        - "traefik.http.routers.seafhttp.tls.certresolver=httpsResolve"
+        - "traefik.http.routers.seafhttp.service=seafhttp"
+        - "traefik.http.services.seafhttp.loadbalancer.server.port=8082"
+        - "traefik.http.routers.seafhttp.middlewares=bouncer@file"
 
 networks:
   internal:
     name: web-prod-seafile_Internal
-    driver: bridge
+    driver: overlay
     attachable: true
   backbone: # For external containers.
     name: traefik_backbone
@@ -106,11 +113,8 @@ networks:
 
 volumes:
   seafile_db:
+    # MariaDB requires local storage — NFS causes file locking failures.
     driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/db"
 
   seafile_data:
     driver: local

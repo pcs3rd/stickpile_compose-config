@@ -31,20 +31,16 @@ services:
         delay: 5s
         #max_attempts: 3
         window: 120s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.kiwix.rule=Host(`archive.stickpile.net`)"
-      - "traefik.http.routers.kiwix.entrypoints=websecure"
-      - "traefik.http.routers.kiwix.tls.certresolver=httpsResolve"
-      - "traefik.http.services.kiwix.loadbalancer.server.port=8080"
-      - "traefik.http.routers.kiwix.middlewares=middlewares-authentik@file,bouncer@file"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.kiwix.rule=Host(`archive.stickpile.net`)"
+        - "traefik.http.routers.kiwix.entrypoints=websecure"
+        - "traefik.http.routers.kiwix.tls.certresolver=httpsResolve"
+        - "traefik.http.services.kiwix.loadbalancer.server.port=8080"
+        - "traefik.http.routers.kiwix.middlewares=middlewares-authentik@file,bouncer@file"
 
 networks:
-  #  internal:
-  #    name: web-prod-kiwix_Internal
-  #    driver: bridge
-  #    attachable: true
-  traefik_backbone: # For external containers.
+  traefik_backbone:
     name: traefik_backbone
     external: true
 
