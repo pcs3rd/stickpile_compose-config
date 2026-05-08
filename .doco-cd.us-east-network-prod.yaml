@@ -15,13 +15,4 @@ compose_files:
   - compose.yaml
 env_files:
   - remote:secrets.enc.env
----
-name: blocky
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: core_services/networking/blocky
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
 

@@ -13,8 +13,6 @@ services:
       - MONGO_AUTHSOURCE
       - MEM_LIMIT
       - MEM_STARTUP
-    env_file:  
-      - secrets.enc.env  
     volumes:
       - $persist_data_home/unifi-network-application:/config
     ports:
@@ -39,8 +37,6 @@ services:
       - MONGO_PASS
       - MONGO_DBNAME
       - MONGO_AUTHSOURCE
-    env_file:  
-      - secrets.enc.env  
     volumes: 
       - $persist_data_home/unifi-network-mongodb:/data/db
       #- ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
@@ -50,10 +46,52 @@ services:
     restart: always
     ports:
       - 8081:8081
-    env_file:  
-      - secrets.enc.env  
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME
       - ME_CONFIG_MONGODB_ADMINPASSWORD
       - ME_CONFIG_MONGODB_URL
       - ME_CONFIG_BASICAUTH
+
+  blocky:
+    image: spx01/blocky
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "4000:4000/tcp"
+    environment:
+      - TZ
+    volumes:
+      # Optional to synchronize the log timestamp with host
+      - /etc/localtime:/etc/localtime:ro
+      # config file
+      - ./config/config.yml:/app/config.yml:ro
+      - ./config/lists:/userlists
+      - qlogs:/querylog
+    depends_on:
+      - redis
+
+  redis: 
+    image: redis:6.2-alpine
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - $persist_data_home/blocky-redis-state:/data
+
+  blocky-ui:
+      image: ghcr.io/gabeduartem/blocky-ui:latest # or for example `blocky-ui:1.5.0` if you prefer pinned versions
+      restart: unless-stopped
+      depends_on:
+        - blocky
+      ports:
+        - 3000:3000
+      volumes:
+        - qlogs:/querylog
+      environment:
+        - BLOCKY_API_URL
+        - QUERY_LOG_TYPE
+        - QUERY_LOG_TARGET
+        - INSTANCE_NAME
+
+volumes:
+  qlogs:
