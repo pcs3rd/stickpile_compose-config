@@ -68,6 +68,6 @@ docker node ls -q | xargs docker node inspect --format '{{ .Description.Hostname
 ```
 
 # Quick links to files   
-- [blocky allowlist.txt](core_services/networking/blocky/config/lists/allowlist.txt)
-- [blocky denylist.txt](core_services/networking/blocky/config/lists/denylist.txt)
-- [blocky configuration](core_services/networking/blocky/config/config.yml)
+- [blocky allowlist.txt](compose/ubnt_console/config/lists/allowlist.txt)
+- [blocky denylist.txt](compose/ubnt_console/config/lists/denylist.txt)
+- [blocky configuration](compose/ubnt_console/config/config.yml)

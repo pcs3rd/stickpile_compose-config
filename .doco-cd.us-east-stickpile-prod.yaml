@@ -1,26 +1,17 @@
+name: grafana
+repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+reference: prod
+working_dir: compose/grafana
+compose_files:
+  - compose.yaml
+env_files:
+  - remote:secrets.enc.env
+---
 name: traefik
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
-working_dir: core_services/traefik
+working_dir: compose/traefik
 compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
-name: blocky-tailscale
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: network-services/blocky-tailscale
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
-name: monitoring
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: core_services/monitoring
-compose_files:
   - compose.yaml
 env_files:
   - remote:secrets.enc.env
@@ -28,7 +19,16 @@ env_files:
 name: authentik
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
-working_dir: core_services/authentik
+working_dir: compose/authentik
+compose_files: 
+  - compose.yaml
+env_files:
+  - remote:secrets.enc.env
+---
+name: blocky
+repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+reference: prod
+working_dir: compose/blocky
 compose_files: 
   - compose.yaml
 env_files:
@@ -37,7 +37,7 @@ env_files:
 name: media_server
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
-working_dir: web-apps/jellyfin
+working_dir: compose/media-server
 compose_files: 
   - compose.yaml
 env_files:

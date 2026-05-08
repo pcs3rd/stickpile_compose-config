@@ -10,7 +10,7 @@
 name: ubiquity-console
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
-working_dir: core_services/networking/ubnt_console
+working_dir: compose/ubnt_console
 compose_files: 
   - compose.yaml
 env_files:
