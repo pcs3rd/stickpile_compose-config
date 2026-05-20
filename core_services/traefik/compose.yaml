@@ -117,20 +117,20 @@ services:
 #
 # Here "routerName" is the name of the router the filter is being applied to, and "middlewares-geoipfilter" is the middleware name. 
 
-  geoipfilter:
-    image: mpdcampbell/traefik-geoip-filter
-    container_name: geoipfilter
-    #Optional, If you want the Geolite2 databases to persist add the below volume
-    volumes:
-    - geoip:/geoip
-    environment:
-        - MAXMIND_ID
-        - MAXMIND_KEY
-        - FILTER_TYPE
-        - COUNTRY_CODES
-        - SUB_CODES
-        - TZ
-    #- SEARCH_MODE="true"
+  # geoipfilter:
+  #   image: mpdcampbell/traefik-geoip-filter
+  #   container_name: geoipfilter
+  #   #Optional, If you want the Geolite2 databases to persist add the below volume
+  #   volumes:
+  #   - geoip:/geoip
+  #   environment:
+  #       - MAXMIND_ID
+  #       - MAXMIND_KEY
+  #       - FILTER_TYPE
+  #       - COUNTRY_CODES
+  #       - SUB_CODES
+  #       - TZ
+  #   #- SEARCH_MODE="true"
 
 volumes:
   proxy-logs:
