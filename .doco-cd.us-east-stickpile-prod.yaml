@@ -16,24 +16,24 @@ compose_files:
 env_files:
   - remote:secrets.enc.env
 ---
-name: monitoring
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: core_services/monitoring
-compose_files:
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
-name: meshtastic
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: web-apps/meshtastic
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
----
+# name: monitoring
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: core_services/monitoring
+# compose_files:
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
+# ---
+# name: meshtastic
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: web-apps/meshtastic
+# compose_files: 
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
+# ---
 name: authentik
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
@@ -60,15 +60,15 @@ compose_files:
   - compose.yaml
 env_files:
   - remote:secrets.enc.env
----
-name: affine
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: web-apps/affine
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
+# ---
+# name: affine
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: web-apps/affine
+# compose_files: 
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
 # ---
 # name: kiwix
 # repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
@@ -78,12 +78,12 @@ env_files:
 #   - compose.yaml
 # env_files:
 #   - remote:secrets.enc.env
----
-name: hugo
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: web-apps/hugo
-compose_files: 
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
+# ---
+# name: hugo
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: web-apps/hugo
+# compose_files: 
+#   - compose.yaml
+# env_files:
+#   - remote:secrets.enc.env
