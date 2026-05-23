@@ -9,3 +9,6 @@ ehthumbs.db
 Thumbs.db
 
 swamStack-*.yaml
+.decrypted~secrets.enc.env
+*.tmp
+.decrypted~nfs.enc.env

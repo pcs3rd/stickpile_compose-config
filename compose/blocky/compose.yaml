@@ -1,0 +1,133 @@
+services:
+
+  blocky:
+    image: spx01/blocky
+    # NOTE: network_mode: "service:tailscale" is not supported in Swarm stack deploy.
+    # blocky must remain coupled to tailscale via Compose (not stack deploy) for shared networking.
+    network_mode: "service:tailscale"
+    environment:
+      - TZ
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config/config.yml:/app/config.yml:ro
+      - ./config/lists:/userlists
+      - qlogs:/querylog
+    depends_on:
+      - tailscale
+      - redis
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  blocky-ui:
+    image: ghcr.io/gabeduartem/blocky-ui:latest
+    environment:
+      - BLOCKY_API_URL
+      - QUERY_LOG_TYPE
+      - QUERY_LOG_TARGET
+      - INSTANCE_NAME
+    volumes:
+      - qlogs:/querylog
+    networks:
+      - internal
+      - traefik_backbone
+    depends_on:
+      - blocky
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.blocky.rule=Host(`blocky.stickpile.net`)"
+        - "traefik.http.routers.blocky.entrypoints=websecure"
+        - "traefik.http.routers.blocky.tls.certresolver=httpsResolve"
+        - "traefik.http.services.blocky.loadbalancer.server.port=3000"
+        - "traefik.http.routers.blocky.middlewares=middlewares-authentik@file,bouncer@file"
+
+  redis:
+    image: redis:6.2-alpine
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  tailscale:
+    image: tailscale/tailscale:latest
+    environment:
+      - TS_AUTHKEY
+      - TS_EXTRA_ARGS
+      - TS_STATE_DIR
+      - TS_HOSTNAME
+      - TS_USERSPACE
+    volumes:
+      - tailscale_data:/var/lib/tailscale
+    # NOTE: devices: is not supported in Swarm stack deploy.
+    # tailscale must run as a standalone Compose service for /dev/net/tun access.
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    networks:
+      - internal
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+networks:
+  internal:
+    name: web-prod-blocky_Internal
+    driver: overlay
+    attachable: true
+  traefik_backbone: # For external containers.
+    name: traefik_backbone
+    external: true
+
+volumes:
+  qlogs:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/blocky/querylog"
+
+  redis_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/redis-state"
+
+  tailscale_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/tailscale/state"

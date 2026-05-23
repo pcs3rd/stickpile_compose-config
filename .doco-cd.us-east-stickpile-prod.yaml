@@ -1,4 +1,4 @@
-name: traefik
+name: grafana
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: core_services/traefik
@@ -37,28 +37,41 @@ env_files:
 name: authentik
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
-working_dir: core_services/authentik
-compose_files: 
+working_dir: compose/authentik
+compose_files:
   - compose.yaml
 env_files:
+  - remote:../../shared/nfs.enc.env
+  - remote:secrets.enc.env
+---
+name: blocky
+repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+reference: prod
+working_dir: compose/blocky
+compose_files:
+  - compose.yaml
+env_files:
+  - remote:../../shared/nfs.enc.env
   - remote:secrets.enc.env
 ---
 name: media_server
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
-working_dir: web-apps/jellyfin
-compose_files: 
+working_dir: compose/media-server
+compose_files:
   - compose.yaml
 env_files:
+  - remote:../../shared/nfs.enc.env
   - remote:secrets.enc.env
 ---
 name: seafile
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
 working_dir: web-apps/seafile
-compose_files: 
+compose_files:
   - compose.yaml
 env_files:
+  - remote:../../shared/nfs.enc.env
   - remote:secrets.enc.env
 # ---
 # name: affine

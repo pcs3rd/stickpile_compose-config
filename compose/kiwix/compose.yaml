@@ -1,0 +1,53 @@
+services:
+
+  kiwix-server:
+    image: ghcr.io/kiwix/kiwix-serve:latest
+    env_file:
+      - secrets.enc.env
+    environment:
+      - TZ
+      - UMASK_SET
+    command:
+      ifixit_en_all_2024-12.zim
+      wikiversity_en_all_maxi_2021-03.zim
+      gutenberg_en_all_2023-08.zim
+      lua.org_en_all_2024-11.zim
+      wwwnc.cdc.gov_en_all_2024-08.zim
+      gender_dysphoria_fyi_2025-02.zim
+      qsys_lua_ref_2025-02-01_2025-02.zim
+      TheHydroponicsPlanet_2025-02.zim
+      wikipedia_en_all_maxi_2024-01.zim
+      www.cdc.gov_en_all_novid_2025-01.zim
+    volumes:
+      - kiwix_data:/data
+    networks:
+      - traefik_backbone
+    deploy:
+      mode: replicated
+      replicas: 2
+      endpoint_mode: vip
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        #max_attempts: 3
+        window: 120s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.kiwix.rule=Host(`archive.stickpile.net`)"
+        - "traefik.http.routers.kiwix.entrypoints=websecure"
+        - "traefik.http.routers.kiwix.tls.certresolver=httpsResolve"
+        - "traefik.http.services.kiwix.loadbalancer.server.port=8080"
+        - "traefik.http.routers.kiwix.middlewares=middlewares-authentik@file,bouncer@file"
+
+networks:
+  traefik_backbone:
+    name: traefik_backbone
+    external: true
+
+volumes:
+  kiwix_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr},rw,nfsvers=4"
+      device: ":${nfs_share}/appdata/kiwix-server/data"
