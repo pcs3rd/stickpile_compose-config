@@ -122,18 +122,18 @@ volumes:
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/alloy"
+      device: ":${nfs_appdata_share}/alloy"
 
   grafana_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/grafana"
+      device: ":${nfs_appdata_share}/grafana"
 
   loki_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/loki"
+      device: ":${nfs_appdata_share}/loki"

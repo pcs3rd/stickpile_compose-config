@@ -131,25 +131,25 @@ volumes:
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/authentik/blueprints"
+      device: ":${nfs_appdata_share}/authentik/blueprints"
 
   authentik_certs:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/authentik/certs"
+      device: ":${nfs_appdata_share}/authentik/certs"
 
   authentik_media:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/authentik/media"
+      device: ":${nfs_appdata_share}/authentik/media"
 
   authentik_templates:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/authentik/custom-templates"
+      device: ":${nfs_appdata_share}/authentik/custom-templates"

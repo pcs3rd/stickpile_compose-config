@@ -19,7 +19,6 @@ services:
     volumes:
       - aria2_data:/aria2/conf
       - downloads:/downloads
-      - games_data:/games
     networks:
       - traefik_backbone
       - mediaserver
@@ -781,28 +780,28 @@ volumes:
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/downloads"
+      device: ":${nfs_downloads_share}"
 
   games_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/media/2111/games"
+      device: ":${nfs_media_share}/2111/games"
 
   media:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/media"
+      device: ":${nfs_media_share}"
 
   metube_downloads:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/downloads/yt-dlp"
+      device: ":${nfs_downloads_share}/yt-dlp"
 
   # ── Per-service app data ────────────────────────────────────────────────────
 
@@ -811,56 +810,56 @@ volumes:
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/aria2"
+      device: ":${nfs_appdata_share}/aria2"
 
   bazarr_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/bazaar"
+      device: ":${nfs_appdata_share}/bazaar"
 
   bliss_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/bliss"
+      device: ":${nfs_appdata_share}/bliss"
 
   calibre_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/calibre/config"
+      device: ":${nfs_appdata_share}/calibre/config"
 
   chaptarr_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/chaptarr"
+      device: ":${nfs_appdata_share}/chaptarr"
 
   cleanuparr_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/cleanuparr"
+      device: ":${nfs_appdata_share}/cleanuparr"
 
   ersatztv_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/ErsatzTV"
+      device: ":${nfs_appdata_share}/ErsatzTV"
 
   jellyfin_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/jellyfin"
+      device: ":${nfs_appdata_share}/jellyfin"
 
   jellyfin_db:
     # Local volume for Jellyfin's SQLite databases (/config/data).
@@ -872,98 +871,98 @@ volumes:
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/jellyseerr"
+      device: ":${nfs_appdata_share}/jellyseerr"
 
   komga_config:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/komga/config"
+      device: ":${nfs_appdata_share}/komga/config"
 
   komga_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/komga/data"
+      device: ":${nfs_appdata_share}/komga/data"
 
   lidarr_custom_init:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/lidarr-overlay/custom-cont-init.d"
+      device: ":${nfs_appdata_share}/lidarr-overlay/custom-cont-init.d"
 
   lidarr_custom_services:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/lidarr-overlay/custom-services.d"
+      device: ":${nfs_appdata_share}/lidarr-overlay/custom-services.d"
 
   lidarr_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/lidarr"
+      device: ":${nfs_appdata_share}/lidarr"
 
   navidrome_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/navidrome"
+      device: ":${nfs_appdata_share}/navidrome"
 
   prowlarr_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/prowlarr"
+      device: ":${nfs_appdata_share}/prowlarr"
 
   radarr_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/radarr"
+      device: ":${nfs_appdata_share}/radarr"
 
   rdtclient_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/rdt-client"
+      device: ":${nfs_appdata_share}/rdt-client"
 
   rsoul_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/rsoul"
+      device: ":${nfs_appdata_share}/rsoul"
 
   slskd_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/slskd"
+      device: ":${nfs_appdata_share}/slskd"
 
   sonarr_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/sonarr"
+      device: ":${nfs_appdata_share}/sonarr"
 
   soularr_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/soularr"
+      device: ":${nfs_appdata_share}/soularr"
 
   tdarr_data:
     driver: local
@@ -971,11 +970,11 @@ volumes:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
       # Covers /app/server, /app/configs, and /app/logs as NFS subfolders
-      device: ":${nfs_share}/appdata/tdarr"
+      device: ":${nfs_appdata_share}/tdarr"
 
   tvheadend_data:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr},rw,nfsvers=4"
-      device: ":${nfs_share}/appdata/tvheadend/data"
+      device: ":${nfs_appdata_share}/tvheadend/data"
