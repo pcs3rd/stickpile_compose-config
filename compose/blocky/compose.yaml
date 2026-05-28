@@ -115,19 +115,19 @@ volumes:
     driver: local
     driver_opts:
       type: "nfs"
-      o: "addr=${nfs_addr},rw,nfsvers=4"
+      o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/blocky/querylog"
 
   redis_data:
     driver: local
     driver_opts:
       type: "nfs"
-      o: "addr=${nfs_addr},rw,nfsvers=4"
+      o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/redis-state"
 
   tailscale_data:
     driver: local
     driver_opts:
       type: "nfs"
-      o: "addr=${nfs_addr},rw,nfsvers=4"
+      o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/tailscale/state"

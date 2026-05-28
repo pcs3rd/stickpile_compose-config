@@ -49,5 +49,5 @@ volumes:
     driver: local
     driver_opts:
       type: "nfs"
-      o: "addr=${nfs_addr},rw,nfsvers=4"
+      o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/kiwix-server/data"
