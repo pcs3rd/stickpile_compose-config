@@ -10,7 +10,7 @@
 name: blocky-tailscale
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
-working_dir: network-services/blocky-tailscale
+working_dir: compose/blocky
 compose_files: 
   - compose.yaml
 env_files:
