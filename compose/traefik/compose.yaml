@@ -2,11 +2,6 @@
 services:
   traefik:
     image: "traefik:v3.5.3"
-    # env_file:  
-    #   - secrets.enc.env  
-    environment:
-      - BOUNCER_KEY_TRAEFIK
-    entrypoint: ["/bin/sh", "/etc/traefik/entrypoint.sh"]
     command:
       #- "--log.level=DEBUG"
       - "-tracing=true"
@@ -20,7 +15,6 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entryPoints.web.http.redirections.entrypoint.scheme=https"
       - "--providers.docker.network=traefik_backbone"
-      - "--providers.docker.network=traefik_backbone" #This is some dumb crap
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge=true"
       - "--certificatesresolvers.httpsResolve.acme.httpchallenge.entrypoint=web"
       - "--accesslog=true"
@@ -28,28 +22,18 @@ services:
       #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.httpsResolve.acme.email=rdean@stickpile.net"
       - "--certificatesresolvers.httpsResolve.acme.storage=/letsencrypt/acme.json"
-      - "--providers.file.directory=/rules" 
+      - "--providers.file.directory=/rules"
       - "--log.level=INFO"
-      - "--log.filePath=/var/log/traefik/access.log"
-      - "--log.maxSize=500"
-      - "--log.maxAge=12"
       - "--log.format=json"
-      - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
-      - "--experimental.plugins.crowdsec-bouncer.version=v1.2.1"
-      ## As a note, need to bring BOUNCER-API-KEY into SOPS on every deployment
     ports:
       - "80:80"
       - "443:443"
       - "50300:50300"
     volumes:
-      - ./entrypoint.sh:/etc/traefik/entrypoint.sh:ro   # ← mount the script
       - traefik_letsencrypt:/letsencrypt
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - ./rules:/rules
-      - proxy-logs:/var/log/traefik
-    tmpfs:
-      - /run/secrets
-    networks: 
+    networks:
       - traefik_backbone
     labels:
       - "traefik.enable=true"
@@ -58,12 +42,6 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=httpsResolve"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.middlewares=middlewares-authentik@file"
-      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
-#      - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
-#      - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
-
-      # - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.enabled=true"
-      # - "traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=$BOUNCER-API-KEY"
     # healthcheck:
     #   test: ["CMD", "traefik", "healthcheck", "--ping"]
     #   interval: 30s
@@ -71,81 +49,7 @@ services:
     #   retries: 3
     #   start_period: 5s
 
-  crowdsec:
-      image: crowdsecurity/crowdsec:v1.7.6-debian
-      environment:
-        - PGID
-        - COLLECTIONS=crowdsecurity/traefik crowdsecurity/http-cve firix/authentik crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules
-        - PARSERS=crowdsecurity/docker-logs
-        - BOUNCER_KEY_TRAEFIK
-      # expose:
-      #   - "8080"
-      volumes:
-        - proxy-logs:/var/log/traefik:ro
-        - /var/run/docker.sock:/var/run/docker.sock:ro
-        - crowdsec_log:/var/log/crowdsec:ro
-        - crowdsec_db:/var/lib/crowdsec/data
-        - $persist_data_home/crowdsec/auth.log:/var/log/auth.log:ro
-        - crowdsec_config:/etc/crowdsec
-      restart: unless-stopped
-      labels:
-        - "traefik.enable=false"
-        - "traefik.http.routers.cs.rule=Host(`npm.crowdsec.stickpile.net`)"
-        - "traefik.http.routers.cs.entrypoints=websecure"
-        - "traefik.http.routers.cs.tls.certresolver=httpsResolve"
-        - "traefik.http.services.cs.loadbalancer.server.port=8080"
-        - "traefik.http.routers.cs.middlewares=middlewares-authentik@file,bouncer@file"
-        ## Middleware configuration
-      networks:
-        - traefik_backbone
-      
-
-# Define the geoip filter middleware along with your Traefik service config, so that other services can use the filter
-# To do this add the below label to the Traefik service
-#
-#      labels:
-#        - "traefik.http.middlewares.middlewares-geoipfilter.forwardAuth.address=http://geoipfilter:8080/traefik"
-#
-# Here "middlewares-geoipfilter" is the middleware name, "geoipfilter" is the name of the geoip filter container, and "8080" is the listen port value.
-# If you use different names or port, you need to change the example.
-#
-# Then, to apply the geoipfilter middleware to a service, add the below label to that service.
-#
-#       labels:
-#         - "traefik.http.routers.routerName.middlewares=middlewares-geoipfilter"
-#
-# Here "routerName" is the name of the router the filter is being applied to, and "middlewares-geoipfilter" is the middleware name. 
-
-  # geoipfilter:
-  #   image: mpdcampbell/traefik-geoip-filter
-  #   container_name: geoipfilter
-  #   #Optional, If you want the Geolite2 databases to persist add the below volume
-  #   volumes:
-  #   - geoip:/geoip
-  #   environment:
-  #       - MAXMIND_ID
-  #       - MAXMIND_KEY
-  #       - FILTER_TYPE
-  #       - COUNTRY_CODES
-  #       - SUB_CODES
-  #       - TZ
-  #   #- SEARCH_MODE="true"
-
 volumes:
-  # ── Local volumes ────────────────────────────────────────────────────────────
-  proxy-logs:
-    # Ephemeral log pipe between traefik and crowdsec — stays local.
-    driver: local
-
-  crowdsec_db:
-    # CrowdSec SQLite DB — NFS file locking causes corruption.
-    driver: local
-
-  geoip:
-    driver: local
-
-  # ── NFS volumes ──────────────────────────────────────────────────────────────
-
   traefik_letsencrypt:
     driver: local
     driver_opts:
@@ -153,21 +57,7 @@ volumes:
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/traefik/letsencrypt"
 
-  crowdsec_log:
-    driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/traefik/crowdsec/log"
-
-  crowdsec_config:
-    driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/traefik/crowdsec/config"
 networks:
-  traefik_backbone: # For external containers.
+  traefik_backbone:
     name: traefik_backbone
     external: true
-
