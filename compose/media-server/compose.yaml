@@ -425,42 +425,6 @@ services:
         - "traefik.http.services.metube.loadbalancer.server.port=8081"
         - "traefik.http.routers.metube.middlewares=middlewares-authentik@file,bouncer@file"
 
-  navidrome:
-    image: deluan/navidrome:latest
-    user: 1000:1000 # should be owner of volumes
-    environment:
-      # Optional: put your config options customization here. Examples:
-      # ND_LOGLEVEL: debug
-      - ND_SCANSCHEDULE
-      - ND_LOGLEVEL
-      - ND_SESSIONTIMEOUT
-      - ND_BASEURL
-      - ND_REVERSEPROXYUSERHEADER
-      - ND_EXTAUTH_TRUSTEDSOURCES
-      - ND_ENABLEUSEREDITING
-    volumes:
-      - navidrome_data:/data
-      - media:/music:ro
-    ports:
-      - "4533:4533"
-    networks:
-      - traefik_backbone
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.navidrome.rule=Host(`music.stickpile.net`)"
-        - "traefik.http.routers.navidrome.entrypoints=websecure"
-        - "traefik.http.routers.navidrome.tls.certresolver=httpsResolve"
-        - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
-        - "traefik.http.routers.navidrome.middlewares=middlewares-authentik@file"
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:2.3.0
@@ -907,13 +871,6 @@ volumes:
       type: "nfs"
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/lidarr"
-
-  navidrome_data:
-    driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/navidrome"
 
   prowlarr_data:
     driver: local
