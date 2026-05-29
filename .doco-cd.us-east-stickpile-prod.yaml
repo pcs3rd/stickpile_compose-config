@@ -27,16 +27,16 @@ env_files:
   - remote:../../shared/nfs.enc.env
   - remote:secrets.enc.env
 ---
-name: blocky
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: compose/blocky
-compose_files:
-  - compose.yaml
-env_files:
-  - remote:../../shared/nfs.enc.env
-  - remote:secrets.enc.env
----
+# name: blocky
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: compose/blocky
+# compose_files:
+#   - compose.yaml
+# env_files:
+#   - remote:../../shared/nfs.enc.env
+#   - remote:secrets.enc.env
+# ---
 name: media_server
 repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
 reference: prod
