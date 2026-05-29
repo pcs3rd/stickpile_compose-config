@@ -1,36 +1,37 @@
-blocky:
-  image: spx01/blocky
+services:
+  blocky:
+    image: spx01/blocky
 
-  ports:
-    - target: 53
-      published: 53
-      protocol: udp
-      mode: host
+    ports:
+      - target: 53
+        published: 53
+        protocol: udp
+        mode: host
 
-    - target: 53
-      published: 53
-      protocol: tcp
-      mode: host
+      - target: 53
+        published: 53
+        protocol: tcp
+        mode: host
 
-  environment:
-    - TZ
+    environment:
+      - TZ
 
-  volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - ./config/config.yml:/app/config.yml:ro
-    - ./config/lists:/userlists
-    - qlogs:/querylog
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config/config.yml:/app/config.yml:ro
+      - ./config/lists:/userlists
+      - qlogs:/querylog
 
-  networks:
-    - internal
+    networks:
+      - internal
 
-  depends_on:
-    - redis
+    depends_on:
+      - redis
 
-  deploy:
-    mode: replicated
-    replicas: 1
-    endpoint_mode: vip
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
 
     restart_policy:
       condition: on-failure
