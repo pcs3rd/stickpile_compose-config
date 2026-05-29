@@ -1,9 +1,3 @@
-# Node labels required before deploying this stack:
-#
-#   docker node update --label-add role=media     <node>  # jellyfin (local SQLite volume)
-#   docker node update --label-add intel.gpu=true <node>  # calibre, ersatztv, jellyfin, tdarr, tvheadend
-#
-# A single node can hold both labels if it has an Intel iGPU.
 
 services:
 
@@ -132,9 +126,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -241,9 +232,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -289,10 +277,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.role == media      # Pin to node with local jellyfin_db volume
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -308,6 +292,7 @@ services:
 
   jellyseerr:
     image: seerr/seerr:v3.1.0
+    user: "1000:1000"
     environment:
       - LOG_LEVEL
     volumes:
@@ -337,8 +322,11 @@ services:
     user: "911:911"
     environment:
       - TZ
+      - KOMGA_DATABASE_FILE=/config/db/database.sqlite
+      - KOMGA_DATABASE_TASKS_FILE=/config/db/tasks.sqlite
     volumes:
       - komga_config:/config
+      - komga_db:/config/db   # local volume — SQLite is unreliable over NFS
       - komga_data:/data
       - media:/media
     networks:
@@ -676,9 +664,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -711,9 +696,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -843,6 +825,11 @@ volumes:
       type: "nfs"
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/komga/config"
+
+  komga_db:
+    # Local volume for Komga's SQLite databases.
+    # Mounted at /config/db on top of komga_config to avoid NFS file-locking issues.
+    driver: local
 
   komga_data:
     driver: local
