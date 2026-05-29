@@ -115,7 +115,7 @@ services:
       - downloads:/downloads
       - media:/data
     ports:
-      - 8080:8080
+      - 8079:8080
       - 8081:8081
       - 8083:8083
       - 8181:8181
