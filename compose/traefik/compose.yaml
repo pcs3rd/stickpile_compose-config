@@ -29,6 +29,7 @@ services:
       - "80:80"
       - "443:443"
       - "50300:50300"
+      - "8080:8080"
     volumes:
       - traefik_letsencrypt:/letsencrypt
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
