@@ -324,6 +324,7 @@ services:
       - TZ
       - KOMGA_DATABASE_FILE=/config/db/database.sqlite
       - KOMGA_DATABASE_TASKS_FILE=/config/db/tasks.sqlite
+      - KOMGA_TASKS_DB_CHECK_LOCAL_FILESYSTEM=false
     volumes:
       - komga_config:/config
       - komga_db:/config/db   # local volume — SQLite is unreliable over NFS
