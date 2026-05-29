@@ -65,9 +65,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.role == authentik  # Pin to node with local postgresql_data volume
       restart_policy:
         condition: on-failure
         delay: 5s

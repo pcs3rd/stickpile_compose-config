@@ -21,9 +21,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.role == seafile  # Pin to node with local seafile_db volume
       restart_policy:
         condition: on-failure
         delay: 5s

@@ -1,9 +1,3 @@
-# Node labels required before deploying this stack:
-#
-#   docker node update --label-add role=media     <node>  # jellyfin (local SQLite volume)
-#   docker node update --label-add intel.gpu=true <node>  # calibre, ersatztv, jellyfin, tdarr, tvheadend
-#
-# A single node can hold both labels if it has an Intel iGPU.
 
 services:
 
@@ -132,9 +126,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -241,9 +232,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -289,10 +277,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.role == media      # Pin to node with local jellyfin_db volume
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -680,9 +664,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -715,9 +696,6 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: vip
-      placement:
-        constraints:
-          - node.labels.intel.gpu == true  # Requires Intel iGPU for hardware transcoding
       restart_policy:
         condition: on-failure
         delay: 5s
