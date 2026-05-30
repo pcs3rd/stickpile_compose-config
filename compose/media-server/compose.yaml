@@ -729,13 +729,6 @@ volumes:
       o: "addr=${nfs_addr}"
       device: ":${nfs_downloads_share}"
 
-  games_data:
-    driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_media_share}/2111/games"
-
   media:
     driver: local
     driver_opts:
