@@ -63,7 +63,7 @@ services:
         - "traefik.http.services.grafana.loadbalancer.server.port=3000"
         - "traefik.http.routers.grafana.entrypoints=websecure"
         - "traefik.http.routers.grafana.tls.certresolver=httpsResolve"
-        - "traefik.http.routers.grafana.middlewares=bouncer@file"
+        - "traefik.http.routers.grafana.middlewares="
 
   loki:
     image: grafana/loki:3.6.10

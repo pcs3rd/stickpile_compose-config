@@ -288,7 +288,7 @@ services:
         - "traefik.http.routers.jf.entrypoints=websecure"
         - "traefik.http.routers.jf.tls.certresolver=httpsResolve"
         - "traefik.http.services.jf.loadbalancer.server.port=8096"
-        #- "traefik.http.routers.jf.middlewares=bouncer@file"
+        #- "traefik.http.routers.jf.middlewares="
 
   jellyseerr:
     image: seerr/seerr:v3.1.0
@@ -315,7 +315,7 @@ services:
         - "traefik.http.routers.js.entrypoints=websecure"
         - "traefik.http.routers.js.tls.certresolver=httpsResolve"
         - "traefik.http.services.js.loadbalancer.server.port=5055"
-        - "traefik.http.routers.js.middlewares=bouncer@file"
+        - "traefik.http.routers.js.middlewares="
 
   komga:
     image: ghcr.io/gotson/komga:1.24.3
@@ -348,7 +348,7 @@ services:
         - "traefik.http.routers.komga.entrypoints=websecure"
         - "traefik.http.routers.komga.tls.certresolver=httpsResolve"
         - "traefik.http.services.komga.loadbalancer.server.port=25600"
-        - "traefik.http.routers.komga.middlewares=bouncer@file"
+        - "traefik.http.routers.komga.middlewares="
 
   lidarr:
     image: lscr.io/linuxserver/lidarr:3.1.0
