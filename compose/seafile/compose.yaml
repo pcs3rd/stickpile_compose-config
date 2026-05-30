@@ -83,21 +83,21 @@ services:
         - "traefik.http.routers.seaf.tls.certresolver=httpsResolve"
         - "traefik.http.routers.seaf.service=seaf"
         - "traefik.http.services.seaf.loadbalancer.server.port=80"
-        - "traefik.http.routers.seaf.middlewares=bouncer@file"
+        - "traefik.http.routers.seaf.middlewares="
 
         - "traefik.http.routers.seafdav.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafdav`)"
         - "traefik.http.routers.seafdav.entrypoints=websecure"
         - "traefik.http.routers.seafdav.tls.certresolver=httpsResolve"
         - "traefik.http.routers.seafdav.service=seafdav"
         - "traefik.http.services.seafdav.loadbalancer.server.port=8076"
-        - "traefik.http.routers.seafdav.middlewares=bouncer@file"
+        - "traefik.http.routers.seafdav.middlewares="
 
         - "traefik.http.routers.seafhttp.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafhttp`)"
         - "traefik.http.routers.seafhttp.entrypoints=web"
         - "traefik.http.routers.seafhttp.tls.certresolver=httpsResolve"
         - "traefik.http.routers.seafhttp.service=seafhttp"
         - "traefik.http.services.seafhttp.loadbalancer.server.port=8082"
-        - "traefik.http.routers.seafhttp.middlewares=bouncer@file"
+        - "traefik.http.routers.seafhttp.middlewares="
 
 networks:
   internal:
