@@ -488,7 +488,7 @@ services:
     restart: on-failure
     network_mode: "service:qbtorrent"
     depends_on:
-      - wireguard
+      - qbtorrent
     environment:
       - PUID
       - PGID
