@@ -486,7 +486,7 @@ services:
   qbittorrent-bg:
     image: qbittorrentofficial/qbittorrent-nox:4.7.3
     restart: on-failure
-    network_mode: "service:wireguard"
+    network_mode: "service:qbtorrent"
     depends_on:
       - wireguard
     environment:
