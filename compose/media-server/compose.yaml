@@ -470,7 +470,6 @@ services:
       - OPENVPN_CUSTOM_CONFIG=/gluetun/custom.ovpn
       - OPENVPN_USER
       - OPENVPN_PASSWORD
-      - VPN_PORT_FORWARDING=on
       - TZ
     volumes:
       - /stateful/sys-data/vpn.ovpn:/gluetun/custom.ovpn:ro
