@@ -154,13 +154,13 @@ services:
   #   tmpfs:
   #     - /transcode
 
-  # flaresolverr: # broken by Cloudflare's recent anti-bot changes; awaiting upstream fix
-  #   image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
-  #   env_file:
-  #     - secrets.enc.env
-  #   networks:
-  #     - mediaserver
-  #   restart: on-failure
+  flaresolverr: # broken by Cloudflare's recent anti-bot changes; awaiting upstream fix
+    image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
+    env_file:
+      - secrets.enc.env
+    networks:
+      - mediaserver
+    restart: on-failure
 
 
   byparr:
