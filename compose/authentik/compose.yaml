@@ -3,6 +3,7 @@ services:
   authentik:
     image: ghcr.io/goauthentik/server:$AUTHENTIK_TAG
     command: server
+    restart: on-failure
     env_file:
       - secrets.enc.env
     environment:
@@ -24,27 +25,19 @@ services:
     networks:
       - authentik
       - traefik_backbone
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.authentik.rule=Host(`auth.stickpile.net`)"
-        - "traefik.http.services.authentik.loadbalancer.server.port=9000"
-        - "traefik.http.routers.authentik.entrypoints=websecure"
-        - "traefik.http.routers.authentik.tls.certresolver=httpsResolve"
-        - "traefik.http.routers.authentik-output-rtr.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAINNAME}`) && PathPrefix(`/outpost.goauthentik.io/`)"
-        - "traefik.http.routers.authentik-output-rtr.entrypoints=websecure"
-        - "traefik.http.routers.authentik-output-rtr.tls.certresolver=httpsResolve"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authentik.rule=Host(`auth.stickpile.net`)"
+      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+      - "traefik.http.routers.authentik.entrypoints=websecure"
+      - "traefik.http.routers.authentik.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.authentik-output-rtr.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAINNAME}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-output-rtr.entrypoints=websecure"
+      - "traefik.http.routers.authentik-output-rtr.tls.certresolver=httpsResolve"
 
   postgresql:
     image: docker.io/library/postgres:16-alpine
+    restart: on-failure
     env_file:
       - secrets.enc.env
     environment:
@@ -61,19 +54,11 @@ services:
       interval: 30s
       retries: 5
       timeout: 5s
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
 
   worker:
     image: ghcr.io/goauthentik/server:$AUTHENTIK_TAG
     command: worker
+    restart: on-failure
     user: root
     env_file:
       - secrets.enc.env
@@ -94,21 +79,11 @@ services:
     networks:
       - authentik
       - traefik_backbone
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
 
 networks:
   authentik:
     name: core-prod-authentik_Internal
-    driver: overlay
-    attachable: true
+    driver: bridge
   traefik_backbone: # For external containers.
     name: traefik_backbone
     external: true

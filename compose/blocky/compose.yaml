@@ -1,17 +1,16 @@
 services:
   blocky:
     image: spx01/blocky
+    restart: on-failure
 
     ports:
       - target: 53
         published: 53
         protocol: udp
-        mode: host
 
       - target: 53
         published: 53
         protocol: tcp
-        mode: host
 
     environment:
       - TZ
@@ -27,14 +26,3 @@ services:
 
     depends_on:
       - redis
-
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-
-    restart_policy:
-      condition: on-failure
-      delay: 5s
-      max_attempts: 3
-      window: 120s

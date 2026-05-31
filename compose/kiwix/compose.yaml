@@ -2,6 +2,7 @@ services:
 
   kiwix-server:
     image: ghcr.io/kiwix/kiwix-serve:latest
+    restart: on-failure
     env_file:
       - secrets.enc.env
     environment:
@@ -22,22 +23,13 @@ services:
       - kiwix_data:/data
     networks:
       - traefik_backbone
-    deploy:
-      mode: replicated
-      replicas: 2
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        #max_attempts: 3
-        window: 120s
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.kiwix.rule=Host(`archive.stickpile.net`)"
-        - "traefik.http.routers.kiwix.entrypoints=websecure"
-        - "traefik.http.routers.kiwix.tls.certresolver=httpsResolve"
-        - "traefik.http.services.kiwix.loadbalancer.server.port=8080"
-        - "traefik.http.routers.kiwix.middlewares=middlewares-authentik@file"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kiwix.rule=Host(`archive.stickpile.net`)"
+      - "traefik.http.routers.kiwix.entrypoints=websecure"
+      - "traefik.http.routers.kiwix.tls.certresolver=httpsResolve"
+      - "traefik.http.services.kiwix.loadbalancer.server.port=8080"
+      - "traefik.http.routers.kiwix.middlewares=middlewares-authentik@file"
 
 networks:
   traefik_backbone:

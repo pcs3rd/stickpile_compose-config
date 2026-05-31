@@ -1,11 +1,8 @@
-# Node labels required before deploying this stack:
-#
-#   docker node update --label-add role=seafile <node>  # db (local MariaDB volume)
-
 services:
 
   db:
     image: mariadb:10.11
+    restart: on-failure
     env_file:
       - secrets.enc.env
     environment:
@@ -17,33 +14,17 @@ services:
       - seafile_db:/var/lib/mysql  # local — MariaDB is unsafe over NFS
     networks:
       - internal
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        #max_attempts: 3
-        window: 120s
 
   memcached:
     image: memcached:1.6.18
+    restart: on-failure
     entrypoint: memcached -m 256
     networks:
       - internal
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        #max_attempts: 3
-        window: 120s
 
   seafile:
     image: seafileltd/seafile-mc:11.0-latest
+    restart: on-failure
     env_file:
       - secrets.enc.env
     environment:
@@ -67,43 +48,33 @@ services:
     networks:
       - internal
       - backbone
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        #max_attempts: 3
-        window: 120s
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.seaf.rule=Host(`seafile.stickpile.net`)"
-        - "traefik.http.routers.seaf.entrypoints=websecure"
-        - "traefik.http.routers.seaf.tls.certresolver=httpsResolve"
-        - "traefik.http.routers.seaf.service=seaf"
-        - "traefik.http.services.seaf.loadbalancer.server.port=80"
-        - "traefik.http.routers.seaf.middlewares="
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.seaf.rule=Host(`seafile.stickpile.net`)"
+      - "traefik.http.routers.seaf.entrypoints=websecure"
+      - "traefik.http.routers.seaf.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.seaf.service=seaf"
+      - "traefik.http.services.seaf.loadbalancer.server.port=80"
+      - "traefik.http.routers.seaf.middlewares="
 
-        - "traefik.http.routers.seafdav.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafdav`)"
-        - "traefik.http.routers.seafdav.entrypoints=websecure"
-        - "traefik.http.routers.seafdav.tls.certresolver=httpsResolve"
-        - "traefik.http.routers.seafdav.service=seafdav"
-        - "traefik.http.services.seafdav.loadbalancer.server.port=8076"
-        - "traefik.http.routers.seafdav.middlewares="
+      - "traefik.http.routers.seafdav.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafdav`)"
+      - "traefik.http.routers.seafdav.entrypoints=websecure"
+      - "traefik.http.routers.seafdav.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.seafdav.service=seafdav"
+      - "traefik.http.services.seafdav.loadbalancer.server.port=8076"
+      - "traefik.http.routers.seafdav.middlewares="
 
-        - "traefik.http.routers.seafhttp.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafhttp`)"
-        - "traefik.http.routers.seafhttp.entrypoints=web"
-        - "traefik.http.routers.seafhttp.tls.certresolver=httpsResolve"
-        - "traefik.http.routers.seafhttp.service=seafhttp"
-        - "traefik.http.services.seafhttp.loadbalancer.server.port=8082"
-        - "traefik.http.routers.seafhttp.middlewares="
+      - "traefik.http.routers.seafhttp.rule=Host(`seafile.stickpile.net`) && PathPrefix(`/seafhttp`)"
+      - "traefik.http.routers.seafhttp.entrypoints=web"
+      - "traefik.http.routers.seafhttp.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.seafhttp.service=seafhttp"
+      - "traefik.http.services.seafhttp.loadbalancer.server.port=8082"
+      - "traefik.http.routers.seafhttp.middlewares="
 
 networks:
   internal:
     name: web-prod-seafile_Internal
-    driver: overlay
-    attachable: true
+    driver: bridge
   backbone: # For external containers.
     name: traefik_backbone
     external: true
