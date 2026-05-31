@@ -238,21 +238,48 @@ services:
         max_attempts: 3
         window: 120s
 
-  flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
-    env_file:
-      - secrets.enc.env
+  # flaresolverr: # broken by Cloudflare's recent anti-bot changes; awaiting upstream fix
+  #   image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
+  #   env_file:
+  #     - secrets.enc.env
+  #   networks:
+  #     - mediaserver
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
+  #     endpoint_mode: vip
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       max_attempts: 3
+  #       window: 120s
+
+
+  byparr:
+    image: ghcr.io/thephaseless/byparr:latest
+    init: true
+    environment:
+      - HOST
+      - PORT
+      - USE_HEADLESS
+
     networks:
-      - mediaserver
+      - traefik-backbone
+
     deploy:
-      mode: replicated
       replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+
+      # labels: # Internal-only; not exposed to Traefik since this service is only used for its API by other services, not directly by users.
+      #   - traefik.enable=true
+      #   - traefik.docker.network=traefik-backbone
+
+      #   - traefik.http.routers.byparr.rule=Host(`byparr.stickpile.net`)
+      #   - traefik.http.routers.byparr.entrypoints=websecure
+      #   - traefik.http.routers.byparr.tls=true
+
+      #   - traefik.http.services.byparr.loadbalancer.server.port=8191
+
+
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:10.11.8
