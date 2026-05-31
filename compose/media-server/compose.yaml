@@ -489,9 +489,9 @@ services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     restart: on-failure
-    network_mode: "service:gluetun"
+    network_mode: "service:qbt"
     depends_on:
-      - gluetun
+      - qbt
     environment:
       - PUID
       - PGID
