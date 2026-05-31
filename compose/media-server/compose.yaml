@@ -457,22 +457,26 @@ services:
     networks:
       - mediaserver
 
-  qbtorrent:
-    image: lscr.io/linuxserver/wireguard:latest
+  qbt:
+    image: qmcgaw/gluetun:latest
     restart: on-failure
     cap_add:
       - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
     environment:
-      - PUID
-      - PGID
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=openvpn
+      - OPENVPN_CUSTOM_CONFIG=/gluetun/custom.ovpn
+      - OPENVPN_USER
+      - OPENVPN_PASSWORD
+      - VPN_PORT_FORWARDING=on
       - TZ
     volumes:
-      - /stateful/sys-data/wg:/config/wg_confs:ro
+      - /stateful/sys-data/vpn.ovpn:/gluetun/custom.ovpn:ro
     networks:
       - mediaserver
       - traefik_backbone
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.qbt.rule=Host(`qbt.stickpile.net`)"
@@ -482,18 +486,17 @@ services:
       - "traefik.http.routers.qbt.middlewares=middlewares-authentik@file"
 
 
-  qbittorrent-bg:
-    image: linuxserver/qbittorrent:5.2.1
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
     restart: on-failure
-    network_mode: "service:qbtorrent"
+    network_mode: "service:gluetun"
     depends_on:
-      - qbtorrent
+      - gluetun
     environment:
       - PUID
       - PGID
       - TZ
-      - QBT_EULA=y
-      - QBT_WEBUI_PORT=8080
+      - WEBUI_PORT=8080
     stop_grace_period: 30m
     tmpfs:
       - /tmp
