@@ -492,7 +492,7 @@ services:
       - QBT_VERSION
       - QBT_WEBUI_PORT
       - TZ
-    image: qbittorrentofficial/qbittorrent-nox:${QBT_VERSION}
+    image: qbittorrentofficial/qbittorrent-nox:4.7.3
     network_mode: service:wireguard
     read_only: true
     restart: unless-stopped
