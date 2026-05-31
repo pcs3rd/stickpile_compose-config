@@ -2,6 +2,7 @@ services:
 
   alloy:
     image: grafana/alloy:v1.15.0
+    restart: on-failure
     command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
     volumes:
       - ./config/config.alloy:/etc/alloy/config.alloy:ro
@@ -14,18 +15,10 @@ services:
     depends_on:
       loki:
         condition: service_healthy
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
 
   grafana:
     image: grafana/grafana-oss:12.4.2
+    restart: on-failure
     environment:
       - GF_SERVER_ROOT_URL
       - GF_AUTH_GENERIC_OAUTH_ENABLED
@@ -48,25 +41,17 @@ services:
     depends_on:
       loki:
         condition: service_healthy
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.grafana.rule=Host(`grafana.stickpile.net`)"
-        - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-        - "traefik.http.routers.grafana.entrypoints=websecure"
-        - "traefik.http.routers.grafana.tls.certresolver=httpsResolve"
-        - "traefik.http.routers.grafana.middlewares="
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.stickpile.net`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.grafana.middlewares="
 
   loki:
     image: grafana/loki:3.6.10
+    restart: on-failure
     command: -config.file=/etc/loki/config.yaml
     volumes:
       - ./config/loki.yaml:/etc/loki/config.yaml:ro
@@ -79,15 +64,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
 
   # promtail:
   #   image: grafana/promtail:3.6.10
@@ -101,17 +77,12 @@ services:
   #   depends_on:
   #     loki:
   #       condition: service_healthy
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
-  #     restart_policy:
-  #       condition: on-failure
+  #   restart: on-failure
 
 networks:
   monitoring:
     name: core-prod-monitoring_internal
-    driver: overlay
-    attachable: true
+    driver: bridge
   traefik_backbone:
     name: traefik_backbone
     external: true
