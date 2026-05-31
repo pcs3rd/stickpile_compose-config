@@ -457,45 +457,44 @@ services:
     networks:
       - mediaserver
 
-  wireguard:
-    image: linuxserver/wireguard
+  qbtorrent:
+    image: lscr.io/linuxserver/wireguard:latest
+    restart: on-failure
     cap_add:
       - NET_ADMIN
-      - SYS_MODULE
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Los_Angeles  # Change to your time zone
-    volumes:
-      - ./wg-config:/config
-      - /lib/modules:/lib/modules
-    ports:
-      - "127.0.0.1:8080:${QBT_WEBUI_PORT}"
-      - "[::1]:8080:${QBT_WEBUI_PORT}"
-      - "12345:12345/udp"  # Replace with your VPN's port-forwarding configuration
-      - "51820:51820/udp"  # Default Wireguard port
-    networks:
-      - wg-tunnel
-      - mediaserver
-      - traefik_backbone
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1  # Required for Wireguard container. See https://github.com/linuxserver/docker-wireguard
-      - net.ipv6.conf.all.disable_ipv6=0  # Required for IPv6 capability
-    restart: unless-stopped
-
-  qbittorrent-nox:
-    container_name: qbittorrent-nox
     environment:
       - PUID
       - PGID
-      - QBT_EULA
-      - QBT_VERSION
-      - QBT_WEBUI_PORT
       - TZ
+    volumes:
+      - /stateful/sys-data/wg:/config/wg_confs:ro
+    networks:
+      - mediaserver
+      - traefik_backbone
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qbt.rule=Host(`qbt.stickpile.net`)"
+      - "traefik.http.routers.qbt.entrypoints=websecure"
+      - "traefik.http.routers.qbt.tls.certresolver=httpsResolve"
+      - "traefik.http.services.qbt.loadbalancer.server.port=8080"
+      - "traefik.http.routers.qbt.middlewares=middlewares-authentik@file"
+
+  qbittorrent-bg:
     image: qbittorrentofficial/qbittorrent-nox:4.7.3
-    network_mode: service:wireguard
-    read_only: true
-    restart: unless-stopped
+    restart: on-failure
+    network_mode: "service:wireguard"
+    depends_on:
+      - wireguard
+    environment:
+      - PUID
+      - PGID
+      - TZ
+      - QBT_EULA=y
+      - QBT_WEBUI_PORT=8080
     stop_grace_period: 30m
     tmpfs:
       - /tmp
@@ -512,9 +511,6 @@ networks:
   traefik_backbone:
     name: traefik_backbone
     external: true
-  wg-tunnel:
-    name: web-prod-media-server_wg-tunnel
-    driver: bridge
 volumes:
   # ── Shared across services ─────────────────────────────────────────────────
 
