@@ -468,11 +468,10 @@ services:
       - VPN_SERVICE_PROVIDER=custom
       - VPN_TYPE=openvpn
       - OPENVPN_CUSTOM_CONFIG=/gluetun/custom.ovpn
-      - OPENVPN_USER
-      - OPENVPN_PASSWORD
       - TZ
     volumes:
       - /stateful/sys-data/vpn.ovpn:/gluetun/custom.ovpn:ro
+      - /stateful/sys-data/auth.txt:/gluetun/auth.txt:ro
     networks:
       - mediaserver
       - traefik_backbone
