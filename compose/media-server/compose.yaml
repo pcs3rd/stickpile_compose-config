@@ -46,65 +46,42 @@ services:
       - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
       - "traefik.http.routers.bazarr.middlewares=middlewares-authentik@file"
 
-  bliss_service:
-    image: romancin/bliss:latest
-    restart: on-failure
-    env_file:
-      - secrets.enc.env
-    environment:
-      - PUID
-      - PGID
-      - TZ
-    volumes:
-      - bliss_data:/config
-      - media:/storage
-    networks:
-      - traefik_backbone
-      - mediaserver
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.bliss.rule=Host(`tags.stickpile.net`)"
-      - "traefik.http.routers.bliss.entrypoints=websecure"
-      - "traefik.http.routers.bliss.tls.certresolver=httpsResolve"
-      - "traefik.http.services.bliss.loadbalancer.server.port=3220"
-      - "traefik.http.routers.bliss.middlewares=middlewares-authentik@file"
-
-  calibre:
-    image: lscr.io/linuxserver/calibre:latest
-    restart: on-failure
-    security_opt:
-      - seccomp:unconfined #optional
-    environment:
-      - PUID
-      - PGID
-      - TZ
-      - PASSWORD= #optional
-      - CLI_ARGS= #optional
-      - PIXELFLUX_WAYLAND=true
-      - DRINODE=/dev/dri/renderD128
-      - DRI_NODE=/dev/dri/renderD128
-    devices:
-      - /dev/dri:/dev/dri
-    volumes:
-      - calibre_data:/config
-      - downloads:/downloads
-      - media:/data
-    ports:
-      - 8079:8080
-      - 8081:8081
-      - 8083:8083
-      - 8181:8181
-    shm_size: "1gb"
-    networks:
-      - traefik_backbone
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.calibre.rule=Host(`calibre.stickpile.net`)"
-      - "traefik.http.routers.calibre.entrypoints=websecure"
-      - "traefik.http.routers.calibre.tls.certresolver=httpsResolve"
-      - "traefik.http.services.calibre.loadbalancer.server.port=8181"
-      - "traefik.http.services.calibre.loadbalancer.server.scheme=https"
-      - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file"
+  # calibre:
+  #   image: lscr.io/linuxserver/calibre:latest
+  #   restart: on-failure
+  #   security_opt:
+  #     - seccomp:unconfined #optional
+  #   environment:
+  #     - PUID
+  #     - PGID
+  #     - TZ
+  #     - PASSWORD= #optional
+  #     - CLI_ARGS= #optional
+  #     - PIXELFLUX_WAYLAND=true
+  #     - DRINODE=/dev/dri/renderD128
+  #     - DRI_NODE=/dev/dri/renderD128
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   volumes:
+  #     - calibre_data:/config
+  #     - downloads:/downloads
+  #     - media:/data
+  #   ports:
+  #     - 8079:8080
+  #     - 8081:8081
+  #     - 8083:8083
+  #     - 8181:8181
+  #   shm_size: "1gb"
+  #   networks:
+  #     - traefik_backbone
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.calibre.rule=Host(`calibre.stickpile.net`)"
+  #     - "traefik.http.routers.calibre.entrypoints=websecure"
+  #     - "traefik.http.routers.calibre.tls.certresolver=httpsResolve"
+  #     - "traefik.http.services.calibre.loadbalancer.server.port=8181"
+  #     - "traefik.http.services.calibre.loadbalancer.server.scheme=https"
+  #     - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file"
 
   chaptarr:
     image: robertlordhood/chaptarr:latest
@@ -128,54 +105,54 @@ services:
       - "traefik.http.services.readarr.loadbalancer.server.port=8789"
       - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
 
-  cleanuparr:
-    image: ghcr.io/cleanuparr/cleanuparr:latest
-    restart: on-failure
-    environment:
-      - PORT=11011
-      - BASE_PATH=
-      - PUID
-      - PGID
-      - UMASK
-      - TZ
-    volumes:
-      - cleanuparr_data:/config
-      - downloads:/downloads
-    ports:
-      - "11011:11011"
-    networks:
-      - traefik_backbone
-      - mediaserver
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.cl.rule=Host(`cleanup.stickpile.net`)"
-      - "traefik.http.routers.cl.entrypoints=websecure"
-      - "traefik.http.routers.cl.tls.certresolver=httpsResolve"
-      - "traefik.http.services.cl.loadbalancer.server.port=11011"
-      - "traefik.http.routers.cl.middlewares=middlewares-authentik@file"
+  # # cleanuparr:
+  # #   image: ghcr.io/cleanuparr/cleanuparr:latest
+  # #   restart: on-failure
+  # #   environment:
+  # #     - PORT=11011
+  # #     - BASE_PATH=
+  # #     - PUID
+  # #     - PGID
+  # #     - UMASK
+  # #     - TZ
+  # #   volumes:
+  # #     - cleanuparr_data:/config
+  # #     - downloads:/downloads
+  # #   ports:
+  # #     - "11011:11011"
+  # #   networks:
+  # #     - traefik_backbone
+  # #     - mediaserver
+  # #   healthcheck:
+  # #     test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
+  # #     interval: 30s
+  # #     timeout: 10s
+  # #     start_period: 30s
+  # #     retries: 3
+  # #   labels:
+  # #     - "traefik.enable=true"
+  # #     - "traefik.http.routers.cl.rule=Host(`cleanup.stickpile.net`)"
+  # #     - "traefik.http.routers.cl.entrypoints=websecure"
+  # #     - "traefik.http.routers.cl.tls.certresolver=httpsResolve"
+  # #     - "traefik.http.services.cl.loadbalancer.server.port=11011"
+  # #     - "traefik.http.routers.cl.middlewares=middlewares-authentik@file"
 
-  ersatztv:
-    image: ghcr.io/ersatztv/ersatztv
-    restart: on-failure
-    environment:
-      - TZ
-    devices:
-      - /dev/dri/renderD128:/dev/dri/renderD128
-    networks:
-      - mediaserver
-    ports:
-      - "8409:8409"
-    volumes:
-      - ersatztv_data:/config
-      - media:/media:ro
-    tmpfs:
-      - /transcode
+  # ersatztv:
+  #   image: ghcr.io/ersatztv/ersatztv
+  #   restart: on-failure
+  #   environment:
+  #     - TZ
+  #   devices:
+  #     - /dev/dri/renderD128:/dev/dri/renderD128
+  #   networks:
+  #     - mediaserver
+  #   ports:
+  #     - "8409:8409"
+  #   volumes:
+  #     - ersatztv_data:/config
+  #     - media:/media:ro
+  #   tmpfs:
+  #     - /transcode
 
   # flaresolverr: # broken by Cloudflare's recent anti-bot changes; awaiting upstream fix
   #   image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
@@ -196,7 +173,7 @@ services:
       - USE_HEADLESS
 
     networks:
-      - traefik_backbone
+      - mediaserver
 
     # labels: # Internal-only; not exposed to Traefik since this service is only used for its API by other services, not directly by users.
     #   - traefik.enable=true
@@ -237,7 +214,7 @@ services:
       #- "traefik.http.routers.jf.middlewares="
 
   jellyseerr:
-    image: seerr/seerr:v3.1.0
+    image: seerr/seerr:v3.2.0
     restart: on-failure
     user: "1000:1000"
     environment:
@@ -330,7 +307,7 @@ services:
 
 
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:2.3.0
+    image: lscr.io/linuxserver/prowlarr:2.3.5
     restart: on-failure
     environment:
       - PUID
@@ -350,7 +327,7 @@ services:
       - "traefik.http.routers.prowlarr.middlewares=middlewares-authentik@file"
 
   radarr:
-    image: lscr.io/linuxserver/radarr:6.0.4
+    image: lscr.io/linuxserver/radarr:6.1.1
     restart: on-failure
     environment:
       - PUID
@@ -373,7 +350,7 @@ services:
 
   rdtclient:
     # Real-Debrid torrent client
-    image: rogerfar/rdtclient:2.0.125
+    image: rogerfar/rdtclient:2.0.136
     restart: on-failure
     env_file:
       - secrets.enc.env
@@ -411,7 +388,7 @@ services:
   #   restart: on-failure
 
   slskd:
-    image: slskd/slskd:0.24.5
+    image: slskd/slskd:0.25.1
     restart: on-failure
     user: 911:911
     environment:
@@ -445,7 +422,7 @@ services:
       - "traefik.tcp.services.slsk-p2p.loadbalancer.server.port=50300"
 
   sonarr:
-    image: lscr.io/linuxserver/sonarr:4.0.16
+    image: lscr.io/linuxserver/sonarr:4.0.17
     restart: on-failure
     environment:
       - PUID
@@ -530,13 +507,6 @@ volumes:
       type: "nfs"
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/bazaar"
-
-  bliss_data:
-    driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/bliss"
 
   calibre_data:
     driver: local
