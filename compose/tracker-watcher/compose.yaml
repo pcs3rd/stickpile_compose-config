@@ -1,6 +1,6 @@
 services:
   tracker-watcher:
-    build: .
+    image: ghcr.io/pcs3rd/traiks:latest
     restart: unless-stopped
     environment:
       - DISCORD_TOKEN
