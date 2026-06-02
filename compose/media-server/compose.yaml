@@ -186,7 +186,7 @@ services:
     #   - traefik.http.services.byparr.loadbalancer.server.port=8191
 
   jellyfin:
-    image: lscr.io/linuxserver/jellyfin:10.11.8
+    image: lscr.io/linuxserver/jellyfin:10.11.10
     restart: on-failure
     environment:
       - PUID
