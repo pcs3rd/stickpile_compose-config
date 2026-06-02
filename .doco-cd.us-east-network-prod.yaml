@@ -15,13 +15,4 @@ compose_files:
   - compose.yaml
 env_files:
   - remote:secrets.enc.env
----
-name: tracker-watcher
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: compose/tracker-watcher
-compose_files:
-  - compose.yaml
-env_files:
-  - remote:secrets.enc.env
 
