@@ -471,6 +471,7 @@ services:
       - OPENVPN_USER
       - OPENVPN_PASSWORD
       - TZ
+      - FIREWALL_VPN_INPUT_PORTS
     volumes:
       - /stateful/sys-data/vpn.ovpn:/gluetun/custom.ovpn:ro
       - /stateful/sys-data/auth.txt:/gluetun/auth.txt:ro
