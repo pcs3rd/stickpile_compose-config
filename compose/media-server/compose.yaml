@@ -31,6 +31,8 @@ services:
       - PUID
       - PGID
       - TZ
+      - NZBGET_USER
+      - NZBGET_PASS
     volumes:
       - nzb_data:/config
       - downloads:/downloads
