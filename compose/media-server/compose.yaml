@@ -24,7 +24,21 @@ services:
       - "traefik.http.routers.ariang.tls.certresolver=httpsResolve"
       - "traefik.http.services.ariang.loadbalancer.server.port=8080"
       - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file"
-
+  nzbget:
+    image: lscr.io/linuxserver/nzbget:latest
+    container_name: nzbget
+    environment:
+      - PUID
+      - PGID
+      - TZ
+    volumes:
+      - nzb_data:/config
+      - downloads:/downloads
+    ports:
+      - 6789:6789
+    restart: unless-stopped
+    networks: 
+      mediaserver
   bazarr:
     image: lscr.io/linuxserver/bazarr:1.5.6
     restart: on-failure
@@ -711,3 +725,10 @@ volumes:
       type: "nfs"
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/tvheadend/data"
+
+  nzb_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr}"
+      device: ":${nfs_appdata_share}/nzbget/data"
