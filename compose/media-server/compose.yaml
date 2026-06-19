@@ -385,20 +385,20 @@ services:
       - "traefik.http.services.rdt.loadbalancer.server.port=6500"
       - "traefik.http.routers.rdt.middlewares=middlewares-authentik@file"
 
-  # rsoul:
-  #   image: ghcr.io/pcs3rd/rsoul:release.rate-limit-test
-  #   user: "1000:1000"
-  #   environment:
-  #     - PUID
-  #     - PGID
-  #     - TZ
-  #     - SCRIPT_INTERVAL=30 # Script interval in seconds
-  #   volumes:
-  #     - downloads:/downloads
-  #     - rsoul_data:/data
-  #   networks:
-  #     - mediaserver
-  #   restart: on-failure
+  rsoul:
+    image: ghcr.io/pcs3rd/rsoul:release.rate-limit-test
+    user: "1000:1000"
+    environment:
+      - PUID
+      - PGID
+      - TZ
+      - SCRIPT_INTERVAL=30 # Script interval in seconds
+    volumes:
+      - downloads:/downloads
+      - rsoul_data:/data
+    networks:
+      - mediaserver
+    restart: on-failure
 
   slskd:
     image: slskd/slskd:0.25.1
