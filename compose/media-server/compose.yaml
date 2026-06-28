@@ -49,6 +49,7 @@ services:
       - TZ
     volumes:
       - bazarr_data:/config
+      - bazarr_db:/config/db   # local volume — SQLite is unreliable over NFS
       - media:/storage
     networks:
       - traefik_backbone
@@ -234,6 +235,7 @@ services:
       - LOG_LEVEL
     volumes:
       - jellyseerr_data:/app/config
+      - jellyseerr_db:/app/config/db   # local volume — SQLite is unreliable over NFS
     networks:
       - traefik_backbone
       - mediaserver
@@ -415,6 +417,7 @@ services:
       - SLSKD_DOWNLOADS_DIR
     volumes:
       - slskd_data:/app:rw
+      - slskd_db:/app/data   # local volume — SQLite is unreliable over NFS
       - media:/media
       - downloads:/downloads
     ports:
@@ -576,6 +579,11 @@ volumes:
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/bazaar"
 
+  bazarr_db:
+    # Local volume for Bazarr's SQLite database (/config/db).
+    # Mounted on top of bazarr_data to avoid NFS file-locking issues.
+    driver: local
+
   calibre_data:
     driver: local
     driver_opts:
@@ -584,11 +592,8 @@ volumes:
       device: ":${nfs_appdata_share}/calibre/config"
 
   chaptarr_data:
+    # Local volume — keeps SQLite off NFS.
     driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/chaptarr"
 
   cleanuparr_data:
     driver: local
@@ -622,6 +627,11 @@ volumes:
       type: "nfs"
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/jellyseerr"
+
+  jellyseerr_db:
+    # Local volume for Jellyseerr's SQLite database (/app/config/db).
+    # Mounted on top of jellyseerr_data to avoid NFS file-locking issues.
+    driver: local
 
   komga_config:
     driver: local
@@ -657,32 +667,21 @@ volumes:
       device: ":${nfs_appdata_share}/lidarr-overlay/custom-services.d"
 
   lidarr_data:
+    # Local volume — keeps SQLite off NFS.
     driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/lidarr"
 
   prowlarr_data:
+    # Local volume — keeps SQLite off NFS.
     driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/prowlarr"
 
   radarr_data:
+    # Local volume — keeps SQLite off NFS.
     driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/radarr"
 
   rdtclient_data:
+    # Local volume for rdtclient's SQLite database (/data/db).
+    # The entire /data/db path is SQLite — no NFS needed here.
     driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/rdt-client"
 
   rsoul_data:
     driver: local
@@ -698,12 +697,14 @@ volumes:
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/slskd"
 
-  sonarr_data:
+  slskd_db:
+    # Local volume for slskd's SQLite database (/app/data).
+    # Mounted on top of slskd_data to avoid NFS file-locking issues.
     driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/sonarr"
+
+  sonarr_data:
+    # Local volume — keeps SQLite off NFS.
+    driver: local
 
   soularr_data:
     driver: local
