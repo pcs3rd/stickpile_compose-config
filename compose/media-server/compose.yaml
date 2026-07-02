@@ -459,21 +459,21 @@ services:
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
       - "traefik.http.routers.sonarr.middlewares=middlewares-authentik@file"
 
-  soularr:
-    image: mrusse08/soularr:latest
-    restart: on-failure
-    hostname: soularr
-    user: 911:911 # should be set to your UID and GID (via `id -u` and `id -g`)
-    env_file:
-      - secrets.enc.env
-    environment:
-      - TZ
-      - SCRIPT_INTERVAL=300 # Script interval in seconds
-    volumes:
-      - downloads:/downloads
-      - soularr_data:/data
-    networks:
-      - mediaserver
+  # soularr:
+  #   image: mrusse08/soularr:latest
+  #   restart: on-failure
+  #   hostname: soularr
+  #   user: 911:911 # should be set to your UID and GID (via `id -u` and `id -g`)
+  #   env_file:
+  #     - secrets.enc.env
+  #   environment:
+  #     - TZ
+  #     - SCRIPT_INTERVAL=300 # Script interval in seconds
+  #   volumes:
+  #     - downloads:/downloads
+  #     - soularr_data:/data
+  #   networks:
+  #     - mediaserver
 
   qbt:
     image: qmcgaw/gluetun:latest
