@@ -209,6 +209,7 @@ services:
       - PGID
       - TZ
       - JELLYFIN_PublishedServerUrl
+      - DOCKER_MODS=linuxserver/mods:jellyfin-opencl-intel
     volumes:
       - jellyfin_data:/config
       - jellyfin_db:/config/data  # local volume — SQLite is unreliable over NFS
