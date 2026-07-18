@@ -1,4 +1,3 @@
-
 services:
 
   ariang:
@@ -476,6 +475,39 @@ services:
     networks:
       - mediaserver
 
+  tvheadend:
+    image: lscr.io/linuxserver/tvheadend:latest
+    restart: on-failure
+    environment:
+      - PUID
+      - PGID
+      - TZ
+    volumes:
+      - tvheadend_data:/config
+      - media:/recordings
+    ports:
+      - 9981:9981
+      - 9982:9982
+    networks:
+      mediaserver:
+        priority: 1000   # keeps this network as the source of the container's default route
+      traefik_backbone: {}
+      tuner1_net:
+        ipv4_address: 192.168.187.163   # unused address in the .160/29 link; host itself holds .162
+      tuner2_net:
+        ipv4_address: 192.168.83.67     # unused address in the .64/29 link; host itself holds .66
+    # tuner1_net / tuner2_net are macvlan networks (defined below), each with a
+    # host RNDIS interface as parent — one per Hauppauge tuner, since a macvlan
+    # network can only bind to a single parent interface. This gives tvheadend
+    # a real IP on each tuner's link without needing network_mode: host.
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tvheadend.rule=Host(`tve.stickpile.net`)"
+      - "traefik.http.routers.tvheadend.entrypoints=websecure"
+      - "traefik.http.routers.tvheadend.tls.certresolver=httpsResolve"
+      - "traefik.http.services.tvheadend.loadbalancer.server.port=9981"
+      - "traefik.http.routers.tvheadend.middlewares=middlewares-authentik@file"
+
   qbt:
     image: qmcgaw/gluetun:latest
     restart: on-failure
@@ -533,6 +565,26 @@ networks:
   traefik_backbone:
     name: traefik_backbone
     external: true
+  tuner1_net:
+    driver: macvlan
+    driver_opts:
+      parent: enp0s7f7u2
+    ipam:
+      config:
+        - subnet: 192.168.187.160/29
+          # no gateway set on purpose: this is a private point-to-point link to
+          # the tuner (host already sits at .162), and omitting the gateway
+          # here stops Docker from ever considering this network for the
+          # container's default route — that's what was causing the wrong
+          # gateway before.
+  tuner2_net:
+    driver: macvlan
+    driver_opts:
+      parent: enp0s7f7u3
+    ipam:
+      config:
+        - subnet: 192.168.83.64/29
+          # same reasoning as tuner1_net — host already holds .66
 volumes:
   # ── Shared across services ─────────────────────────────────────────────────
 
@@ -719,7 +771,6 @@ volumes:
     driver_opts:
       type: "nfs"
       o: "addr=${nfs_addr}"
-      # Covers /app/server, /app/configs, and /app/logs as NFS subfolders
       device: ":${nfs_appdata_share}/tdarr"
 
   tvheadend_data:
