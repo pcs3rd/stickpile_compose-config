@@ -774,11 +774,8 @@ volumes:
       device: ":${nfs_appdata_share}/tdarr"
 
   tvheadend_data:
+    # Local volume — keeps SQLite off NFS.
     driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/tvheadend/data"
 
   nzb_data:
     driver: local

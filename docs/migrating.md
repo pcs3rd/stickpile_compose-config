@@ -263,7 +263,6 @@ docker run --rm \
 | `sonarr_data` | `$NFS_SHARE/appdata/sonarr` | `$OLD_BASE/sonarr` |
 | `soularr_data` | `$NFS_SHARE/appdata/soularr` | `$OLD_BASE/soularr` |
 | `tdarr_data` | `$NFS_SHARE/appdata/tdarr` | `$OLD_BASE/tdarr` |
-| `tvheadend_data` | `$NFS_SHARE/appdata/tvheadend/data` | `$OLD_BASE/tvheadend/data` |
 
 ```bash
 rsync -av --progress $OLD_BASE/aria2/          $NFS_SHARE/appdata/aria2/
