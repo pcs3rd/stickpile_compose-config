@@ -539,7 +539,7 @@ services:
 
 
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
+    image: lscr.io/linuxserver/qbittorrent:5.2.3
     restart: on-failure
     network_mode: "service:qbt"
     depends_on:
