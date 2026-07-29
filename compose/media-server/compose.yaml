@@ -483,6 +483,38 @@ services:
     networks:
       - mediaserver
 
+  unpackerr:
+    # Watches Sonarr/Radarr/Lidarr's download queues and extracts archives
+    # (rar/zip) in the shared downloads volume before each *arr app imports
+    # them. No web UI, so no Traefik labels/network needed.
+    image: golift/unpackerr
+    restart: on-failure
+    user: "${PUID}:${PGID}"
+    env_file:
+      - secrets.enc.env
+    environment:
+      - TZ
+      - UN_LOG_FILE=/downloads/unpackerr.log
+      - UN_SONARR_0_URL=http://sonarr:8989
+      - UN_SONARR_0_API_KEY
+      - UN_RADARR_0_URL=http://radarr:7878
+      - UN_RADARR_0_API_KEY
+      - UN_LIDARR_0_URL=http://lidarr:8686
+      - UN_LIDARR_0_API_KEY
+    volumes:
+      - downloads:/downloads
+    networks:
+      - mediaserver
+    # NOTE: UN_*_API_KEY values are NOT set via each app's own env vars —
+    # Sonarr/Radarr/Lidarr generate their API key internally (Settings >
+    # General in their web UI). Copy each one into secrets.enc.env under
+    # the matching UN_SONARR_0_API_KEY / UN_RADARR_0_API_KEY /
+    # UN_LIDARR_0_API_KEY name before deploying, or the container will start
+    # but silently fail to connect to that app.
+    # Chaptarr isn't included: Unpackerr only natively supports Sonarr,
+    # Radarr, Lidarr, and Readarr — chaptarr (a Readarr fork for audiobooks)
+    # isn't one of the four, so there's no UN_CHAPTARR_* variable for it.
+
   tvheadend:
     image: lscr.io/linuxserver/tvheadend:latest
     restart: on-failure
