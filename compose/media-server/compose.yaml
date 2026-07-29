@@ -37,7 +37,7 @@ services:
     # ports:
     #   - 6789:6789
     restart: unless-stopped
-    networks: 
+    networks:
       - mediaserver
       - traefik_backbone
     labels:
@@ -574,6 +574,11 @@ networks:
     name: traefik_backbone
     external: true
   tuner1_net:
+    name: zz-tuner1-net-nogw   # explicit name forces this to sort AFTER
+                                # web-prod-media-server_Internal and traefik_backbone
+                                # alphabetically, so it can never win the default
+                                # route even if `priority` isn't honored (lexical
+                                # sort fallback bug — see tuner2_net below for details).
     driver: macvlan
     driver_opts:
       parent: enp0s7f7u2
@@ -586,6 +591,20 @@ networks:
           # container's default route — that's what was causing the wrong
           # gateway before.
   tuner2_net:
+    name: zz-tuner2-net-nogw   # same fix as tuner1_net. Docker picks a
+                                # container's default route by network priority,
+                                # but falls back to alphabetical sort of the
+                                # *actual* Docker network name when priority
+                                # isn't supported/honored by the installed
+                                # Compose/engine version. mediaserver's real
+                                # name is "web-prod-media-server_Internal" (w...)
+                                # and traefik_backbone is "traefik_backbone" (t...);
+                                # without this override, these macvlan networks'
+                                # auto-generated project-prefixed names (m..., e.g.
+                                # media_server_tuner1_net) sorted BEFORE both, and
+                                # since they have no gateway, the container ended
+                                # up with no default route at all instead of
+                                # falling back to mediaserver.
     driver: macvlan
     driver_opts:
       parent: enp0s7f7u3
