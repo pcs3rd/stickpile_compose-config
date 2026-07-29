@@ -39,6 +39,7 @@ services:
     restart: unless-stopped
     networks: 
       - mediaserver
+      - traefik_backbone
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nzb.rule=Host(`nzb.stickpile.net`)"
