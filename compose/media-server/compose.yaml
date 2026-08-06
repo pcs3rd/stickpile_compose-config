@@ -137,6 +137,8 @@ services:
       - PGID
       - UMASK
       - TZ
+    ports:
+      - 11011:11011
     volumes:
       - cleanuparr_data:/config
       - downloads:/downloads
