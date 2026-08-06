@@ -128,37 +128,34 @@ services:
       - "traefik.http.services.readarr.loadbalancer.server.port=8789"
       - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
 
-  # # cleanuparr:
-  # #   image: ghcr.io/cleanuparr/cleanuparr:latest
-  # #   restart: on-failure
-  # #   environment:
-  # #     - PORT=11011
-  # #     - BASE_PATH=
-  # #     - PUID
-  # #     - PGID
-  # #     - UMASK
-  # #     - TZ
-  # #   volumes:
-  # #     - cleanuparr_data:/config
-  # #     - downloads:/downloads
-  # #   ports:
-  # #     - "11011:11011"
-  # #   networks:
-  # #     - traefik_backbone
-  # #     - mediaserver
-  # #   healthcheck:
-  # #     test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
-  # #     interval: 30s
-  # #     timeout: 10s
-  # #     start_period: 30s
-  # #     retries: 3
-  # #   labels:
-  # #     - "traefik.enable=true"
-  # #     - "traefik.http.routers.cl.rule=Host(`cleanup.stickpile.net`)"
-  # #     - "traefik.http.routers.cl.entrypoints=websecure"
-  # #     - "traefik.http.routers.cl.tls.certresolver=httpsResolve"
-  # #     - "traefik.http.services.cl.loadbalancer.server.port=11011"
-  # #     - "traefik.http.routers.cl.middlewares=middlewares-authentik@file"
+  cleanuparr:
+    image: ghcr.io/cleanuparr/cleanuparr:2.9.16
+    restart: on-failure
+    environment:
+      - PORT=11011
+      - PUID
+      - PGID
+      - UMASK
+      - TZ
+    volumes:
+      - cleanuparr_data:/config
+      - downloads:/downloads
+    networks:
+      - traefik_backbone
+      - mediaserver
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cl.rule=Host(`cu.stickpile.net`)"
+      - "traefik.http.routers.cl.entrypoints=websecure"
+      - "traefik.http.routers.cl.tls.certresolver=httpsResolve"
+      - "traefik.http.services.cl.loadbalancer.server.port=11011"
+      - "traefik.http.routers.cl.middlewares=middlewares-authentik@file"
 
   # ersatztv:
   #   image: ghcr.io/ersatztv/ersatztv
