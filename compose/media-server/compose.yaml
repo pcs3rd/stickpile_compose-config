@@ -151,11 +151,11 @@ services:
       retries: 3
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cl.rule=Host(`cu.stickpile.net`)"
-      - "traefik.http.routers.cl.entrypoints=websecure"
-      - "traefik.http.routers.cl.tls.certresolver=httpsResolve"
-      - "traefik.http.services.cl.loadbalancer.server.port=11011"
-      - "traefik.http.routers.cl.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.cu.rule=Host(`cu.stickpile.net`)"
+      - "traefik.http.routers.cu.entrypoints=websecure"
+      - "traefik.http.routers.cu.tls.certresolver=httpsResolve"
+      - "traefik.http.services.cu.loadbalancer.server.port=11011"
+      - "traefik.http.routers.cu.middlewares=middlewares-authentik@file"
 
   # ersatztv:
   #   image: ghcr.io/ersatztv/ersatztv
