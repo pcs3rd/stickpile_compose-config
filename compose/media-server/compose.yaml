@@ -900,3 +900,4 @@ volumes:
       type: "nfs"
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/nzbget/data"
+
