@@ -307,27 +307,27 @@ services:
       - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
       - "traefik.http.routers.lidarr.middlewares=middlewares-authentik@file"
 
-  metube:
-    image: ghcr.io/alexta69/metube:2026.03.08
-    restart: on-failure
-    env_file:
-      - secrets.enc.env
-    environment:
-      - PUID
-      - PGID
-      - TZ
-    volumes:
-      - metube_downloads:/downloads
-    networks:
-      - traefik_backbone
-      - mediaserver
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.metube.rule=Host(`metube.stickpile.net`)"
-      - "traefik.http.routers.metube.entrypoints=websecure"
-      - "traefik.http.routers.metube.tls.certresolver=httpsResolve"
-      - "traefik.http.services.metube.loadbalancer.server.port=8081"
-      - "traefik.http.routers.metube.middlewares=middlewares-authentik@file"
+  # metube:
+  #   image: ghcr.io/alexta69/metube:2026.03.08
+  #   restart: on-failure
+  #   env_file:
+  #     - secrets.enc.env
+  #   environment:
+  #     - PUID
+  #     - PGID
+  #     - TZ
+  #   volumes:
+  #     - metube_downloads:/downloads
+  #   networks:
+  #     - traefik_backbone
+  #     - mediaserver
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.metube.rule=Host(`metube.stickpile.net`)"
+  #     - "traefik.http.routers.metube.entrypoints=websecure"
+  #     - "traefik.http.routers.metube.tls.certresolver=httpsResolve"
+  #     - "traefik.http.services.metube.loadbalancer.server.port=8081"
+  #     - "traefik.http.routers.metube.middlewares=middlewares-authentik@file"
 
   # navidrome:
   #   # Subsonic-compatible music streaming server, reads media:/music read-only.
