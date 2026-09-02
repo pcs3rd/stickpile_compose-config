@@ -628,7 +628,7 @@ services:
       - "traefik.http.routers.qbt.middlewares=middlewares-authentik@file"
 
 
-  qbittorrent:
+  qbittorrent-server:
     image: lscr.io/linuxserver/qbittorrent:5.2.3
     restart: on-failure
     network_mode: "service:qbt"
