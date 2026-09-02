@@ -456,7 +456,7 @@ services:
   #     - rsoul_data:/data
   #   networks:
   #     - mediaserver
-    restart: on-failure
+  #  restart: on-failure
 
   slskd:
     image: slskd/slskd:0.25.1
@@ -600,7 +600,7 @@ services:
       - "traefik.http.routers.tvheadend.middlewares=middlewares-authentik@file"
 
   qbt:
-    image: qmcgaw/gluetun:latest
+    image: qmcgaw/gluetun:v3.41
     restart: on-failure
     cap_add:
       - NET_ADMIN
