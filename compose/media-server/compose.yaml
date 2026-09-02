@@ -443,18 +443,19 @@ services:
       - "traefik.http.services.rdt.loadbalancer.server.port=6500"
       - "traefik.http.routers.rdt.middlewares=middlewares-authentik@file"
 
-  rsoul:
-    image: ghcr.io/insanemal/rsoul:main
-    user: "${PUID}:${PGID}"
-    environment:
-      - PUID
-      - PGID
-      - TZ
-    volumes:
-      - downloads:/downloads
-      - rsoul_data:/data
-    networks:
-      - mediaserver
+  # Disabled: causes high CPU utilization.
+  # rsoul:
+  #   image: ghcr.io/insanemal/rsoul:main
+  #   user: "${PUID}:${PGID}"
+  #   environment:
+  #     - PUID
+  #     - PGID
+  #     - TZ
+  #   volumes:
+  #     - downloads:/downloads
+  #     - rsoul_data:/data
+  #   networks:
+  #     - mediaserver
     restart: on-failure
 
   slskd:
