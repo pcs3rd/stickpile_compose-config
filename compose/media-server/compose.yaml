@@ -444,13 +444,12 @@ services:
       - "traefik.http.routers.rdt.middlewares=middlewares-authentik@file"
 
   rsoul:
-    image: ghcr.io/pcs3rd/rsoul:release.rate-limit-test
+    image: ghcr.io/insanemal/rsoul:main
     user: "${PUID}:${PGID}"
     environment:
       - PUID
       - PGID
       - TZ
-      - SCRIPT_INTERVAL=30 # Script interval in seconds
     volumes:
       - downloads:/downloads
       - rsoul_data:/data
