@@ -107,12 +107,14 @@ services:
   #     - "traefik.http.routers.calibre.middlewares=middlewares-authentik@file"
 
   chaptarr:
-    image: robertlordhood/chaptarr:latest
+    image: chaptarr/chaptarr:0.9.936
     restart: on-failure
     environment:
       - PUID
       - PGID
       - TZ
+      - UMASK=002
+
     volumes:
       - chaptarr_data:/config
       - media:/storage
@@ -547,19 +549,22 @@ services:
       - UN_RADARR_0_API_KEY
       - UN_LIDARR_0_URL=http://lidarr:8686
       - UN_LIDARR_0_API_KEY
+      # Chaptarr is a Readarr fork with a Readarr-compatible API, so it's
+      # registered here as a Readarr instance — there's no UN_CHAPTARR_*
+      # variable, only UN_SONARR/RADARR/LIDARR/READARR.
+      - UN_READARR_0_URL=http://chaptarr:8789
+      - UN_READARR_0_API_KEY
     volumes:
       - downloads:/downloads
     networks:
       - mediaserver
     # NOTE: UN_*_API_KEY values are NOT set via each app's own env vars —
-    # Sonarr/Radarr/Lidarr generate their API key internally (Settings >
-    # General in their web UI). Copy each one into secrets.enc.env under
-    # the matching UN_SONARR_0_API_KEY / UN_RADARR_0_API_KEY /
-    # UN_LIDARR_0_API_KEY name before deploying, or the container will start
-    # but silently fail to connect to that app.
-    # Chaptarr isn't included: Unpackerr only natively supports Sonarr,
-    # Radarr, Lidarr, and Readarr — chaptarr (a Readarr fork for audiobooks)
-    # isn't one of the four, so there's no UN_CHAPTARR_* variable for it.
+    # Sonarr/Radarr/Lidarr/Chaptarr generate their API key internally
+    # (Settings > General in their web UI). Copy each one into
+    # secrets.enc.env under the matching UN_SONARR_0_API_KEY /
+    # UN_RADARR_0_API_KEY / UN_LIDARR_0_API_KEY / UN_READARR_0_API_KEY name
+    # before deploying, or the container will start but silently fail to
+    # connect to that app.
 
   tvheadend:
     image: lscr.io/linuxserver/tvheadend:latest
