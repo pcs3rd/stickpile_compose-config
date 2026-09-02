@@ -329,28 +329,28 @@ services:
       - "traefik.http.services.metube.loadbalancer.server.port=8081"
       - "traefik.http.routers.metube.middlewares=middlewares-authentik@file"
 
-  navidrome:
-    # Subsonic-compatible music streaming server, reads media:/music read-only.
-    image: deluan/navidrome:0.61.2
-    restart: on-failure
-    user: "${PUID}:${PGID}"
-    environment:
-      - TZ
-      - ND_LOGLEVEL=info
-    volumes:
-      - navidrome_data:/data
-      - media:/music:ro
-    networks:
-      - traefik_backbone
-      - mediaserver
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.navidrome.rule=Host(`music.stickpile.net`)"
-      - "traefik.http.routers.navidrome.entrypoints=websecure"
-      - "traefik.http.routers.navidrome.tls.certresolver=httpsResolve"
-      - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
-      # No authentik middleware — Subsonic-API mobile/desktop clients can't do
-      # the browser SSO redirect flow (same reasoning as jellyfin/jellyseerr/komga).
+  # navidrome:
+  #   # Subsonic-compatible music streaming server, reads media:/music read-only.
+  #   image: deluan/navidrome:0.61.2
+  #   restart: on-failure
+  #   user: "${PUID}:${PGID}"
+  #   environment:
+  #     - TZ
+  #     - ND_LOGLEVEL=info
+  #   volumes:
+  #     - navidrome_data:/data
+  #     - media:/music:ro
+  #   networks:
+  #     - traefik_backbone
+  #     - mediaserver
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.navidrome.rule=Host(`music.stickpile.net`)"
+  #     - "traefik.http.routers.navidrome.entrypoints=websecure"
+  #     - "traefik.http.routers.navidrome.tls.certresolver=httpsResolve"
+  #     - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
+  #     # No authentik middleware — Subsonic-API mobile/desktop clients can't do
+  #     # the browser SSO redirect flow (same reasoning as jellyfin/jellyseerr/komga).
 
 
   prowlarr:
@@ -373,29 +373,29 @@ services:
       - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
       - "traefik.http.routers.prowlarr.middlewares=middlewares-authentik@file"
 
-  questarr:
-    image: ghcr.io/doezer/questarr:v1.4.2
-    restart: unless-stopped
-    environment:
-      - SQLITE_DB_PATH=/app/data/sqlite.db
-    volumes:
-      - questarr_data:/app/data
-    networks:
-      - traefik_backbone
-      - mediaserver
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
-      interval: 30s
-      timeout: 10s
-      start_period: 40s
-      retries: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.questarr.rule=Host(`questarr.stickpile.net`)"
-      - "traefik.http.routers.questarr.entrypoints=websecure"
-      - "traefik.http.routers.questarr.tls.certresolver=httpsResolve"
-      - "traefik.http.services.questarr.loadbalancer.server.port=5000"
-      - "traefik.http.routers.questarr.middlewares=middlewares-authentik@file"
+  # questarr:
+  #   image: ghcr.io/doezer/questarr:v1.4.2
+  #   restart: unless-stopped
+  #   environment:
+  #     - SQLITE_DB_PATH=/app/data/sqlite.db
+  #   volumes:
+  #     - questarr_data:/app/data
+  #   networks:
+  #     - traefik_backbone
+  #     - mediaserver
+  #   healthcheck:
+  #     test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 40s
+  #     retries: 3
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.questarr.rule=Host(`questarr.stickpile.net`)"
+  #     - "traefik.http.routers.questarr.entrypoints=websecure"
+  #     - "traefik.http.routers.questarr.tls.certresolver=httpsResolve"
+  #     - "traefik.http.services.questarr.loadbalancer.server.port=5000"
+  #     - "traefik.http.routers.questarr.middlewares=middlewares-authentik@file"
 
   radarr:
     image: lscr.io/linuxserver/radarr:6.1.1
