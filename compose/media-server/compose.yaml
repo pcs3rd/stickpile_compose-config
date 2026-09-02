@@ -374,7 +374,7 @@ services:
       - "traefik.http.routers.prowlarr.middlewares=middlewares-authentik@file"
 
   questarr:
-    image: ghcr.io/doezer/questarr:1.4.2
+    image: ghcr.io/doezer/questarr:v1.4.2
     restart: unless-stopped
     environment:
       - SQLITE_DB_PATH=/app/data/sqlite.db
