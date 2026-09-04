@@ -229,7 +229,7 @@ services:
       - "traefik.http.routers.gonic.entrypoints=websecure"
       - "traefik.http.routers.gonic.tls.certresolver=httpsResolve"
       - "traefik.http.services.gonic.loadbalancer.server.port=80"
-      - "traefik.http.routers.gonic.middlewares="
+      #- "traefik.http.routers.gonic.middlewares="
       # No authentik middleware — Subsonic-API mobile/desktop clients can't do
       # the browser SSO redirect flow (same reasoning as jellyfin/jellyseerr/komga).
 
