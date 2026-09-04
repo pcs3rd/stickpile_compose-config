@@ -24,7 +24,7 @@ services:
       - "traefik.http.services.ariang.loadbalancer.server.port=8080"
       - "traefik.http.routers.ariang.middlewares=middlewares-authentik@file"
   nzbget:
-    image: lscr.io/linuxserver/nzbget:latest
+    image: lscr.io/linuxserver/nzbget:26.3.20260827
     environment:
       - PUID
       - PGID
@@ -188,7 +188,7 @@ services:
 
 
   byparr:
-    image: ghcr.io/thephaseless/byparr:latest
+    image: ghcr.io/thephaseless/byparr:080b0f9141658f305967996ea38af6ddd375bd6b-amd64
     restart: on-failure
     init: true
     environment:
@@ -515,21 +515,21 @@ services:
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
       - "traefik.http.routers.sonarr.middlewares=middlewares-authentik@file"
 
-  soularr:
-    image: mrusse08/soularr:latest
-    restart: on-failure
-    hostname: soularr
-    user: 911:911 # should be set to your UID and GID (via `id -u` and `id -g`)
-    env_file:
-      - secrets.enc.env
-    environment:
-      - TZ
-      - SCRIPT_INTERVAL=300 # Script interval in seconds
-    volumes:
-      - downloads:/downloads
-      - soularr_data:/data
-    networks:
-      - mediaserver
+  # soularr:
+  #   image: mrusse08/soularr:latest
+  #   restart: on-failure
+  #   hostname: soularr
+  #   user: 911:911 # should be set to your UID and GID (via `id -u` and `id -g`)
+  #   env_file:
+  #     - secrets.enc.env
+  #   environment:
+  #     - TZ
+  #     - SCRIPT_INTERVAL=300 # Script interval in seconds
+  #   volumes:
+  #     - downloads:/downloads
+  #     - soularr_data:/data
+  #   networks:
+  #     - mediaserver
 
   unpackerr:
     # Watches Sonarr/Radarr/Lidarr's download queues and extracts archives
@@ -567,7 +567,7 @@ services:
     # connect to that app.
 
   tvheadend:
-    image: lscr.io/linuxserver/tvheadend:latest
+    image: lscr.io/linuxserver/tvheadend:version-fcd987f0
     restart: on-failure
     environment:
       - PUID
