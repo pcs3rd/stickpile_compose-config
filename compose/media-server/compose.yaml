@@ -210,7 +210,10 @@ services:
     #   - traefik.http.services.byparr.loadbalancer.server.port=8191
 
   gonic:
-    # Subsonic-compatible music streaming server, reads media:/music read-only.
+    # Subsonic-compatible music streaming server. The whole `media` share is
+    # mounted (same as sonarr/radarr/lidarr/etc.) since Docker volumes can't
+    # mount a single subdirectory — GONIC_MUSIC_PATH points at the actual
+    # music subfolder within it so gonic doesn't ingest movies/TV as well.
     image: sentriz/gonic:v0.22.0
     restart: on-failure
     user: "${PUID}:${PGID}"
@@ -218,6 +221,7 @@ services:
       - secrets.enc.env
     environment:
       - TZ
+      - GONIC_MUSIC_PATH=/media/music
       - GONIC_SCAN_AT_START_ENABLED
       - GONIC_SCAN_WATCHER_ENABLED
       - GONIC_SCAN_INTERVAL
@@ -225,7 +229,7 @@ services:
       - gonic_data:/data
       - gonic_cache:/cache
       - gonic_playlists:/playlists
-      - media:/music:ro
+      - media:/media:ro
     networks:
       - traefik_backbone
       - mediaserver
