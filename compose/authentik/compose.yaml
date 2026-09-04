@@ -17,9 +17,9 @@ services:
       - authentik_templates:/templates
       - authentik_certs:/certs
       - authentik_blueprints:/blueprints
-    ports:
-      - 9000:9000
-      - 9443:9443
+    # ports:
+    #   - 9000:9000
+    #   - 9443:9443
     depends_on:
       - postgresql
     networks:
