@@ -444,19 +444,19 @@ services:
       - "traefik.http.routers.rdt.middlewares=middlewares-authentik@file"
 
   # Disabled: causes high CPU utilization.
-  # rsoul:
-  #   image: ghcr.io/insanemal/rsoul:main
-  #   user: "${PUID}:${PGID}"
-  #   environment:
-  #     - PUID
-  #     - PGID
-  #     - TZ
-  #   volumes:
-  #     - downloads:/downloads
-  #     - rsoul_data:/data
-  #   networks:
-  #     - mediaserver
-  #  restart: on-failure
+  rsoul:
+    image: ghcr.io/insanemal/rsoul:main
+    user: "${PUID}:${PGID}"
+    environment:
+      - PUID
+      - PGID
+      - TZ
+    volumes:
+      - downloads:/downloads
+      - rsoul_data:/data
+    networks:
+      - mediaserver
+    restart: on-failure
 
   slskd:
     image: slskd/slskd:0.25.1
