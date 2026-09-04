@@ -209,6 +209,30 @@ services:
 
     #   - traefik.http.services.byparr.loadbalancer.server.port=8191
 
+  gonic:
+    # Subsonic-compatible music streaming server, reads media:/music read-only.
+    image: sentriz/gonic:v0.22.0
+    restart: on-failure
+    user: "${PUID}:${PGID}"
+    environment:
+      - TZ
+    volumes:
+      - gonic_data:/data
+      - gonic_cache:/cache
+      - media:/music:ro
+    networks:
+      - traefik_backbone
+      - mediaserver
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gonic.rule=Host(`music.stickpile.net`)"
+      - "traefik.http.routers.gonic.entrypoints=websecure"
+      - "traefik.http.routers.gonic.tls.certresolver=httpsResolve"
+      - "traefik.http.services.gonic.loadbalancer.server.port=80"
+      - "traefik.http.routers.gonic.middlewares="
+      # No authentik middleware — Subsonic-API mobile/desktop clients can't do
+      # the browser SSO redirect flow (same reasoning as jellyfin/jellyseerr/komga).
+
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:10.11.11
     restart: on-failure
@@ -257,7 +281,7 @@ services:
       - "traefik.http.routers.js.middlewares="
 
   komga:
-    image: ghcr.io/gotson/komga:1.24.4
+    image: ghcr.io/gotson/komga:1.26.3
     restart: on-failure
     user: "911:911"
     environment:
@@ -771,6 +795,14 @@ volumes:
       type: "nfs"
       o: "addr=${nfs_addr}"
       device: ":${nfs_appdata_share}/ErsatzTV"
+
+  gonic_data:
+    # Local volume — keeps SQLite off NFS.
+    driver: local
+
+  gonic_cache:
+    # Local volume — transcode/cover cache, disposable.
+    driver: local
 
   jellyfin_data:
     driver: local
