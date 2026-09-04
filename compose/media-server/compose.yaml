@@ -214,11 +214,17 @@ services:
     image: sentriz/gonic:v0.22.0
     restart: on-failure
     user: "${PUID}:${PGID}"
+    env_file:
+      - secrets.enc.env
     environment:
       - TZ
+      - GONIC_SCAN_AT_START_ENABLED
+      - GONIC_SCAN_WATCHER_ENABLED
+      - GONIC_SCAN_INTERVAL
     volumes:
       - gonic_data:/data
       - gonic_cache:/cache
+      - gonic_playlists:/playlists
       - media:/music:ro
     networks:
       - traefik_backbone
@@ -803,6 +809,13 @@ volumes:
   gonic_cache:
     # Local volume — transcode/cover cache, disposable.
     driver: local
+
+  gonic_playlists:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr}"
+      device: ":${nfs_appdata_share}/gonic/playlists"
 
   jellyfin_data:
     driver: local
