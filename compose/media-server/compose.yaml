@@ -226,7 +226,7 @@ services:
       - GONIC_SCAN_WATCHER_ENABLED_a
       - GONIC_SCAN_INTERVAL_a
     volumes:
-      - gonic_data:/data
+      - gonic_data_a:/data
       - gonic_cache:/cache
       - gonic_playlists:/playlists
       - media:/media:ro
