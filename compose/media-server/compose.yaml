@@ -210,16 +210,13 @@ services:
     #   - traefik.http.services.byparr.loadbalancer.server.port=8191
 
   gonic_a:
-    # Subsonic-compatible music streaming server. The whole `media` share is
-    # mounted (same as sonarr/radarr/lidarr/etc.) since Docker volumes can't
-    # mount a single subdirectory — GONIC_MUSIC_PATH points at the actual
-    # music subfolder within it so gonic doesn't ingest movies/TV as well.
+
     image: sentriz/gonic:v0.22.0
     restart: on-failure
     user: "${PUID}:${PGID}"
-    env_file:
-      - secrets.enc.env
     environment:
+      - PUID
+      - PGID
       - TZ
       - GONIC_MUSIC_PATH
       - GONIC_SCAN_AT_START_ENABLED
