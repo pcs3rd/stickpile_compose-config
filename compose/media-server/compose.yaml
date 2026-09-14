@@ -221,10 +221,10 @@ services:
       - secrets.enc.env
     environment:
       - TZ
-      - GONIC_MUSIC_PATH_a
-      - GONIC_SCAN_AT_START_ENABLED_a
-      - GONIC_SCAN_WATCHER_ENABLED_a
-      - GONIC_SCAN_INTERVAL_a
+      - GONIC_MUSIC_PATH
+      - GONIC_SCAN_AT_START_ENABLED
+      - GONIC_SCAN_WATCHER_ENABLED
+      - GONIC_SCAN_INTERVAL
     volumes:
       - gonic_data:/data
       - gonic_cache:/cache
