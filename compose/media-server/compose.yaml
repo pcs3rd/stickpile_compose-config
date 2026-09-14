@@ -217,16 +217,16 @@ services:
     image: sentriz/gonic:v0.22.0
     restart: on-failure
     user: "${PUID}:${PGID}"
-    env_file:
-      - secrets.enc.env
     environment:
+      - PUID
+      - PGID
       - TZ
       - GONIC_MUSIC_PATH_a
       - GONIC_SCAN_AT_START_ENABLED_a
       - GONIC_SCAN_WATCHER_ENABLED_a
       - GONIC_SCAN_INTERVAL_a
     volumes:
-      - gonic_data_a:/data
+      - gonic_data:/data
       - gonic_cache:/cache
       - gonic_playlists:/playlists
       - media:/media:ro
