@@ -57,7 +57,8 @@ Setup:
 4. Devices must accept OpenWISP's SSH key (`/home/openwisp/.ssh/id_ed25519.pub` in the `openwisp_ssh` volume) or use credentials configured in OpenWISP.
 
 Notes: node state is a local volume (`tailscale_state`); do not reuse another stack's tailscale state dir. If `openvpn` is recreated, the containers that share its
-namespace are restarted with it (`depends_on ... restart: true`). `TAILSCALE_VERSION` and `TS_EXTRA_ARGS` can be overridden from `secrets.enc.env`.
+namespace are restarted with it (`depends_on ... restart: true`). `TAILSCALE_VERSION` and `TS_EXTRA_ARGS` can be overridden from `secrets.enc.env` (`TS_EXTRA_ARGS` defaults to `--advertise-tags=tag:openwisp`).
+If the log says `changing settings via 'tailscale up' requires mentioning all non-default flags`, the saved node state has settings (usually tags) that the container's flags don't repeat: fix `TS_EXTRA_ARGS`, or stop the stack and delete the `tailscale_state` volume to re-authenticate from scratch.
 
 ### Troubleshooting
 - Login/POST fails with a CSRF error: nginx is probably not forwarding `X-Forwarded-Proto: https` from Traefik.

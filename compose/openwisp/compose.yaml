@@ -259,7 +259,7 @@ services:
       TS_STATE_DIR: /var/lib/tailscale
       TS_USERSPACE: "false"                     # kernel mode so tailscale0 exists in the shared namespace
       TS_ACCEPT_DNS: "false"
-      TS_EXTRA_ARGS: ${TS_EXTRA_ARGS:-}
+      TS_EXTRA_ARGS: ${TS_EXTRA_ARGS:---advertise-tags=tag:openwisp}   # must match the tags saved in tailscale_state, or `tailscale up` refuses to start
     volumes:
       - tailscale_state:/var/lib/tailscale
     devices:
