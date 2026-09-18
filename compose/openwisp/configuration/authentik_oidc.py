@@ -24,9 +24,23 @@ def _emails(sociallogin):
     return emails
 
 
+def _claims(sociallogin):
+    """OIDC claims for this login as one flat dict.
+
+    allauth >= 65.11 stores extra_data as {"userinfo": {...}, "id_token": {...}} (userinfo wins on
+    conflicts); older versions stored the claims flat.
+    """
+    data = sociallogin.account.extra_data or {}
+    merged = {}
+    for key in ("id_token", "userinfo"):
+        if isinstance(data.get(key), dict):
+            merged.update(data[key])
+    return merged or dict(data)
+
+
 def _in_admin_group(sociallogin):
     group = getattr(settings, "AUTHENTIK_ADMIN_GROUP", "openwisp-admins")
-    groups = (sociallogin.account.extra_data or {}).get("groups") or []
+    groups = _claims(sociallogin).get("groups") or []
     if isinstance(groups, str):
         groups = [groups]
     return group in groups
@@ -51,7 +65,7 @@ class AuthentikAdapter(DefaultSocialAccountAdapter):
         # Printed to stderr (shows up in the dashboard container logs) so a closed signup is explainable.
         who = sorted(_emails(sociallogin)) or ["<no email in claims>"]
         if not _in_admin_group(sociallogin):
-            claims = sociallogin.account.extra_data or {}
+            claims = _claims(sociallogin)
             print(
                 "[oidc] signup closed for %s: not in group %r; groups claim=%r; claims present=%s"
                 % (who, getattr(settings, "AUTHENTIK_ADMIN_GROUP", "openwisp-admins"),
