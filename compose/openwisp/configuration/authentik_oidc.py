@@ -10,6 +10,8 @@ Group membership comes from the "groups" claim (Authentik's default `profile` sc
 It is only checked when an account is created; removing someone from the group later does NOT
 demote or deactivate their OpenWISP account.
 """
+import sys
+
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -46,11 +48,28 @@ class AuthentikAdapter(DefaultSocialAccountAdapter):
         # No unique staff match: allauth falls through to signup (see is_open_for_signup).
 
     def is_open_for_signup(self, request, sociallogin):
+        # Printed to stderr (shows up in the dashboard container logs) so a closed signup is explainable.
+        who = sorted(_emails(sociallogin)) or ["<no email in claims>"]
         if not _in_admin_group(sociallogin):
+            claims = sociallogin.account.extra_data or {}
+            print(
+                "[oidc] signup closed for %s: not in group %r; groups claim=%r; claims present=%s"
+                % (who, getattr(settings, "AUTHENTIK_ADMIN_GROUP", "openwisp-admins"),
+                   claims.get("groups"), sorted(claims)),
+                file=sys.stderr,
+            )
             return False
         # Never create a second account for an email that is already in use.
         User = get_user_model()
-        return not any(User.objects.filter(email__iexact=e).exists() for e in _emails(sociallogin))
+        taken = [e for e in _emails(sociallogin) if User.objects.filter(email__iexact=e).exists()]
+        if taken:
+            print(
+                "[oidc] signup closed for %s: an OpenWISP account already uses that email but is not "
+                "an active staff user (or several accounts share it), so it was not linked" % (taken,),
+                file=sys.stderr,
+            )
+            return False
+        return True
 
     def save_user(self, request, sociallogin, form=None):
         user = super().save_user(request, sociallogin, form)
