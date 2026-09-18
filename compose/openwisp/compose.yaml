@@ -1,0 +1,328 @@
+# OpenWISP — network controller / monitoring / RADIUS / management VPN for OpenWrt devices.
+# https://openwisp.org  |  Adapted from upstream docker-openwisp 25.10.4 (docker-compose.yml).
+#
+# Differences from upstream:
+#   - TLS is terminated by Traefik. nginx runs with SSL_CERT_MODE=External (plain HTTP on :80).
+#   - Databases / state live on local volumes; uploaded files (media, private) live on NFS.
+#   - No .env file. Everything is set below; secrets come from secrets.enc.env via doco-cd
+#     interpolation (see readme.md for the variables that file must contain).
+#   - Only host ports published: 1194/udp (VPN), 1812+1813/udp (RADIUS). Web goes through Traefik.
+
+x-openwisp-env: &openwisp-env
+  # ── Domains ────────────────────────────────────────────────────────────────
+  DASHBOARD_DOMAIN: wisp.stickpile.net
+  API_DOMAIN: wisp-api.stickpile.net
+  VPN_DOMAIN: wisp-vpn.stickpile.net          # DNS-only, must NOT be proxied: UDP 1194 goes straight to this host
+  DJANGO_CORS_HOSTS: https://wisp.stickpile.net,https://wisp-api.stickpile.net
+  SSL_CERT_MODE: External                     # Traefik handles HTTPS
+
+  # ── Secrets (from secrets.enc.env) ─────────────────────────────────────────
+  DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+  DB_USER: ${DB_USER}
+  DB_PASS: ${DB_PASS}
+  INFLUXDB_USER: ${INFLUXDB_USER}
+  INFLUXDB_PASS: ${INFLUXDB_PASS}
+
+  # ── Backing services ───────────────────────────────────────────────────────
+  DB_NAME: openwisp
+  INFLUXDB_NAME: openwisp
+
+  # ── Modules ────────────────────────────────────────────────────────────────
+  USE_OPENWISP_RADIUS: "True"
+  USE_OPENWISP_TOPOLOGY: "True"
+  USE_OPENWISP_FIRMWARE: "True"
+  USE_OPENWISP_MONITORING: "True"
+
+  # ── General ────────────────────────────────────────────────────────────────
+  TZ: America/New_York
+  DJANGO_LANGUAGE_CODE: en-us
+  DJANGO_LOG_LEVEL: INFO
+  DEBUG_MODE: "False"
+  DEV_MODE: "False"
+  METRIC_COLLECTION: "False"                  # opt out of anonymous usage reporting to OpenWISP
+  OPENWISP_GEOCODING_CHECK: "True"
+  COLLECTSTATIC_WHEN_DEPS_CHANGE: "true"
+  EMAIL_DJANGO_DEFAULT: wisp@stickpile.net
+  SSH_PRIVATE_KEY_PATH: /home/openwisp/.ssh/id_ed25519
+  SSH_PUBLIC_KEY_PATH: /home/openwisp/.ssh/id_ed25519.pub
+
+  # ── uWSGI ──────────────────────────────────────────────────────────────────
+  UWSGI_PROCESSES: 2
+  UWSGI_THREADS: 2
+  UWSGI_LISTEN: 100
+
+  # ── Authentik OIDC login for the admin (see configuration/custom_django_settings.py) ──
+  # Disabled until OIDC_CLIENT_ID / OIDC_CLIENT_SECRET are set in secrets.enc.env.
+  OIDC_SERVER_URL: https://auth.stickpile.net/application/o/openwisp   # no trailing slash: allauth appends /.well-known/openid-configuration
+  OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+  OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+
+  # ── RADIUS: which source addresses may call the freeradius API endpoints ──
+  OPENWISP_RADIUS_FREERADIUS_ALLOWED_HOSTS: ${OPENWISP_SUBNET:-172.29.240.0/24}
+
+  # ── X509 subject for the generated CA / VPN certs (cosmetic; override in secrets.enc.env) ──
+  X509_NAME_CA: default
+  X509_NAME_CERT: default
+  X509_COUNTRY_CODE: ${X509_COUNTRY_CODE:-US}
+  X509_STATE: ${X509_STATE:-State}
+  X509_CITY: ${X509_CITY:-City}
+  X509_ORGANIZATION_NAME: Stickpile
+  X509_ORGANIZATION_UNIT_NAME: Stickpile
+  X509_EMAIL: wisp@stickpile.net
+  X509_COMMON_NAME: Stickpile OpenWISP
+  VPN_NAME: default
+  VPN_CLIENT_NAME: default-management-vpn
+
+  # ── Celery ─────────────────────────────────────────────────────────────────
+  USE_OPENWISP_CELERY_TASK_ROUTES_DEFAULTS: "True"
+  OPENWISP_CELERY_COMMAND_FLAGS: --concurrency=1
+  USE_OPENWISP_CELERY_NETWORK: "True"
+  OPENWISP_CELERY_NETWORK_COMMAND_FLAGS: --concurrency=1
+  USE_OPENWISP_CELERY_MONITORING: "True"
+  OPENWISP_CELERY_MONITORING_COMMAND_FLAGS: --concurrency=1
+  OPENWISP_CELERY_MONITORING_CHECKS_COMMAND_FLAGS: --concurrency=1
+  USE_OPENWISP_CELERY_FIRMWARE: "True"
+  OPENWISP_CELERY_FIRMWARE_COMMAND_FLAGS: --concurrency=1
+
+x-celery-depends-on: &celery-depends-on
+  postgres:
+    condition: service_started
+  redis:
+    condition: service_started
+  dashboard:
+    condition: service_started
+  openvpn:
+    condition: service_healthy
+
+services:
+
+  # ── Django apps ─────────────────────────────────────────────────────────────
+
+  dashboard:
+    image: openwisp/openwisp-dashboard:${OPENWISP_VERSION:-25.10.4}
+    restart: unless-stopped
+    environment: *openwisp-env
+    volumes:
+      - openwisp_static:/opt/openwisp/static
+      - openwisp_media:/opt/openwisp/media
+      - openwisp_private_storage:/opt/openwisp/private
+      - openwisp_ssh:/home/openwisp/.ssh
+      - influxdb_data:/var/lib/influxdb
+      - ./configuration:/opt/openwisp/openwisp/configuration:ro
+    depends_on:
+      - postgres
+      - redis
+      - postfix
+      - influxdb
+
+  api:
+    image: openwisp/openwisp-api:${OPENWISP_VERSION:-25.10.4}
+    restart: unless-stopped
+    environment: *openwisp-env
+    volumes:
+      - ./configuration:/opt/openwisp/openwisp/configuration:ro
+      - influxdb_data:/var/lib/influxdb
+      - openwisp_media:/opt/openwisp/media
+      - openwisp_private_storage:/opt/openwisp/private
+    depends_on:
+      - postgres
+      - redis
+      - dashboard
+
+  websocket:
+    image: openwisp/openwisp-websocket:${OPENWISP_VERSION:-25.10.4}
+    restart: unless-stopped
+    environment: *openwisp-env
+    volumes:
+      - ./configuration:/opt/openwisp/openwisp/configuration:ro
+    depends_on:
+      - dashboard
+
+  # ── Celery workers ──────────────────────────────────────────────────────────
+  # celery + celery_monitoring share openvpn's network namespace so they can reach
+  # devices over the management VPN (SSH, checks, firmware upgrades).
+
+  celery:
+    image: openwisp/openwisp-dashboard:${OPENWISP_VERSION:-25.10.4}
+    restart: unless-stopped
+    network_mode: service:openvpn
+    environment:
+      <<: *openwisp-env
+      MODULE_NAME: celery
+    volumes:
+      - ./configuration:/opt/openwisp/openwisp/configuration:ro
+      - openwisp_media:/opt/openwisp/media
+      - openwisp_private_storage:/opt/openwisp/private
+      - openwisp_ssh:/home/openwisp/.ssh
+    depends_on: *celery-depends-on
+
+  celery_monitoring:
+    image: openwisp/openwisp-dashboard:${OPENWISP_VERSION:-25.10.4}
+    restart: unless-stopped
+    network_mode: service:openvpn
+    environment:
+      <<: *openwisp-env
+      MODULE_NAME: celery_monitoring
+    volumes:
+      - ./configuration:/opt/openwisp/openwisp/configuration:ro
+      - openwisp_media:/opt/openwisp/media
+      - openwisp_private_storage:/opt/openwisp/private
+    depends_on: *celery-depends-on
+
+  celerybeat:
+    image: openwisp/openwisp-dashboard:${OPENWISP_VERSION:-25.10.4}
+    restart: unless-stopped
+    environment:
+      <<: *openwisp-env
+      MODULE_NAME: celerybeat
+    volumes:
+      - ./configuration:/opt/openwisp/openwisp/configuration:ro
+    depends_on:
+      - postgres
+      - redis
+      - dashboard
+
+  # ── Edge ────────────────────────────────────────────────────────────────────
+
+  nginx:
+    image: openwisp/openwisp-nginx:${OPENWISP_VERSION:-25.10.4}
+    restart: unless-stopped
+    environment: *openwisp-env
+    volumes:
+      - openwisp_static:/opt/openwisp/public/static:ro
+      - openwisp_media:/opt/openwisp/public/media:ro
+      - openwisp_private_storage:/opt/openwisp/public/private:ro
+      - openwisp_certs:/etc/letsencrypt
+    depends_on:
+      - dashboard
+      - api
+      - websocket
+    networks:
+      default:
+        aliases:
+          - dashboard.internal
+          - api.internal
+      traefik_backbone: {}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_backbone"
+      - "traefik.http.routers.openwisp.rule=Host(`wisp.stickpile.net`) || Host(`wisp-api.stickpile.net`)"
+      - "traefik.http.routers.openwisp.entrypoints=websecure"
+      - "traefik.http.routers.openwisp.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.openwisp.service=openwisp"
+      - "traefik.http.services.openwisp.loadbalancer.server.port=80"
+
+  freeradius:
+    image: openwisp/openwisp-freeradius:${OPENWISP_VERSION:-25.10.4}
+    restart: unless-stopped
+    environment: *openwisp-env
+    ports:
+      - "1812:1812/udp"
+      - "1813:1813/udp"
+    depends_on:
+      - postgres
+      - api
+      - dashboard
+
+  openvpn:
+    image: openwisp/openwisp-openvpn:${OPENWISP_VERSION:-25.10.4}
+    restart: on-failure
+    environment: *openwisp-env
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "1194:1194/udp"
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "openvpn"]
+      interval: 30s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+
+  postfix:
+    image: openwisp/openwisp-postfix:${OPENWISP_VERSION:-25.10.4}
+    restart: unless-stopped
+    environment:
+      POSTFIX_ALLOWED_SENDER_DOMAINS: stickpile.net
+      POSTFIX_MYHOSTNAME: wisp.stickpile.net
+    volumes:
+      - openwisp_certs:/etc/ssl/mail
+
+  # ── Data stores ─────────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgis/postgis:15-3.4-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: openwisp
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      TZ: America/New_York
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # local — PostgreSQL is unsafe over NFS
+
+  influxdb:
+    image: influxdb:1.8-alpine
+    restart: unless-stopped
+    environment:
+      INFLUXDB_DB: openwisp
+      INFLUXDB_USER: ${INFLUXDB_USER}
+      INFLUXDB_USER_PASSWORD: ${INFLUXDB_PASS}
+    volumes:
+      - influxdb_data:/var/lib/influxdb         # local — time-series DB, unsafe over NFS
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+networks:
+  default:
+    name: web-prod-openwisp_Internal
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${OPENWISP_SUBNET:-172.29.240.0/24}
+  traefik_backbone: # For external containers.
+    name: traefik_backbone
+    external: true
+
+volumes:
+  # ── Local volumes ───────────────────────────────────────────────────────────
+
+  postgres_data:
+    driver: local
+  influxdb_data:
+    driver: local
+  redis_data:
+    driver: local
+  openwisp_ssh:
+    # Generated SSH keypair used to reach devices over the management VPN. Needs 0600 perms — keep off NFS.
+    driver: local
+  openwisp_static:
+    # Rebuilt by collectstatic on start.
+    driver: local
+  openwisp_certs:
+    driver: local
+
+  # ── NFS volumes ─────────────────────────────────────────────────────────────
+  # The export directories must already exist on the NFS server before first deploy.
+
+  openwisp_media:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr}"
+      device: ":${nfs_appdata_share}/openwisp/media"
+
+  openwisp_private_storage:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr}"
+      device: ":${nfs_appdata_share}/openwisp/private"
