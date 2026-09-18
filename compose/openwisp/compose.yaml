@@ -94,6 +94,7 @@ x-celery-depends-on: &celery-depends-on
     condition: service_started
   openvpn:
     condition: service_healthy
+    restart: true   # celery shares openvpn's network namespace; restart it if openvpn is recreated
 
 services:
 
@@ -244,6 +245,32 @@ services:
       retries: 30
       start_period: 90s
 
+  # ── Tailscale sidecar ───────────────────────────────────────────────────────
+  # Joins openvpn's network namespace, so celery + celery_monitoring (which share it) can reach devices
+  # at their tailnet 100.x addresses (SSH, checks, firmware upgrades) as well as over the management VPN.
+  # Devices should report tailscale0 as their management interface (see readme.md).
+  tailscale:
+    image: tailscale/tailscale:${TAILSCALE_VERSION:-v1.102.4}
+    restart: unless-stopped
+    network_mode: service:openvpn
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY:-}               # tagged auth key (e.g. tag:openwisp), see readme.md
+      TS_HOSTNAME: openwisp
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "false"                     # kernel mode so tailscale0 exists in the shared namespace
+      TS_ACCEPT_DNS: "false"
+      TS_EXTRA_ARGS: ${TS_EXTRA_ARGS:-}
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      openvpn:
+        condition: service_healthy
+        restart: true
+
   postfix:
     image: openwisp/openwisp-postfix:${OPENWISP_VERSION:-25.10.4}
     restart: unless-stopped
@@ -309,6 +336,9 @@ volumes:
     # Rebuilt by collectstatic on start.
     driver: local
   openwisp_certs:
+    driver: local
+  tailscale_state:
+    # Node identity. Keep it local: sharing one state dir between two nodes (e.g. the blocky stack's) breaks both.
     driver: local
 
   # ── NFS volumes ─────────────────────────────────────────────────────────────

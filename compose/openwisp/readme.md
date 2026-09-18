@@ -44,6 +44,21 @@ Users and access (group `openwisp-admins` in Authentik, name set by `OIDC_ADMIN_
 - `settings.py` swallows `ImportError` from the custom settings, so failures are silent. Look for `[oidc]` in the container logs.
 - `allauth.socialaccount` may need database migrations on first start; the dashboard container runs them at boot.
 
+### Tailscale sidecar (device management)
+The `tailscale` container joins the **openvpn** container's network namespace. `celery` and `celery_monitoring` already share it, so the
+workers that SSH into devices, run checks and push firmware can reach devices at their `100.x` tailnet addresses as well as over the management VPN.
+The web containers are not on the tailnet.
+
+Setup:
+1. Tailnet policy: define `tag:openwisp` in `tagOwners`, and allow `tag:openwisp` to reach your devices on `tcp:22` (and ICMP if you use ping checks).
+2. Tailscale admin > Settings > Keys: create an auth key that applies `tag:openwisp` (non-ephemeral). Put it in `secrets.enc.env` as `TS_AUTHKEY`.
+   Without a key the container prints a login URL in its logs instead.
+3. On each device, join the tailnet and set the OpenWISP agent's `management_interface` to `tailscale0` so the `management_ip` OpenWISP stores is the tailnet address.
+4. Devices must accept OpenWISP's SSH key (`/home/openwisp/.ssh/id_ed25519.pub` in the `openwisp_ssh` volume) or use credentials configured in OpenWISP.
+
+Notes: node state is a local volume (`tailscale_state`); do not reuse another stack's tailscale state dir. If `openvpn` is recreated, the containers that share its
+namespace are restarted with it (`depends_on ... restart: true`). `TAILSCALE_VERSION` and `TS_EXTRA_ARGS` can be overridden from `secrets.enc.env`.
+
 ### Troubleshooting
 - Login/POST fails with a CSRF error: nginx is probably not forwarding `X-Forwarded-Proto: https` from Traefik.
 - Postfix sends directly from this host; set up a relay if mail gets rejected.

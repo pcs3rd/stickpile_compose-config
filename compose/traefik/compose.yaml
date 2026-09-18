@@ -51,6 +51,35 @@ services:
     #   retries: 3
     #   start_period: 5s
 
+  # WebFinger for Tailscale "sign in with custom OIDC provider" (Authentik).
+  # Tailscale asks https://stickpile.net/.well-known/webfinger?resource=acct:<you>@stickpile.net and follows the
+  # issuer link. The subject is fixed; the issuer must be the Authentik application (slug) created for Tailscale.
+  # Needs: DNS for the apex stickpile.net pointing at this host (ACME HTTP challenge) and the Authentik app slug below.
+  webfinger:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    command:
+      - caddy
+      - respond
+      - --listen
+      - ":8080"
+      - --status
+      - "200"
+      - --header
+      - "Content-Type: application/jrd+json"
+      - --header
+      - "Access-Control-Allow-Origin: *"
+      - --body
+      - '{"subject":"acct:rdean@stickpile.net","links":[{"rel":"http://openid.net/specs/connect/1.0/issuer","href":"https://auth.stickpile.net/application/o/tailscale/"}]}'
+    networks:
+      - traefik_backbone
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webfinger.rule=Host(`stickpile.net`) && Path(`/.well-known/webfinger`)"
+      - "traefik.http.routers.webfinger.entrypoints=websecure"
+      - "traefik.http.routers.webfinger.tls.certresolver=httpsResolve"
+      - "traefik.http.services.webfinger.loadbalancer.server.port=8080"
+
 volumes:
   traefik_letsencrypt:
     driver: local
