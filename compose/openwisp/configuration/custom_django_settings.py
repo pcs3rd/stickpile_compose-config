@@ -46,8 +46,11 @@ if _client_id and _client_secret and _server_url:
             ],
         }
 
-        # Only existing staff accounts can sign in this way; nobody gets an account created.
-        SOCIALACCOUNT_ADAPTER = "openwisp.configuration.authentik_oidc.ExistingStaffOnlyAdapter"
+        # Existing staff are linked by email; members of the admin group are auto-created as superusers.
+        SOCIALACCOUNT_ADAPTER = "openwisp.configuration.authentik_oidc.AuthentikAdapter"
+        AUTHENTIK_ADMIN_GROUP = os.environ.get("OIDC_ADMIN_GROUP", "openwisp-admins")
+        # Authentik reports email_verified=false by default; don't block social signups on it.
+        SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
         # Lets /accounts/oidc/authentik/login/ redirect straight to Authentik (bookmarkable).
         SOCIALACCOUNT_LOGIN_ON_GET = True
         # TLS ends at Traefik and nginx serves plain HTTP, so force https in the callback URL.

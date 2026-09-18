@@ -56,6 +56,7 @@ x-openwisp-env: &openwisp-env
   OIDC_SERVER_URL: https://auth.stickpile.net/application/o/openwisp   # no trailing slash: allauth appends /.well-known/openid-configuration
   OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
   OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+  OIDC_ADMIN_GROUP: openwisp-admins           # Authentik group whose members are auto-created as OpenWISP superusers
 
   # ── RADIUS: which source addresses may call the freeradius API endpoints ──
   OPENWISP_RADIUS_FREERADIUS_ALLOWED_HOSTS: ${OPENWISP_SUBNET:-172.29.240.0/24}

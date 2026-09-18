@@ -32,9 +32,13 @@ Set up in Authentik:
 
 Then sign in at `https://wisp.stickpile.net/accounts/oidc/authentik/login/` (bookmark it; the normal admin login page has no button).
 
-How it behaves:
-- Only **existing, active staff** OpenWISP users can sign in this way. The Authentik email must match the OpenWISP user's email; the
-  first login links the two. No accounts are ever created from an Authentik login.
+Users and access (group `openwisp-admins` in Authentik, name set by `OIDC_ADMIN_GROUP` in `compose.yaml`):
+- **Members of the group** with no OpenWISP account yet are auto-created on first login as **superusers**. Create the group in Authentik,
+  add yourself, and (recommended) bind it to the application as an access policy so only members can open it.
+- **Existing, active staff** OpenWISP users are matched by email and linked on first login. Their permissions are not changed.
+- **Everyone else** is refused, and no account is created. An email that already belongs to a non-staff user is never duplicated.
+- Group membership is read from the `groups` claim (Authentik's default `profile` scope mapping) and only checked at account creation.
+  Removing someone from the group later does not demote or deactivate them; do that in OpenWISP.
 - Anyone who can set their own email in Authentik to an admin's address can sign in as that admin. Disable self-service email edits there.
 - The normal username/password login still works as a fallback.
 - `settings.py` swallows `ImportError` from the custom settings, so failures are silent. Look for `[oidc]` in the container logs.
