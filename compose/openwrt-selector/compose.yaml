@@ -1,0 +1,150 @@
+# OpenWrt Firmware Selector + self-hosted ASU (Attended SysUpgrade) image builder.
+#   Selector UI : https://github.com/openwrt/firmware-selector-openwrt-org
+#   ASU server  : https://github.com/openwrt/asu   (compose adapted from its podman-compose.yml)
+#
+# Everything is served from ONE hostname, gated by Authentik forward-auth:
+#   https://firmware.stickpile.net/          -> selector (static files, nginx)
+#   https://firmware.stickpile.net/api/v1/*  -> ASU API   (build requests / status)
+#   https://firmware.stickpile.net/store/*   -> ASU store (built images for download)
+# Same origin means the browser sends the Authentik cookie on the API calls too, and no CORS is needed.
+#
+# ASU builds images by starting OpenWrt ImageBuilder containers through a *Podman* API socket
+# (it uses podman-py, so a Docker socket will not work). Rather than depend on the host having
+# Podman, a privileged `podman` sidecar provides that socket. See readme.md for the trade-offs.
+#
+# No secrets and no NFS: nothing here needs an .env file. All volumes are local
+# (nested container storage must not live on NFS).
+
+x-asu-env: &asu-env
+  REDIS_URL: redis://redis:6379/0
+  ALLOW_DEFAULTS: "true"        # lets the selector's "first boot script" (uci-defaults) field work; safe because the site is behind Authentik
+  LOG_LEVEL: INFO
+
+services:
+
+  # ── Selector UI ─────────────────────────────────────────────────────────────
+  # Stock nginx. On start it downloads the pinned selector release tarball from GitHub and drops its
+  # www/ folder into the web root, then overlays our config.js. Bump SELECTOR_VERSION to upgrade.
+  selector:
+    image: nginx:alpine
+    restart: unless-stopped
+    environment:
+      SELECTOR_VERSION: ${SELECTOR_VERSION:-v5.1.0}
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        mkdir -p /tmp/selector
+        wget -qO- "https://github.com/openwrt/firmware-selector-openwrt-org/archive/refs/tags/$${SELECTOR_VERSION}.tar.gz" \
+          | tar -xz -C /tmp/selector --strip-components=1
+        cp -a /tmp/selector/www/. /usr/share/nginx/html/
+        cp /config/config.js /usr/share/nginx/html/config.js
+        rm -rf /tmp/selector
+        exec nginx -g 'daemon off;'
+    volumes:
+      - ./config.js:/config/config.js:ro
+    networks:
+      - traefik_backbone
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_backbone"
+      - "traefik.http.routers.openwrt-selector.rule=Host(`firmware.stickpile.net`)"
+      - "traefik.http.routers.openwrt-selector.entrypoints=websecure"
+      - "traefik.http.routers.openwrt-selector.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.openwrt-selector.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.openwrt-selector.service=openwrt-selector"
+      - "traefik.http.services.openwrt-selector.loadbalancer.server.port=80"
+
+  # ── ASU API server ──────────────────────────────────────────────────────────
+  asu:
+    image: docker.io/openwrt/asu:${ASU_VERSION:-latest}
+    restart: unless-stopped
+    command: uv run uvicorn --host 0.0.0.0 asu.main:app
+    environment: *asu-env
+    volumes:
+      - asu_public:/public          # /public/store holds finished builds (read by the API, written by the worker)
+    depends_on:
+      - redis
+    networks:
+      - default
+      - traefik_backbone
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_backbone"
+      # More specific than the selector router, so it wins for these paths.
+      - "traefik.http.routers.openwrt-asu.rule=Host(`firmware.stickpile.net`) && (PathPrefix(`/api/v1`) || PathPrefix(`/store`))"
+      - "traefik.http.routers.openwrt-asu.priority=100"
+      - "traefik.http.routers.openwrt-asu.entrypoints=websecure"
+      - "traefik.http.routers.openwrt-asu.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.openwrt-asu.middlewares=middlewares-authentik@file"
+      - "traefik.http.routers.openwrt-asu.service=openwrt-asu"
+      - "traefik.http.services.openwrt-asu.loadbalancer.server.port=8000"
+
+  # ── ASU build worker ────────────────────────────────────────────────────────
+  # ASU looks for its Podman socket at ./podman.sock or /var/podman.sock; the sidecar's socket lives on a
+  # shared volume, so link it into place before starting the worker. Add more workers by scaling this service.
+  worker:
+    image: docker.io/openwrt/asu:${ASU_VERSION:-latest}
+    restart: unless-stopped
+    command:
+      - sh
+      - -c
+      - ln -sf /run/asu-podman/podman.sock /var/podman.sock && exec uv run rqworker --logging_level INFO
+    environment: *asu-env
+    volumes:
+      - asu_public:/public
+      - podman_socket:/run/asu-podman
+    depends_on:
+      redis:
+        condition: service_started
+      podman:
+        condition: service_healthy
+
+  # ── Podman API sidecar ──────────────────────────────────────────────────────
+  # Runs ImageBuilder containers nested inside this one. Needs `privileged`. Creates the isolated
+  # `asu-build` network ASU attaches build containers to (internet access, but no route to redis).
+  podman:
+    image: quay.io/podman/stable:${PODMAN_VERSION:-latest}
+    restart: unless-stopped
+    privileged: true
+    user: root
+    command:
+      - sh
+      - -c
+      - |
+        podman network exists asu-build || podman network create asu-build
+        exec podman system service --time=0 unix:///run/podman/podman.sock
+    volumes:
+      - podman_socket:/run/podman
+      - podman_storage:/var/lib/containers      # ImageBuilder images (~1 GB per target) are cached here
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /run/podman/podman.sock"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+
+  # ── Job queue / cache ───────────────────────────────────────────────────────
+  # Redis *Stack* on purpose: ASU records build stats with the RedisTimeSeries module.
+  redis:
+    image: docker.io/redis/redis-stack-server:latest
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+networks:
+  traefik_backbone:
+    name: traefik_backbone
+    external: true
+
+volumes:
+  asu_public:
+    driver: local
+  podman_socket:
+    driver: local
+  podman_storage:
+    # Must stay local: overlayfs does not work on NFS.
+    driver: local
+  redis_data:
+    driver: local
