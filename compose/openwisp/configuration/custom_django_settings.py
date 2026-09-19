@@ -1,8 +1,9 @@
 """
 Extra Django settings for OpenWISP (mounted at /opt/openwisp/openwisp/configuration).
 
-Adds "Log in with Authentik" (OpenID Connect via django-allauth) to the admin.
-Nothing here is active until OIDC_CLIENT_ID and OIDC_CLIENT_SECRET are set in secrets.enc.env.
+Adds "Log in with Authentik" (OpenID Connect via django-allauth) to the admin, and holds
+other small OpenWISP setting overrides (see the bottom of the file).
+The Authentik login is not active until OIDC_CLIENT_ID and OIDC_CLIENT_SECRET are set in secrets.enc.env.
 
 This file is star-imported at the very end of openwisp/settings.py, so it cannot see the
 settings defined above it directly. We reach them through the half-loaded settings module,
@@ -55,3 +56,10 @@ if _client_id and _client_secret and _server_url:
         SOCIALACCOUNT_LOGIN_ON_GET = True
         # TLS ends at Traefik and nginx serves plain HTTP, so force https in the callback URL.
         ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+
+
+# ── OpenWISP controller ────────────────────────────────────────────────────────
+# Don't share the management IP address space across organizations: a device's management_ip
+# only has to be unique within its own organization, so different orgs can reuse the same addresses.
+# Applies unconditionally (not gated on the OIDC settings above).
+OPENWISP_CONTROLLER_SHARED_MANAGEMENT_IP_ADDRESS_SPACE = False
