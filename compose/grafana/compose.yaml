@@ -16,6 +16,81 @@ services:
       loki:
         condition: service_healthy
 
+  # ── Tailscale sidecar ───────────────────────────────────────────────────────
+  # Grafana runs in this container's network namespace (network_mode: service:tailscale), so:
+  #   - it's reachable on the tailnet at https://grafana.<tailnet>.ts.net via `tailscale serve` (config/tailscale/serve.json)
+  #   - it can query datasources on other tailnet nodes (kernel mode, tailscale0 exists in the namespace)
+  #   - Traefik labels live here, since this container owns the networks Grafana is attached to.
+  tailscale:
+    image: tailscale/tailscale:${TAILSCALE_VERSION:-v1.102.4}
+    restart: unless-stopped
+    hostname: grafana
+    environment:
+      # No TS_AUTHKEY: authenticate once interactively — the login URL is printed in this container's logs
+      # (`docker logs <container> | grep login.tailscale.com`). Identity then persists in tailscale_state.
+      TS_HOSTNAME: grafana
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "false"                     # kernel mode so Grafana can reach tailnet datasources
+      TS_ACCEPT_DNS: "false"                    # keep Docker DNS so `loki` still resolves
+      TS_SERVE_CONFIG: /config/serve.json
+      TS_ENABLE_HEALTH_CHECK: "true"
+      TS_LOCAL_ADDR_PORT: 127.0.0.1:9002
+      TS_EXTRA_ARGS: ${TS_EXTRA_ARGS:-}         # e.g. --advertise-tags=tag:grafana; must match the tags saved in tailscale_state, or `tailscale up` refuses to start
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+      - ./config/tailscale:/config:ro
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - monitoring
+      - traefik_backbone
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:9002/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_backbone"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.stickpile.net`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=httpsResolve"
+      - "traefik.http.routers.grafana.middlewares="
+
+  grafana:
+    image: grafana/grafana-oss:12.4.2
+    restart: on-failure
+    network_mode: service:tailscale
+    environment:
+      - GF_SERVER_ROOT_URL
+      - GF_AUTH_GENERIC_OAUTH_ENABLED
+      - GF_AUTH_GENERIC_OAUTH_NAME
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+      - GF_AUTH_GENERIC_OAUTH_SCOPES
+      - GF_AUTH_GENERIC_OAUTH_AUTH_URL
+      - GF_AUTH_GENERIC_OAUTH_TOKEN_URL
+      - GF_AUTH_GENERIC_OAUTH_API_URL
+      - GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
+      - GF_AUTH_SIGNOUT_REDIRECT_URL
+      - GF_AUTH_OAUTH_AUTO_LOGIN
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/datasources:/etc/grafana/provisioning:ro
+    depends_on:
+      tailscale:
+        condition: service_started   # not _healthy: Grafana stays up via Traefik while the node awaits login
+        restart: true   # shares tailscale's network namespace; restart if it's recreated
+      loki:
+        condition: service_healthy
+
+  loki:
+        condition: service_healthy
+
   grafana:
     image: grafana/grafana-oss:12.4.2
     restart: on-failure
@@ -88,6 +163,10 @@ networks:
     external: true
 
 volumes:
+  tailscale_state:
+    # Node identity. Keep it local: sharing one state dir between nodes (e.g. blocky's) breaks both.
+    driver: local
+
   alloy_data:
     driver: local
     driver_opts:
