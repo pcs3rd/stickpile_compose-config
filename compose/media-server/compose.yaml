@@ -287,6 +287,32 @@ services:
       - "traefik.http.services.js.loadbalancer.server.port=5055"
       - "traefik.http.routers.js.middlewares="
 
+  kapowarr:
+    # Comic book manager (Sonarr-style, ComicVine metadata). Root folder to
+    # add in the web UI: /storage/<your comics dir> (same media share Komga reads).
+    # For Cloudflare-blocked sources set Settings > General > FlareSolverr
+    # Base URL to http://byparr:8191 (Byparr is a supported drop-in).
+    image: mrcas/kapowarr:v1.3.2
+    restart: on-failure
+    environment:
+      - PUID
+      - PGID
+      - TZ
+    volumes:
+      - kapowarr_db:/app/db               # local volume — SQLite is unreliable over NFS
+      - kapowarr_downloads:/app/temp_downloads
+      - media:/storage
+    networks:
+      - traefik_backbone
+      - mediaserver
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kapowarr.rule=Host(`kapowarr.stickpile.net`)"
+      - "traefik.http.routers.kapowarr.entrypoints=websecure"
+      - "traefik.http.routers.kapowarr.tls.certresolver=httpsResolve"
+      - "traefik.http.services.kapowarr.loadbalancer.server.port=5656"
+      - "traefik.http.routers.kapowarr.middlewares=middlewares-authentik@file"
+
   komga:
     image: ghcr.io/gotson/komga:1.26.3
     restart: on-failure
@@ -841,6 +867,20 @@ volumes:
     # Local volume for Jellyseerr's SQLite database (/app/config/db).
     # Mounted on top of jellyseerr_data to avoid NFS file-locking issues.
     driver: local
+
+  kapowarr_db:
+    # Local volume — keeps SQLite off NFS.
+    driver: local
+
+  kapowarr_downloads:
+    # Dedicated subdir, NOT the whole downloads share: Kapowarr's entrypoint
+    # runs `chown -R PUID:PGID /app/temp_downloads` on every start.
+    # The kapowarr/ dir must exist on the NFS export before first deploy.
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr}"
+      device: ":${nfs_downloads_share}/kapowarr"
 
   komga_config:
     driver: local
