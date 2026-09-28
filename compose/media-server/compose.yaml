@@ -349,7 +349,7 @@ services:
       - mediaserver
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.mylar.rule=Host(`kapowarr.stickpile.net`)"
+      - "traefik.http.routers.mylar.rule=Host(`mylar.stickpile.net`)"
       - "traefik.http.routers.mylar.entrypoints=websecure"
       - "traefik.http.routers.mylar.tls.certresolver=httpsResolve"
       - "traefik.http.services.mylar.loadbalancer.server.port=8090"
