@@ -130,37 +130,6 @@ services:
       - "traefik.http.services.readarr.loadbalancer.server.port=8789"
       - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
 
-  cleanuparr:
-    image: ghcr.io/cleanuparr/cleanuparr:2.9.16
-    restart: on-failure
-    environment:
-      - PORT=11011
-      - PUID
-      - PGID
-      - UMASK
-      - TZ
-    ports:
-      - 11011:11011
-    volumes:
-      - cleanuparr_data:/config
-      - downloads:/downloads
-    networks:
-      - traefik_backbone
-      - mediaserver
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.cu.rule=Host(`cu.stickpile.net`)"
-      - "traefik.http.routers.cu.entrypoints=websecure"
-      - "traefik.http.routers.cu.tls.certresolver=httpsResolve"
-      - "traefik.http.services.cu.loadbalancer.server.port=11011"
-      - "traefik.http.routers.cu.middlewares=middlewares-authentik@file"
-
   # ersatztv:
   #   image: ghcr.io/ersatztv/ersatztv
   #   restart: on-failure
@@ -814,13 +783,6 @@ volumes:
   chaptarr_data:
     # Local volume — keeps SQLite off NFS.
     driver: local
-
-  cleanuparr_data:
-    driver: local
-    driver_opts:
-      type: "nfs"
-      o: "addr=${nfs_addr}"
-      device: ":${nfs_appdata_share}/cleanuparr"
 
   ersatztv_data:
     driver: local
