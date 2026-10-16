@@ -77,9 +77,9 @@ env_files:
 #   - remote:../../shared/nfs.enc.env
 #   - remote:secrets.enc.env
 # ---
-name: openwrt-selector
-repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
-reference: prod
-working_dir: compose/openwrt-selector
-compose_files:
-  - compose.yaml
+# name: openwrt-selector
+# repository_url: https://github.com/pcs3rd/stickpile_compose-config.git
+# reference: prod
+# working_dir: compose/openwrt-selector
+# compose_files:
+#   - compose.yaml
