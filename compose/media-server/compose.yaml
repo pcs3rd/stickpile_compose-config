@@ -146,6 +146,13 @@ services:
       - media:/media:ro
     tmpfs:
       - /transcode
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ersatztv.rule=Host(`ersatztv.stickpile.net`)"
+      - "traefik.http.routers.ersatztv.entrypoints=websecure"
+      - "traefik.http.routers.ersatztv.tls.certresolver=httpsResolve"
+      - "traefik.http.services.ersatztv.loadbalancer.server.port=8409"
+      - "traefik.http.routers.ersatztv.middlewares=middlewares-authentik@file"
 
   flaresolverr: # broken by Cloudflare's recent anti-bot changes; awaiting upstream fix
     image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
