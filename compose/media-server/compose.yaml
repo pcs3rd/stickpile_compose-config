@@ -130,22 +130,22 @@ services:
       - "traefik.http.services.readarr.loadbalancer.server.port=8789"
       - "traefik.http.routers.readarr.middlewares=middlewares-authentik@file"
 
-  # ersatztv:
-  #   image: ghcr.io/ersatztv/ersatztv
-  #   restart: on-failure
-  #   environment:
-  #     - TZ
-  #   devices:
-  #     - /dev/dri/renderD128:/dev/dri/renderD128
-  #   networks:
-  #     - mediaserver
-  #   ports:
-  #     - "8409:8409"
-  #   volumes:
-  #     - ersatztv_data:/config
-  #     - media:/media:ro
-  #   tmpfs:
-  #     - /transcode
+  ersatztv:
+    image: ghcr.io/ersatztv/ersatztv
+    restart: on-failure
+    environment:
+      - TZ
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    networks:
+      - mediaserver
+    ports:
+      - "8409:8409"
+    volumes:
+      - ersatztv_data:/config
+      - media:/media:ro
+    tmpfs:
+      - /transcode
 
   flaresolverr: # broken by Cloudflare's recent anti-bot changes; awaiting upstream fix
     image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
