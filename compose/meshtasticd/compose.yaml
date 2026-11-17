@@ -1,0 +1,45 @@
+# Fleet-generic meshtasticd. Same file on every node; per-node differences
+# (if any) live in .env. Requires Docker Compose v2.23.1+ (inline `configs.content`).
+services:
+  meshtasticd:
+    image: meshtastic/meshtasticd:${MESHTASTICD_TAG:-beta}
+    container_name: meshtasticd
+    hostname: ${NODE_NAME:-meshtasticd}
+    restart: unless-stopped
+    # Host networking: the container sees the host's real NIC, so meshtasticd
+    # can derive a unique, stable node ID from it (see node_identity below).
+    # Ports 4403 (API) and 9443 (web) are exposed directly on the host.
+    network_mode: host
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ./config/config.yaml:/etc/meshtasticd/config.yaml:ro
+      - meshtasticd_data:/var/lib/meshtasticd
+    configs:
+      - source: lora_board
+        target: /etc/meshtasticd/config.d/10-board.yaml
+      - source: node_identity
+        target: /etc/meshtasticd/config.d/90-node.yaml
+    # Any CH341 on any bus; tolerates replug/renumbering.
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    device_cgroup_rules:
+      - "c 189:* rmw"
+
+volumes:
+  # Node DB, prefs and keys. Fixed name (not project-prefixed) so it survives
+  # renaming the project directory; override per node if you ever need to.
+  meshtasticd_data:
+    name: ${DATA_VOLUME:-meshtasticd_data}
+
+configs:
+  # Radio profile chosen by name, so mixed hardware is one .env line.
+  lora_board:
+    file: ./config/boards/${LORA_BOARD:-ch341-sx1262}.yaml
+  # Per-node identity, generated from env at deploy time.
+  # Default: derive MAC from the host NIC -> unique per node, zero config.
+  # Override NODE_IDENTITY in .env to change the iface or pin a MAC.
+  node_identity:
+    content: |
+      General:
+        ${NODE_IDENTITY:-MACAddressSource: eth0}

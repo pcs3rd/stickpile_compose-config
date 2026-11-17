@@ -1,0 +1,14 @@
+# Generic CH341 USB + SX1262 stick (MeshStick-style pinout).
+# No USB_VID/USB_PID/USB_Serialnum: VID/PID are the CH341 chip (same on
+# every node, 1a86:5512), and leaving the serial unset means "first CH341
+# found" — correct for one stick per host.
+# Verify pins against meshtasticd's bin/config.d/lora-usb-*.yaml for your board.
+Lora:
+  Module: sx1262
+  spidev: ch341
+  CS: 0
+  IRQ: 6
+  Reset: 2
+  Busy: 4
+  DIO2_AS_RF_SWITCH: true
+  DIO3_TCXO_VOLTAGE: true

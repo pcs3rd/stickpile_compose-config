@@ -1,0 +1,13 @@
+# CH341 USB + EBYTE E22 (SX1262) module, e.g. MeshToad-style boards.
+# Same as ch341-sx1262 plus the external RX-enable line.
+# Verify pins against meshtasticd's bin/config.d/lora-usb-*.yaml for your board.
+Lora:
+  Module: sx1262
+  spidev: ch341
+  CS: 0
+  IRQ: 6
+  Reset: 2
+  Busy: 4
+  RXen: 1
+  DIO2_AS_RF_SWITCH: true
+  DIO3_TCXO_VOLTAGE: true

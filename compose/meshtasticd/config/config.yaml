@@ -1,0 +1,14 @@
+# Shared meshtasticd config — identical on every node.
+# Hardware and identity are layered in from config.d/ (supplied by compose).
+
+Logging:
+  LogLevel: info         # debug | info | warn | error
+
+Webserver:
+  Port: 9443
+  RootPath: /usr/share/meshtasticd/web
+
+General:
+  MaxNodes: 200
+  MaxMessageQueue: 100
+  ConfigDirectory: /etc/meshtasticd/config.d/
