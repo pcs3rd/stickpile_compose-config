@@ -1,0 +1,71 @@
+services:
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_PASSWORD
+      - POSTGRES_USER
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - wiki-js
+
+  wiki:
+    image: ghcr.io/requarks/wiki:2
+    depends_on:
+      db:
+        condition: service_healthy
+    init: true
+    environment:
+      - DB_TYPE=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASS=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+    restart: unless-stopped
+    volumes:
+      - wiki-data:/wiki/data
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_backbone
+      - traefik.http.routers.wikijs.rule=Host(`wiki.stickpile.net`)
+      - traefik.http.routers.wikijs.entrypoints=websecure
+      - traefik.http.routers.wikijs.tls=true
+      - traefik.http.routers.wikijs.tls.certresolver=letsencrypt
+      - traefik.http.services.wikijs.loadbalancer.server.port=3000
+    networks:
+      - wiki-js
+      - traefik_backbone
+
+volumes:
+  db-data:
+    driver: local
+
+  wiki-data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=${nfs_addr}"
+      device: ":${nfs_appdata_share}/wikijs/data"
+
+networks:
+  wiki-js:
+    name: web-prod-wikijs_Internal
+    driver: bridge
+    internal: true
+  traefik_backbone:
+    name: traefik_backbone
+    external: true
